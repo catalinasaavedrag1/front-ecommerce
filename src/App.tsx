@@ -25,13 +25,14 @@ import NotFoundPage from './pages/NotFoundPage'
 export default function App() {
   return (
     <Routes>
+      {/* Checkout fuera del Layout: experiencia guiada sin distracciones */}
+      <Route path="checkout" element={<CheckoutPage />} />
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
         <Route path="categoria/:slug" element={<CategoryPage />} />
         <Route path="producto/:id" element={<ProductPage />} />
         <Route path="buscar" element={<SearchPage />} />
         <Route path="carro" element={<CartPage />} />
-        <Route path="checkout" element={<CheckoutPage />} />
         <Route path="empresas" element={<B2BPortalPage />} />
         <Route path="empresas/credito" element={<CreditPage />} />
         <Route path="cotizacion" element={<QuotePage />} />
