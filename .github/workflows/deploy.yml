@@ -3,7 +3,9 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main
+      # Rama por defecto del repo: es la única que el entorno github-pages
+      # permite desplegar, por eso los push aquí publican automáticamente.
+      - claude/mimbral-b2c-b2b-frontend-n1ipw7
   workflow_dispatch:
 
 # Permisos para publicar con el método oficial de GitHub Pages
