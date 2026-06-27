@@ -106,7 +106,7 @@ export default function CategoryPage() {
             return (
               <button key={s} className="subtile" onClick={() => setFiltersOpen(false)}>
                 <span className="subtile__img">
-                  {rep ? <ProductImage product={rep} /> : <span aria-hidden>{category.icon}</span>}
+                  {rep ? <ProductImage product={rep} variant={i + 1} /> : <span aria-hidden>{category.icon}</span>}
                 </span>
                 <span className="subtile__label">{s}</span>
               </button>
