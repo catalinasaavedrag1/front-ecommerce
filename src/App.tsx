@@ -20,6 +20,8 @@ import AboutPage from './pages/AboutPage'
 import TrackingPage from './pages/TrackingPage'
 import CreditPage from './pages/CreditPage'
 import InspirationPage from './pages/InspirationPage'
+import CategoriesPage from './pages/CategoriesPage'
+import EnTiendaPage from './pages/EnTiendaPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 export default function App() {
@@ -29,6 +31,8 @@ export default function App() {
       <Route path="checkout" element={<CheckoutPage />} />
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
+        <Route path="categorias" element={<CategoriesPage />} />
+        <Route path="en-tienda" element={<EnTiendaPage />} />
         <Route path="categoria/:slug" element={<CategoryPage />} />
         <Route path="producto/:id" element={<ProductPage />} />
         <Route path="buscar" element={<SearchPage />} />

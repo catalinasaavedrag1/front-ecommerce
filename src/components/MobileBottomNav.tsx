@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router-dom'
 import { useCart } from '@/context/CartContext'
-import { useWishlist } from '@/context/WishlistContext'
 import { useApp } from '@/context/AppContext'
 import Icon, { type IconName } from './Icon'
 
@@ -8,14 +7,13 @@ type Tab = { to: string; label: string; icon: IconName; end?: boolean; badge?: n
 
 export default function MobileBottomNav() {
   const { count } = useCart()
-  const wishlist = useWishlist()
   const { mode } = useApp()
 
   const tabs: Tab[] = [
     { to: '/', label: 'Inicio', icon: 'home', end: true },
-    { to: '/buscar', label: 'Buscar', icon: 'search' },
+    { to: '/categorias', label: 'Categorías', icon: 'grid' },
     { to: '/carro', label: mode === 'b2b' ? 'Orden' : 'Carro', icon: 'cart', badge: count },
-    { to: '/favoritos', label: 'Favoritos', icon: 'heart', badge: wishlist.count },
+    { to: '/en-tienda', label: 'Tienda', icon: 'store' },
     { to: '/cuenta', label: 'Cuenta', icon: 'user' },
   ]
 
