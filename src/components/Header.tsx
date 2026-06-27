@@ -26,17 +26,10 @@ export default function Header() {
     <header className="header">
       <div className="header__top">
         <div className="header__top-inner">
-          <span className="header__top-loc"><Icon name="pin" /> Despacho a todo Chile · Retira en tienda</span>
-          <div className="header__top-links">
-            <Link to="/empresas">Venta empresas</Link>
-            <span aria-hidden>·</span>
-            <Link to="/seguimiento">Sigue tu pedido</Link>
-            <span aria-hidden>·</span>
-            <Link to="/tiendas">Tiendas</Link>
-            <span aria-hidden>·</span>
-            <Link to="/ayuda">Ayuda</Link>
-            <span className="header__top-phone"><Icon name="phone" /> 600 600 0000</span>
-          </div>
+          <Link to="/tiendas"><Icon name="clock" /> Horarios y Tiendas</Link>
+          <Link to="/empresas"><Icon name="headset" /> Venta empresas</Link>
+          <Link to="/seguimiento"><Icon name="truck" /> Sigue tu pedido</Link>
+          <Link to="/ayuda" className="header__top-help"><Icon name="phone" /> 600 600 0000</Link>
         </div>
       </div>
 
@@ -50,17 +43,23 @@ export default function Header() {
         </button>
 
         <Link to="/" className="brand" aria-label="Mimbral inicio">
-          <span className="brand__mark">M</span>
+          <span className="brand__mark" aria-hidden>
+            <svg viewBox="0 0 44 40" width="100%" height="100%">
+              <path d="M7 31 16 9h6L13 31z" fill="#fff" />
+              <path d="M19 31 28 9h6l-9 22z" fill="#fff" />
+              <path d="M31 31 37 16v15z" fill="#e1251b" />
+            </svg>
+          </span>
           <span className="brand__text">
             Mimbral
-            <small>Construcción y Hogar</small>
+            <small className="brand__mts">MTS</small>
           </span>
         </Link>
 
         <form className="search" onSubmit={onSearch} role="search">
           <input
             type="search"
-            placeholder="Busca productos, marcas y SKU…"
+            placeholder="¿Qué estás buscando hoy?"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             aria-label="Buscar productos"
@@ -103,7 +102,7 @@ export default function Header() {
         </div>
       </div>
 
-      <nav className={`catnav ${menuOpen ? 'is-open' : ''}`} aria-label="Categorías">
+      <nav className="catnav" aria-label="Categorías">
         <ul>
           <li
             className="catnav__mega-trigger"
@@ -163,6 +162,32 @@ export default function Header() {
           </li>
         </ul>
       </nav>
+
+      {menuOpen && (
+        <div className="mobnav-overlay" onClick={() => setMenuOpen(false)}>
+          <div className="mobnav" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Menú">
+            <div className="mobnav__head">
+              <span className="mobnav__title">Categorías</span>
+              <button className="drawer__close" onClick={() => setMenuOpen(false)} aria-label="Cerrar"><Icon name="close" /></button>
+            </div>
+            <div className="mobnav__list">
+              {categories.map((c) => (
+                <Link key={c.id} to={`/categoria/${c.slug}`} className="mobnav__item" onClick={() => setMenuOpen(false)}>
+                  <span className="mobnav__icon"><CategoryIcon id={c.id} /></span>
+                  <span>{c.name}</span>
+                  <Icon name="chevron" className="mobnav__chev" />
+                </Link>
+              ))}
+            </div>
+            <div className="mobnav__foot">
+              <Link to="/ofertas" onClick={() => setMenuOpen(false)} className="mobnav__link">Ofertas</Link>
+              <Link to="/empresas" onClick={() => setMenuOpen(false)} className="mobnav__link">Venta empresas</Link>
+              <Link to="/tiendas" onClick={() => setMenuOpen(false)} className="mobnav__link">Tiendas</Link>
+              <Link to="/seguimiento" onClick={() => setMenuOpen(false)} className="mobnav__link">Sigue tu pedido</Link>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   )
 }

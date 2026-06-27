@@ -10,7 +10,7 @@ export type IconName =
   | 'phone' | 'pin' | 'building' | 'filter' | 'chevron' | 'plus' | 'minus' | 'close'
   | 'menu' | 'doc' | 'percent' | 'bolt' | 'check' | 'clock' | 'mail' | 'map' | 'box'
   | 'calendar' | 'lock' | 'card' | 'bank' | 'tag' | 'star' | 'sparkle' | 'users'
-  | 'wallet' | 'list' | 'headset' | 'leaf' | 'trash' | 'trend' | 'handshake' | 'medal'
+  | 'wallet' | 'list' | 'headset' | 'leaf' | 'trash' | 'trend' | 'handshake' | 'medal' | 'chat'
   // categorías
   | 'construccion' | 'ferreteria' | 'herramientas' | 'pinturas' | 'electricidad'
   | 'gasfiteria' | 'jardin' | 'banos-cocina' | 'pisos' | 'seguridad' | 'maderas' | 'temporada'
@@ -57,6 +57,7 @@ const paths: Record<IconName, JSX.Element> = {
   trend: <><path d="M3 17l6-6 4 4 7-7" /><path d="M15 8h5v5" /></>,
   handshake: <path d="m8 12 3-3 3 3 3-3 3 3-5 5-1-1-2 2-4-4z" />,
   medal: <><circle cx="12" cy="14" r="5" /><path d="M9 9 6 3M15 9l3-6M10 4h4" /></>,
+  chat: <><path d="M4 5h16v11H9l-4 4v-4H4z" /><path d="M8 9h8M8 12h5" /></>,
   // categorías
   construccion: <><path d="M3 21h18" /><path d="M5 21V10l4-2 4 2v11" /><path d="M13 21V13l4-2 2 1v9" /><path d="M7 13h2M7 16h2" /></>,
   ferreteria: <><path d="m14 7 3-3 3 3-3 3" /><path d="m4 20 8-8" /><circle cx="6" cy="18" r="2" /><path d="m13 11 3 3" /></>,

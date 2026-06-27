@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import Header from './Header'
 import Footer from './Footer'
 import Toast from './Toast'
+import Icon from './Icon'
 import { useApp } from '@/context/AppContext'
 
 export default function Layout() {
@@ -27,6 +28,9 @@ export default function Layout() {
       </main>
       <Footer />
       <Toast />
+      <a href="#chat" className="chatfab" aria-label="Chat de ayuda">
+        <Icon name="chat" />
+      </a>
     </div>
   )
 }

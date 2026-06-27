@@ -2,7 +2,20 @@ import { Link } from 'react-router-dom'
 import { categories, products } from '@/data/products'
 import { useApp } from '@/context/AppContext'
 import ProductCard from '@/components/ProductCard'
+import OfferCard from '@/components/OfferCard'
+import HeroCarousel, { type Slide } from '@/components/HeroCarousel'
 import Icon, { CategoryIcon, type IconName } from '@/components/Icon'
+
+const b2cSlides: Slide[] = [
+  { id: 's1', bg: 'linear-gradient(120deg,#102a63,#1f4aa8)', eyebrow: 'Temporada de invierno', title: 'Tu hogar más cálido con Mimbral', ctaLabel: 'Ver ofertas', ctaTo: '/categoria/temporada', productId: 'p-038', discount: 17 },
+  { id: 's2', bg: 'linear-gradient(120deg,#0f6347,#1aa06f)', eyebrow: 'Renueva tus espacios', title: 'Pinturas con hasta 20% de descuento', ctaLabel: 'Ver pinturas', ctaTo: '/categoria/pinturas', productId: 'p-013', discount: 20 },
+  { id: 's3', bg: 'linear-gradient(120deg,#7a1d15,#e1251b)', eyebrow: 'Maestros y profesionales', title: 'Potencia para todos tus proyectos', ctaLabel: 'Ver herramientas', ctaTo: '/categoria/herramientas', productId: 'p-008', discount: 19 },
+]
+
+const b2bSlides: Slide[] = [
+  { id: 'b1', bg: 'linear-gradient(120deg,#0f6347,#1aa06f)', eyebrow: 'Mimbral Empresas', title: 'Precios mayoristas para tu obra o negocio', ctaLabel: 'Ir al Portal Empresas', ctaTo: '/empresas' },
+  { id: 'b2', bg: 'linear-gradient(120deg,#102a63,#1f4aa8)', eyebrow: 'Compra ahora, paga después', title: 'Línea de crédito para tu empresa', ctaLabel: 'Solicitar crédito', ctaTo: '/empresas/credito' },
+]
 
 const trust: { icon: IconName; title: string; text: string }[] = [
   { icon: 'truck', title: 'Despacho a todo Chile', text: 'Seguimiento en línea' },
@@ -22,68 +35,13 @@ const brands = ['Bauker', 'Toolmax', 'Colormax', 'Lumen', 'Andescem', 'Hidroflex
 
 export default function HomePage() {
   const { mode } = useApp()
-  const offers = products.filter((p) => p.retailOffer).slice(0, 4)
+  const offers = products.filter((p) => p.retailOffer).slice(0, 6)
   const bestSellers = products.filter((p) => p.tags?.includes('Más vendido'))
   const featured = products.slice(0, 8)
 
   return (
     <div className="home">
-      <section className={`hero hero--${mode}`}>
-        <div className="hero__content">
-          {mode === 'b2b' ? (
-            <>
-              <span className="hero__eyebrow">Mimbral Empresas</span>
-              <h1>Abastece tu obra o negocio con precios mayoristas</h1>
-              <p>
-                Precios netos, descuentos por volumen, línea de crédito y
-                cotizaciones en línea. Despacho a faena en todo Chile.
-              </p>
-              <div className="hero__cta">
-                <Link to="/empresas" className="btn btn--primary btn--lg">
-                  Ir al Portal Empresas
-                </Link>
-                <Link to="/cotizacion" className="btn btn--ghost btn--lg">
-                  Solicitar cotización
-                </Link>
-              </div>
-            </>
-          ) : (
-            <>
-              <span className="hero__eyebrow">Temporada de proyectos</span>
-              <h1>Todo para construir y mejorar tu hogar</h1>
-              <p>
-                Miles de productos de las mejores marcas, con despacho a todo
-                Chile y retiro en tienda el mismo día.
-              </p>
-              <div className="hero__cta">
-                <Link to="/categoria/herramientas" className="btn btn--primary btn--lg">
-                  Ver herramientas
-                </Link>
-                <Link to="/categoria/pinturas" className="btn btn--ghost btn--lg">
-                  Ofertas en pinturas
-                </Link>
-              </div>
-              <div className="hero__stats">
-                <span><strong>+15.000</strong> productos</span>
-                <span><strong>60+</strong> marcas</span>
-                <span><strong>24-72h</strong> despacho</span>
-              </div>
-            </>
-          )}
-        </div>
-        <div className="hero__cards" aria-hidden>
-          <div className="hero__promo hero__promo--a">
-            <span>Hasta</span>
-            <strong>30%</strong>
-            <small>en pinturas</small>
-          </div>
-          <div className="hero__promo hero__promo--b">
-            <span>Despacho</span>
-            <strong>GRATIS</strong>
-            <small>sobre $49.990</small>
-          </div>
-        </div>
-      </section>
+      <HeroCarousel slides={mode === 'b2b' ? b2bSlides : b2cSlides} />
 
       <section className="trustbar">
         {trust.map((t) => (
@@ -142,17 +100,15 @@ export default function HomePage() {
         </section>
       )}
 
-      {mode === 'b2c' && offers.length > 0 && (
+      {offers.length > 0 && (
         <section className="row">
-          <div className="row__head">
-            <h2 className="section-title">Ofertas de la semana</h2>
-            <Link to="/ofertas" className="row__more">
-              Ver todas
-            </Link>
+          <div className="row__head row__head--center">
+            <h2 className="section-title">Ofertas</h2>
+            <Link to="/ofertas" className="row__more">Ver todas</Link>
           </div>
-          <div className="grid">
+          <div className="offergrid">
             {offers.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <OfferCard key={p.id} product={p} />
             ))}
           </div>
         </section>
