@@ -10,9 +10,11 @@ interface Props {
   deliveryLabel?: string
   etaLabel?: string
   mobile?: boolean
+  discount?: number
+  discountLabel?: string
 }
 
-function Lines({ totals, shipping }: { totals: CartTotals; shipping: number | null }) {
+function Lines({ totals, shipping, discount = 0, discountLabel }: { totals: CartTotals; shipping: number | null; discount?: number; discountLabel?: string }) {
   const total = totals.gross + (shipping ?? 0)
   return (
     <>
@@ -30,14 +32,15 @@ function Lines({ totals, shipping }: { totals: CartTotals; shipping: number | nu
         <div><dt>Productos</dt><dd>{formatCLP(totals.gross)}</dd></div>
         {totals.savings > 0 && <div className="osum__save"><dt>Ahorro</dt><dd>-{formatCLP(totals.savings)}</dd></div>}
         <div><dt>Despacho</dt><dd>{shipping == null ? 'Por calcular' : shipping === 0 ? 'Gratis' : formatCLP(shipping)}</dd></div>
-        <div className="osum__total"><dt>Total</dt><dd>{formatCLP(total)}</dd></div>
+        {discount > 0 && <div className="osum__save"><dt>{discountLabel ?? 'Descuento'}</dt><dd>-{formatCLP(discount)}</dd></div>}
+        <div className="osum__total"><dt>Total</dt><dd>{formatCLP(total - discount)}</dd></div>
       </dl>
       <p className="osum__note"><Icon name="lock" /> No se realizará ningún cobro hasta que confirmes el pago.</p>
     </>
   )
 }
 
-export default function OrderSummary({ totals, shipping, deliveryLabel, etaLabel, mobile }: Props) {
+export default function OrderSummary({ totals, shipping, deliveryLabel, etaLabel, mobile, discount = 0, discountLabel }: Props) {
   const [open, setOpen] = useState(false)
   const total = totals.gross + (shipping ?? 0)
 
@@ -48,13 +51,14 @@ export default function OrderSummary({ totals, shipping, deliveryLabel, etaLabel
           <span className="osum-mob__total">
             <small>Total {totals.itemCount} productos</small>
             <strong>{formatCLP(total)}</strong>
+            {discount > 0 && <em className="osum-mob__loyalty">{discountLabel ?? 'Con descuento'} {formatCLP(total - discount)}</em>}
           </span>
           <span className="osum-mob__toggle">{open ? 'Ocultar' : 'Ver resumen'} <Icon name="chevron" className={open ? 'rot-up' : 'rot-down'} /></span>
         </button>
         {open && (
           <div className="osum-mob__panel">
             {deliveryLabel && <p className="osum__delivery"><Icon name="truck" /> {deliveryLabel}{etaLabel ? ` · ${etaLabel}` : ''}</p>}
-            <Lines totals={totals} shipping={shipping} />
+            <Lines totals={totals} shipping={shipping} discount={discount} discountLabel={discountLabel} />
           </div>
         )}
       </div>
@@ -65,7 +69,7 @@ export default function OrderSummary({ totals, shipping, deliveryLabel, etaLabel
     <aside className="osum">
       <h2>Resumen de compra</h2>
       {deliveryLabel && <p className="osum__delivery"><Icon name="truck" /> {deliveryLabel}{etaLabel ? ` · ${etaLabel}` : ''}</p>}
-      <Lines totals={totals} shipping={shipping} />
+      <Lines totals={totals} shipping={shipping} discount={discount} discountLabel={discountLabel} />
     </aside>
   )
 }

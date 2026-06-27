@@ -8,14 +8,15 @@ import OrderSummary from '@/components/checkout/OrderSummary'
 import ProductImage from '@/components/ProductImage'
 import Icon from '@/components/Icon'
 
-type StepId = 'datos' | 'entrega' | 'direccion' | 'documento' | 'pago' | 'revision'
-const ORDER: StepId[] = ['datos', 'entrega', 'direccion', 'documento', 'pago', 'revision']
+type StepId = 'datos' | 'entrega' | 'direccion' | 'pago' | 'revision'
+const ORDER: StepId[] = ['datos', 'entrega', 'direccion', 'pago', 'revision']
 
 const REGIONS = ['Región Metropolitana', 'Región del Maule', 'Región del Biobío', 'Región de Antofagasta']
 const COMUNAS = ['Santiago', 'La Florida', 'Maipú', 'Providencia', 'San Javier', 'Concepción', 'Antofagasta', 'Isla de Pascua']
 const NO_COVERAGE = ['Isla de Pascua']
+const GIROS = ['Construcción', 'Comercio', 'Servicios', 'Industria', 'Transporte', 'Agrícola y forestal', 'Otro']
 
-// Tiendas para retiro (estilo "Selecciona un punto de entrega")
+// Tiendas para retiro
 const PICKUP = [
   { id: 'p1', name: 'Mimbral Santiago Centro', addr: "Av. L. B. O'Higgins 1234, Santiago", km: 3 },
   { id: 'p2', name: 'Mimbral Providencia', addr: 'Av. Providencia 2120, Providencia', km: 6 },
@@ -23,14 +24,23 @@ const PICKUP = [
   { id: 'p4', name: 'Mimbral La Florida', addr: 'Av. Vicuña Mackenna 7500, La Florida', km: 12 },
 ]
 
-// ---------- Fechas (estilo "Cambiar fecha") ----------
+// Tipos de tarjeta para "Agregar tarjeta"
+type CardType = { id: string; label: string; desc?: string; brand: string; tone: string; loyalty?: boolean }
+const CARD_TYPES: CardType[] = [
+  { id: 'mimbral', label: 'Tarjeta Mimbral', desc: '9% dcto.', brand: 'MIM', tone: 'mim', loyalty: true },
+  { id: 'credito', label: 'Tarjeta de crédito', brand: 'CRÉD', tone: 'credit' },
+  { id: 'debito', label: 'Tarjeta de débito', brand: 'DÉB', tone: 'debit' },
+  { id: 'prepago', label: 'Tarjeta de prepago', brand: 'PRE', tone: 'prepaid' },
+]
+type Card = { id: string; brand: string; kind: string; last4: string; fav: boolean; loyalty?: boolean }
+
+// ---------- Fechas ----------
 const DOW = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb']
 const DOW_LONG = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
 const MON = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
 const MON_FULL = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 const pad = (n: number) => String(n).padStart(2, '0')
-
 type DateOpt = { date: Date; iso: string }
 function genDates(n: number): DateOpt[] {
   const out: DateOpt[] = []
@@ -47,6 +57,18 @@ function rangeLabel(items: DateOpt[]) {
   const a = items[0].date, b = items[items.length - 1].date
   const ma = `${MON_FULL[a.getMonth()]} ${a.getFullYear()}`, mb = `${MON_FULL[b.getMonth()]} ${b.getFullYear()}`
   return ma === mb ? ma : `${ma} - ${mb}`
+}
+// Validación de RUT básica (formato/cuerpo)
+function isValidRut(raw: string) {
+  const clean = raw.replace(/[.\-\s]/g, '').toUpperCase()
+  if (clean.length < 8) return false
+  const body = clean.slice(0, -1), dv = clean.slice(-1)
+  if (!/^\d+$/.test(body)) return false
+  let sum = 0, mul = 2
+  for (let i = body.length - 1; i >= 0; i--) { sum += Number(body[i]) * mul; mul = mul === 7 ? 2 : mul + 1 }
+  const res = 11 - (sum % 11)
+  const calc = res === 11 ? '0' : res === 10 ? 'K' : String(res)
+  return calc === dv
 }
 
 type CartLineT = ReturnType<typeof buildTotals>['lines'][number]
@@ -86,9 +108,19 @@ export default function CheckoutPage() {
   const [region, setRegion] = useState('')
   const [comuna, setComuna] = useState('')
   const [addr, setAddr] = useState({ street: '', number: '', extra: '', ref: '', receiver: '', phone: '' })
+
+  // Pago
+  const [cards, setCards] = useState<Card[]>([{ id: 'c1', brand: 'VISA', kind: 'Débito', last4: '5953', fav: true }])
+  const [payCard, setPayCard] = useState('c1')
+  const [payment, setPayment] = useState<string>('tarjeta')
+  const [coupon, setCoupon] = useState<{ code: string; applied: boolean }>({ code: '', applied: false })
+  const [couponInput, setCouponInput] = useState('')
+  const [couponErr, setCouponErr] = useState(false)
+  const [acceptPuntos, setAcceptPuntos] = useState(false)
+  const [acceptTerms, setAcceptTerms] = useState(false)
   const [doc, setDoc] = useState<'boleta' | 'factura'>(mode === 'b2b' ? 'factura' : 'boleta')
-  const [fact, setFact] = useState({ rut: customer?.rut ? formatRut(customer.rut) : '', razon: customer?.company ?? '', giro: '', dir: '', email: '' })
-  const [payment, setPayment] = useState('')
+  const [fact, setFact] = useState({ rut: customer?.rut ? formatRut(customer.rut) : '', razon: customer?.company ?? '', giro: '', dir: '', region: '', comuna: '', contacto: '' })
+
   const [open, setOpen] = useState<StepId>('datos')
   const [done, setDone] = useState<Set<StepId>>(new Set())
   const [calc, setCalc] = useState(false)
@@ -97,25 +129,54 @@ export default function CheckoutPage() {
   // Bottom sheets
   const [dateSheet, setDateSheet] = useState<string | null>(null)
   const [storeSheet, setStoreSheet] = useState<string | null>(null)
+  const [cardSheet, setCardSheet] = useState(false)
+  const [couponSheet, setCouponSheet] = useState(false)
+  const [factSheet, setFactSheet] = useState(false)
 
   const anyDomicilio = groups.some((g) => selFor(g.id).method === 'domicilio')
   const anyRetiro = groups.some((g) => selFor(g.id).method === 'retiro')
   const allRetiro = !anyDomicilio
-  const delivery: 'retiro' | 'despacho' = allRetiro ? 'retiro' : 'despacho'
   const noCoverage = anyDomicilio && comuna !== '' && NO_COVERAGE.includes(comuna)
   const shipping = noCoverage ? null : groups.reduce((s, g) => s + groupCost(g, selFor(g.id)), 0)
   const deliveryLabel = allRetiro ? 'Retiro en tienda' : anyRetiro ? 'Entrega mixta' : 'Despacho a domicilio'
   const firstDom = groups.find((g) => selFor(g.id).method === 'domicilio')
   const eta = firstDom ? `Llega el ${longLabel(dateObj(selFor(firstDom.id).dateIso))}` : 'Retiro en tienda'
 
+  const selectedCard = cards.find((c) => c.id === payCard)
+  const usingCard = payment === 'tarjeta'
+  const loyaltyDisc = usingCard && selectedCard?.loyalty ? Math.round(totals.gross * 0.09) : 0
+  const couponDisc = coupon.applied ? Math.round(totals.gross * 0.1) : 0
+  const discount = loyaltyDisc + couponDisc
+  const discountLabel = loyaltyDisc && couponDisc ? 'Descuentos' : loyaltyDisc ? 'Con Tarjeta Mimbral' : couponDisc ? `Cupón ${coupon.code}` : undefined
+  const grandTotal = totals.gross + (shipping ?? 0) - discount
+
   const completeEntrega = () => {
     setDone((p) => { const n = new Set(p).add('entrega'); if (allRetiro) n.add('direccion'); return n })
-    setOpen(allRetiro ? 'documento' : 'direccion')
+    setOpen(allRetiro ? 'pago' : 'direccion')
   }
   const complete = (id: StepId) => {
     setDone((p) => new Set(p).add(id))
     const next = ORDER[ORDER.indexOf(id) + 1]
     if (next) setOpen(next)
+  }
+  const addCard = (t: CardType) => {
+    const id = `c${cards.length + 1}`
+    const last4 = ['4421', '7788', '1090', '3312', '6605'][cards.length % 5]
+    setCards((prev) => [...prev, { id, brand: t.brand, kind: t.label.replace('Tarjeta de ', '').replace('Tarjeta ', ''), last4, fav: false, loyalty: t.loyalty }])
+    setPayCard(id); setPayment('tarjeta'); setCardSheet(false)
+  }
+  const removeCard = (id: string) => {
+    setCards((prev) => prev.filter((c) => c.id !== id))
+    if (payCard === id) { const rest = cards.filter((c) => c.id !== id); setPayCard(rest[0]?.id ?? ''); if (!rest.length) setPayment('') }
+  }
+  const applyCoupon = () => {
+    const code = couponInput.trim().toUpperCase()
+    if (code.length >= 4) { setCoupon({ code, applied: true }); setCouponErr(false); setCouponSheet(false) }
+    else setCouponErr(true)
+  }
+  const saveFact = () => {
+    if (!isValidRut(fact.rut) || !fact.razon) return
+    setDoc('factura'); setFactSheet(false)
   }
 
   const placeOrder = () => {
@@ -125,7 +186,7 @@ export default function CheckoutPage() {
     setTimeout(() => { setPlaced(n); clear() }, 1100)
   }
 
-  // ---------- Pantalla de confirmación ----------
+  // ---------- Confirmación ----------
   if (placed) {
     const transfer = payment === 'transferencia'
     return (
@@ -150,7 +211,7 @@ export default function CheckoutPage() {
               )
             })}
             {allRetiro && <p className="cksuccess__bring"><Icon name="user" /> Lleva tu carnet de identidad y el número de pedido.</p>}
-            <div className="cksuccess__pay"><span>{doc === 'factura' ? 'Factura' : 'Boleta'}</span><span>·</span><span>{payLabel(payment)}</span><span>·</span><strong>{formatCLP(totals.gross + (shipping ?? 0))}</strong></div>
+            <div className="cksuccess__pay"><span>{doc === 'factura' ? 'Factura' : 'Boleta'}</span><span>·</span><span>{payDesc(payment, selectedCard)}</span><span>·</span><strong>{formatCLP(grandTotal)}</strong></div>
           </div>
           <div className="cksuccess__actions">
             <Link to="/seguimiento" className="btn btn--primary">Seguir mi pedido</Link>
@@ -176,7 +237,6 @@ export default function CheckoutPage() {
 
   const stepIndex = (id: StepId) => ORDER.indexOf(id) + 1
 
-  // Sección acordeón reutilizable
   const Step = ({ id, title, summary, children }: { id: StepId; title: string; summary?: ReactNode; children: ReactNode }) => {
     const isDone = done.has(id)
     const isOpen = open === id
@@ -197,7 +257,7 @@ export default function CheckoutPage() {
 
   return (
     <CheckoutShell>
-      <div className="ckprogress">Paso {stepIndex(open)} de 6 · <strong>{stepTitle(open, delivery)}</strong></div>
+      <div className="ckprogress">Paso {stepIndex(open)} de {ORDER.length} · <strong>{stepTitle(open)}</strong></div>
 
       <div className="cklayout">
         <div className="cksteps">
@@ -223,7 +283,7 @@ export default function CheckoutPage() {
             <button className="btn btn--primary ckstep__next" disabled={!data.name || !data.email.includes('@') || !data.phone} onClick={() => complete('datos')}>Continuar a entrega</button>
           </Step>
 
-          {/* 2 ENTREGA — estilo "Elige un tipo de entrega" */}
+          {/* 2 ENTREGA */}
           <Step id="entrega" title="Elige un tipo de entrega" summary={<>{deliveryLabel} · {groups.length} {groups.length === 1 ? 'entrega' : 'entregas'}</>}>
             <p className="ckhelp">Elige cómo recibir cada grupo de productos. Te mostramos costo y fecha antes de pagar.</p>
             {anyDomicilio && (
@@ -244,14 +304,10 @@ export default function CheckoutPage() {
                     <div className="dl-group__head">
                       <strong>Entrega {g.n}</strong>
                       <div className="dl-thumbs">
-                        {g.lines.slice(0, 4).map((l) => (
-                          <ProductImage key={l.product.id} product={l.product} className="dl-thumb" />
-                        ))}
+                        {g.lines.slice(0, 4).map((l) => (<ProductImage key={l.product.id} product={l.product} className="dl-thumb" />))}
                         {g.lines.length > 4 && <span className="dl-thumbs__more">+{g.lines.length - 4}</span>}
                       </div>
                     </div>
-
-                    {/* Retiro en tienda */}
                     <div className="dl-method">
                       <div className="dl-method__title"><Icon name="store" /> Retiro en tienda</div>
                       {PICKUP.slice(0, 2).map((st) => {
@@ -273,8 +329,6 @@ export default function CheckoutPage() {
                         <button className="link-btn">¿Retira alguien más?</button>
                       </div>
                     </div>
-
-                    {/* Envío a domicilio */}
                     <div className="dl-method">
                       <div className="dl-method__title"><Icon name="truck" /> Envío a domicilio</div>
                       <div role="button" tabIndex={0} className={`dl-opt ${s.method === 'domicilio' ? 'is-active' : ''}`} onClick={() => setSel(g.id, { method: 'domicilio' })}>
@@ -293,7 +347,7 @@ export default function CheckoutPage() {
             </div>
 
             <button className="btn btn--primary ckstep__next" onClick={completeEntrega}>
-              {allRetiro ? 'Continuar a documento' : 'Continuar a dirección'}
+              {allRetiro ? 'Continuar a pago' : 'Continuar a dirección'}
             </button>
           </Step>
 
@@ -302,7 +356,7 @@ export default function CheckoutPage() {
             {allRetiro ? (
               <>
                 <p className="ckhelp">Elegiste retiro en tienda en todas tus entregas, así que no necesitamos una dirección.</p>
-                <button className="btn btn--primary ckstep__next" onClick={() => complete('direccion')}>Continuar a documento</button>
+                <button className="btn btn--primary ckstep__next" onClick={() => complete('direccion')}>Continuar a pago</button>
               </>
             ) : (
               <>
@@ -343,42 +397,68 @@ export default function CheckoutPage() {
             )}
           </Step>
 
-          {/* 4 DOCUMENTO */}
-          <Step id="documento" title="Documento de compra" summary={doc === 'factura' ? `Factura · ${fact.razon || 'empresa'}` : 'Boleta'}>
-            <p className="ckhelp">Elige el documento que necesitas para esta compra.</p>
-            <div className="doc-cards">
-              <button className={`dcard dcard--sm ${doc === 'boleta' ? 'is-active' : ''}`} onClick={() => setDoc('boleta')}>
-                <strong>Boleta</strong><span>Para compras personales.</span>
-              </button>
-              <button className={`dcard dcard--sm ${doc === 'factura' ? 'is-active' : ''}`} onClick={() => setDoc('factura')}>
-                <strong>Factura</strong><span>Para empresas o compras con RUT empresa.</span>
-              </button>
+          {/* 4 PAGO — estilo "Elige un medio de pago" */}
+          <Step id="pago" title="Elige un medio de pago" summary={payment ? payDesc(payment, selectedCard) : undefined}>
+            <h3 className="paysec__title">Tarjetas guardadas</h3>
+            <div className="savedcards">
+              {cards.map((c) => (
+                <div key={c.id} role="button" tabIndex={0} className={`savedcard ${usingCard && payCard === c.id ? 'is-active' : ''}`} onClick={() => { setPayCard(c.id); setPayment('tarjeta') }}>
+                  <span className={`cardbrand cardbrand--${c.loyalty ? 'mim' : 'visa'}`}>{c.brand}</span>
+                  <span className="savedcard__label">{c.kind} <span className="cardmask">**** {c.last4}</span></span>
+                  {c.fav && <Icon name="heart" filled className="savedcard__fav" />}
+                  <button className="savedcard__x" aria-label="Eliminar" onClick={(e) => { e.stopPropagation(); removeCard(c.id) }}><Icon name="close" /></button>
+                </div>
+              ))}
+              {!cards.length && <p className="ckhelp">Aún no tienes tarjetas guardadas.</p>}
             </div>
-            {doc === 'factura' && (
-              <div className="formgrid">
-                <label>RUT empresa<input value={fact.rut} onChange={(e) => setFact({ ...fact, rut: e.target.value })} placeholder="76.123.456-7" /></label>
-                <label>Razón social<input value={fact.razon} onChange={(e) => setFact({ ...fact, razon: e.target.value })} placeholder="Empresa Ltda." /></label>
-                <label>Giro<input value={fact.giro} onChange={(e) => setFact({ ...fact, giro: e.target.value })} placeholder="Construcción" /></label>
-                <label>Correo de facturación<input value={fact.email} onChange={(e) => setFact({ ...fact, email: e.target.value })} placeholder="facturacion@empresa.cl" /></label>
-                <label className="formgrid__full">Dirección tributaria<input value={fact.dir} onChange={(e) => setFact({ ...fact, dir: e.target.value })} placeholder="Calle, número, comuna" /></label>
+            <button className="btn btn--ghost btn--block paysec__add" onClick={() => setCardSheet(true)}>Agregar tarjeta</button>
+
+            <div className="payprompt">
+              <span>¿Tienes un cupón?</span>
+              {coupon.applied ? (
+                <span className="payprompt__done"><span className="chip-ok"><Icon name="check" /> {coupon.code}</span><button className="link-btn" onClick={() => setCoupon({ code: '', applied: false })}>Quitar</button></span>
+              ) : (
+                <button className="btn btn--ghost btn--xs" onClick={() => setCouponSheet(true)}>Agregar</button>
+              )}
+            </div>
+
+            <div className="payprompt">
+              <span>¿Necesitas factura?</span>
+              {doc === 'factura' ? (
+                <span className="payprompt__done"><span className="chip-ok"><Icon name="check" /> {fact.razon || 'Factura'}</span><button className="link-btn" onClick={() => setFactSheet(true)}>Editar</button></span>
+              ) : (
+                <button className="btn btn--ghost btn--xs" onClick={() => setFactSheet(true)}>Solicitar</button>
+              )}
+            </div>
+
+            <div className="ckinfo"><Icon name="doc" /> Los términos y condiciones del sitio fueron actualizados recientemente.</div>
+
+            <div className="consent">
+              <label className="switchrow">
+                <span>Acepto ser parte del <strong>Programa Mimbral Puntos</strong> y recibir comunicaciones según la Política de Privacidad.</span>
+                <button type="button" role="switch" aria-checked={acceptPuntos} className={`switch ${acceptPuntos ? 'is-on' : ''}`} onClick={() => setAcceptPuntos((v) => !v)}><span /></button>
+              </label>
+              <label className="switchrow">
+                <span>He leído y acepto los <strong>Términos y Condiciones</strong> de compra.</span>
+                <button type="button" role="switch" aria-checked={acceptTerms} className={`switch ${acceptTerms ? 'is-on' : ''}`} onClick={() => setAcceptTerms((v) => !v)}><span /></button>
+              </label>
+            </div>
+
+            <details className="payother">
+              <summary>Otros medios de pago</summary>
+              <div className="paylist">
+                <PayOpt id="transferencia" cur={payment} set={(v) => setPayment(v)} title="Transferencia" desc="Te mostramos los datos bancarios al finalizar. Tu pedido queda pendiente hasta validar el pago." icon="bank" />
+                {customer?.type === 'b2b' && <PayOpt id="credito" cur={payment} set={(v) => setPayment(v)} title="Línea de crédito empresa" desc={`Usa tu crédito disponible${customer?.creditLine ? ` (${formatCLP((customer.creditLine) - (customer.creditUsed ?? 0))})` : ''}.`} icon="wallet" />}
+                {customer?.type === 'b2b' && <PayOpt id="oc" cur={payment} set={(v) => setPayment(v)} title="Orden de compra" desc="Adjunta tu OC. Coordinamos el despacho contra factura." icon="doc" />}
               </div>
-            )}
-            <button className="btn btn--primary ckstep__next" disabled={doc === 'factura' && (!fact.rut || !fact.razon)} onClick={() => complete('documento')}>Continuar a pago</button>
+            </details>
+
+            <button className="btn btn--primary ckstep__next" disabled={!payment || (usingCard && !payCard) || !acceptTerms} onClick={() => complete('pago')}>
+              {acceptTerms ? 'Revisar pedido' : 'Acepta los términos para continuar'}
+            </button>
           </Step>
 
-          {/* 5 PAGO */}
-          <Step id="pago" title="Medio de pago" summary={payment && payLabel(payment)}>
-            <p className="ckhelp">Elige cómo pagar. Antes de confirmar podrás revisar el total y todos los datos.</p>
-            <div className="paylist">
-              <PayOpt id="webpay" cur={payment} set={setPayment} title="Webpay" desc="Pago inmediato con débito o crédito. Tu pedido se confirma automáticamente." icon="card" />
-              <PayOpt id="transferencia" cur={payment} set={setPayment} title="Transferencia" desc="Te mostramos los datos bancarios al finalizar. Tu pedido queda pendiente hasta validar el pago." icon="bank" />
-              {customer?.type === 'b2b' && <PayOpt id="credito" cur={payment} set={setPayment} title="Línea de crédito empresa" desc={`Usa tu crédito disponible${customer?.creditLine ? ` (${formatCLP((customer.creditLine) - (customer.creditUsed ?? 0))})` : ''} para confirmar el pedido.`} icon="wallet" />}
-              {customer?.type === 'b2b' && <PayOpt id="oc" cur={payment} set={setPayment} title="Orden de compra" desc="Adjunta tu OC. Coordinamos el despacho contra factura." icon="doc" />}
-            </div>
-            <button className="btn btn--primary ckstep__next" disabled={!payment} onClick={() => complete('pago')}>Revisar pedido</button>
-          </Step>
-
-          {/* 6 REVISION */}
+          {/* 5 REVISION */}
           <Step id="revision" title="Revisa y confirma">
             <p className="ckhelp">Revisa que todo esté correcto. No se realizará ningún cobro hasta que confirmes.</p>
             <div className="review">
@@ -397,30 +477,31 @@ export default function CheckoutPage() {
                 })}
                 {anyDomicilio && comuna && <div className="muted">{addr.street} {addr.number}, {comuna}</div>}
               </ReviewRow>
-              <ReviewRow title="Documento" onEdit={() => setOpen('documento')}>{doc === 'factura' ? `Factura · ${fact.razon}` : 'Boleta'}</ReviewRow>
-              <ReviewRow title="Pago" onEdit={() => setOpen('pago')}>{payLabel(payment)}</ReviewRow>
+              <ReviewRow title="Medio de pago" onEdit={() => setOpen('pago')}>
+                {payDesc(payment, selectedCard)}
+                <div className="muted">{doc === 'factura' ? `Factura · ${fact.razon || 'empresa'}` : 'Boleta'}{discount > 0 ? ` · ${discountLabel}: -${formatCLP(discount)}` : ''}</div>
+              </ReviewRow>
             </div>
             <button className="btn btn--primary btn--lg ckstep__next" onClick={placeOrder} disabled={processing}>
-              {processing ? <><span className="spinner" /> Procesando tu pago…</> : buyer === 'empresa' && payment === 'credito' ? 'Confirmar pedido' : payment === 'transferencia' ? 'Confirmar pedido' : `Pagar ${formatCLP(totals.gross + (shipping ?? 0))}`}
+              {processing ? <><span className="spinner" /> Procesando tu pago…</> : payment === 'transferencia' || payment === 'credito' ? 'Confirmar pedido' : `Pagar ${formatCLP(grandTotal)}`}
             </button>
             <p className="ckstep__safe"><Icon name="lock" /> Compra protegida · No se cobra nada hasta confirmar.</p>
           </Step>
         </div>
 
         <div className="cksummary-desk">
-          <OrderSummary totals={totals} shipping={shipping} deliveryLabel={deliveryLabel} etaLabel={eta} />
+          <OrderSummary totals={totals} shipping={shipping} deliveryLabel={deliveryLabel} etaLabel={eta} discount={discount} discountLabel={discountLabel} />
           <Link to="/carro" className="cksummary__back">← Volver al carro</Link>
         </div>
       </div>
 
-      <OrderSummary totals={totals} shipping={shipping} deliveryLabel={deliveryLabel} etaLabel={eta} mobile />
+      <OrderSummary totals={totals} shipping={shipping} deliveryLabel={deliveryLabel} etaLabel={eta} discount={discount} discountLabel={discountLabel} mobile />
 
-      {/* ---------- Bottom sheet: Cambiar fecha ---------- */}
+      {/* ---------- Sheet: Cambiar fecha ---------- */}
       {dateSheet && (() => {
         const g = groups.find((x) => x.id === dateSheet)!
         const s = selFor(g.id)
         const cost = g.bulky ? 24990 : 4990
-        const [draft, setDraft] = [s.dateIso, (iso: string) => setSel(g.id, { dateIso: iso })]
         return (
           <Sheet title="Cambiar fecha" onClose={() => setDateSheet(null)}>
             <div className="sheet__lead">
@@ -434,9 +515,8 @@ export default function CheckoutPage() {
             </div>
             <div className="datechips">
               {dates.map((d) => (
-                <button key={d.iso} className={`datechip ${draft === d.iso ? 'is-active' : ''}`} onClick={() => setDraft(d.iso)}>
-                  <strong>{chipLabel(d.date)}</strong>
-                  <span>{formatCLP(cost)}</span>
+                <button key={d.iso} className={`datechip ${s.dateIso === d.iso ? 'is-active' : ''}`} onClick={() => setSel(g.id, { dateIso: d.iso })}>
+                  <strong>{chipLabel(d.date)}</strong><span>{formatCLP(cost)}</span>
                 </button>
               ))}
             </div>
@@ -445,7 +525,7 @@ export default function CheckoutPage() {
         )
       })()}
 
-      {/* ---------- Bottom sheet: Selecciona un punto de entrega ---------- */}
+      {/* ---------- Sheet: Selecciona un punto de entrega ---------- */}
       {storeSheet && (() => {
         const g = groups.find((x) => x.id === storeSheet)!
         const s = selFor(g.id)
@@ -454,7 +534,7 @@ export default function CheckoutPage() {
             <div className="dl-map" aria-hidden>
               <span className="dl-map__pin dl-map__pin--a"><Icon name="store" /></span>
               <span className="dl-map__pin dl-map__pin--b"><Icon name="store" /></span>
-              <span className="dl-map__label">Talca</span>
+              <span className="dl-map__label">Santiago</span>
             </div>
             <div className="ckwarn ckwarn--soft"><Icon name="clock" /> Recuerda que tienes hasta <strong>7 días calendario</strong> para retirar tu pedido en el lugar seleccionado.</div>
             <p className="sheet__q">Puntos de entrega ({PICKUP.length})</p>
@@ -475,6 +555,54 @@ export default function CheckoutPage() {
           </Sheet>
         )
       })()}
+
+      {/* ---------- Sheet: Agregar tarjeta ---------- */}
+      {cardSheet && (
+        <Sheet title="Agregar tarjeta" onClose={() => setCardSheet(false)}>
+          <div className="cardtypes">
+            {CARD_TYPES.map((t) => (
+              <button key={t.id} className="cardtype" onClick={() => addCard(t)}>
+                <span className={`cardbrand cardbrand--${t.tone}`}>{t.brand}</span>
+                <span className="cardtype__label">{t.label}{t.desc && <em className="cardtype__disc">{t.desc}</em>}</span>
+                <Icon name="chevron" className="cardtype__chev" />
+              </button>
+            ))}
+          </div>
+        </Sheet>
+      )}
+
+      {/* ---------- Sheet: ¿Tienes un cupón? ---------- */}
+      {couponSheet && (
+        <Sheet title="¿Tienes un cupón?" onClose={() => setCouponSheet(false)}>
+          <label className="sheet__field">
+            <span>Ingresa un código de cupón</span>
+            <div className="sheet__input">
+              <input value={couponInput} onChange={(e) => { setCouponInput(e.target.value); setCouponErr(false) }} placeholder="Código del cupón" autoFocus />
+              {couponInput && <button className="sheet__clear" onClick={() => setCouponInput('')} aria-label="Limpiar"><Icon name="close" /></button>}
+            </div>
+            {couponErr && <small className="field-err">Ingresa un código válido (mínimo 4 caracteres).</small>}
+          </label>
+          <button className="btn btn--dark sheet__cta" onClick={applyCoupon}>Aplicar cupón</button>
+        </Sheet>
+      )}
+
+      {/* ---------- Sheet: Datos de facturación ---------- */}
+      {factSheet && (
+        <Sheet title="Datos de facturación" onClose={() => setFactSheet(false)}>
+          <label className="sheet__field">
+            <span>RUT de la Empresa</span>
+            <div className="sheet__input"><input value={fact.rut} onChange={(e) => setFact({ ...fact, rut: e.target.value })} placeholder="Ingresa el RUT de la Empresa" className={fact.rut && !isValidRut(fact.rut) ? 'is-err' : ''} /></div>
+            {fact.rut && !isValidRut(fact.rut) && <small className="field-err">Ingresa un rut válido</small>}
+          </label>
+          <label className="sheet__field"><span>Razón social</span><div className="sheet__input"><input value={fact.razon} onChange={(e) => setFact({ ...fact, razon: e.target.value })} placeholder="Ingresa la Razón Social" /></div></label>
+          <label className="sheet__field"><span>Giro, Industria</span><div className="sheet__input"><select value={fact.giro} onChange={(e) => setFact({ ...fact, giro: e.target.value })}><option value="">Ingresa o selecciona el Giro</option>{GIROS.map((g) => <option key={g}>{g}</option>)}</select></div></label>
+          <label className="sheet__field"><span>Dirección</span><div className="sheet__input"><input value={fact.dir} onChange={(e) => setFact({ ...fact, dir: e.target.value })} placeholder="Ingresa Calle y Número" /></div></label>
+          <label className="sheet__field"><span>Región</span><div className="sheet__input"><select value={fact.region} onChange={(e) => setFact({ ...fact, region: e.target.value })}><option value="">Selecciona Región</option>{REGIONS.map((r) => <option key={r}>{r}</option>)}</select></div></label>
+          <label className="sheet__field"><span>Comuna</span><div className="sheet__input"><select value={fact.comuna} onChange={(e) => setFact({ ...fact, comuna: e.target.value })}><option value="">Selecciona Comuna</option>{COMUNAS.map((c) => <option key={c}>{c}</option>)}</select></div></label>
+          <label className="sheet__field"><span>Contacto</span><div className="sheet__input"><input value={fact.contacto} onChange={(e) => setFact({ ...fact, contacto: e.target.value })} placeholder="Correo de facturación" /></div></label>
+          <button className="btn btn--dark sheet__cta" disabled={!isValidRut(fact.rut) || !fact.razon} onClick={saveFact}>Guardar</button>
+        </Sheet>
+      )}
     </CheckoutShell>
   )
 }
@@ -531,9 +659,10 @@ function PayOpt({ id, cur, set, title, desc, icon }: { id: string; cur: string; 
   )
 }
 
-function payLabel(p: string) {
-  return { webpay: 'Webpay', transferencia: 'Transferencia bancaria', credito: 'Línea de crédito empresa', oc: 'Orden de compra', tarjeta: 'Tarjeta' }[p] ?? p
+function payDesc(p: string, card?: Card) {
+  if (p === 'tarjeta') return card ? `${card.brand} ${card.kind} **** ${card.last4}` : 'Tarjeta'
+  return { transferencia: 'Transferencia bancaria', credito: 'Línea de crédito empresa', oc: 'Orden de compra' }[p] ?? p
 }
-function stepTitle(id: StepId, delivery: string) {
-  return { datos: 'Tus datos', entrega: 'Entrega', direccion: delivery === 'retiro' ? 'Dirección' : 'Dirección', documento: 'Documento', pago: 'Pago', revision: 'Revisión' }[id]
+function stepTitle(id: StepId) {
+  return { datos: 'Tus datos', entrega: 'Entrega', direccion: 'Dirección', pago: 'Pago', revision: 'Revisión' }[id]
 }

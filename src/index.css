@@ -1423,3 +1423,63 @@ input:focus, select:focus, textarea:focus { border-color: var(--navy-700); box-s
 .dl-point__info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .dl-point__info strong { color: var(--ink); font-size: 0.95rem; }
 .dl-point__info em { color: var(--muted); font-style: normal; font-weight: 600; }
+
+/* ================= Elige un medio de pago (estilo app) ================= */
+.paysec__title { font-size: 1.05rem; color: var(--ink); margin: 0 0 12px; font-weight: 800; }
+.savedcards { display: flex; flex-direction: column; gap: 10px; }
+.savedcard { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: #fff; cursor: pointer; }
+.savedcard.is-active { border-color: var(--navy); box-shadow: 0 0 0 1px var(--navy) inset; }
+.savedcard__label { flex: 1; font-weight: 700; color: var(--ink); }
+.cardmask { color: var(--muted); font-weight: 600; }
+.savedcard__fav { color: var(--ink); font-size: 1.2rem; }
+.savedcard__x { background: none; border: none; color: var(--muted); font-size: 1.2rem; display: grid; place-items: center; padding: 4px; }
+.savedcard__x:hover { color: var(--red); }
+.paysec__add { margin: 14px 0 20px; }
+
+.cardbrand { flex-shrink: 0; min-width: 48px; height: 34px; padding: 0 8px; border-radius: 7px; display: grid; place-items: center; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.02em; color: #fff; }
+.cardbrand--visa { background: #1a4ba0; }
+.cardbrand--mim { background: #157f5c; }
+.cardbrand--credit { background: var(--navy); }
+.cardbrand--debit { background: #0f6f6a; }
+.cardbrand--prepaid { background: #5b3fb0; }
+
+.payprompt { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; margin-bottom: 12px; }
+.payprompt > span:first-child { font-weight: 700; color: var(--ink); }
+.payprompt__done { display: flex; align-items: center; gap: 10px; }
+.chip-ok { display: inline-flex; align-items: center; gap: 5px; background: #e9f7f0; color: var(--b2b-700); border: 1px solid #c7e8da; border-radius: 999px; padding: 4px 10px; font-size: 0.8rem; font-weight: 800; }
+.btn--xs { padding: 8px 16px; font-size: 0.85rem; }
+
+.ckinfo { display: flex; align-items: flex-start; gap: 10px; background: #eaf2fb; border: 1px solid #d4e4f6; color: var(--navy-900); padding: 12px 14px; border-radius: 10px; font-size: 0.88rem; margin: 4px 0 16px; }
+.ckinfo .ic { color: var(--navy); flex-shrink: 0; margin-top: 1px; }
+
+.consent { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.switchrow { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--line-2); font-size: 0.86rem; color: var(--ink); line-height: 1.4; }
+.switchrow:last-child { border-bottom: none; }
+.switch { flex-shrink: 0; width: 46px; height: 27px; border-radius: 999px; background: #cfd6df; border: none; padding: 0; position: relative; cursor: pointer; transition: background 0.18s; }
+.switch span { position: absolute; top: 3px; left: 3px; width: 21px; height: 21px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); transition: transform 0.18s; }
+.switch.is-on { background: var(--b2b); }
+.switch.is-on span { transform: translateX(19px); }
+
+.payother { margin-bottom: 18px; border: 1px solid var(--line); border-radius: 12px; padding: 4px 14px; }
+.payother > summary { cursor: pointer; font-weight: 700; color: var(--navy); padding: 12px 0; list-style: none; }
+.payother > summary::-webkit-details-marker { display: none; }
+.payother > summary::after { content: '+'; float: right; color: var(--muted); font-size: 1.2rem; line-height: 1; }
+.payother[open] > summary::after { content: '−'; }
+
+/* Tipos de tarjeta (sheet Agregar tarjeta) */
+.cardtypes { display: flex; flex-direction: column; gap: 12px; }
+.cardtype { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 16px 14px; border: 1px solid var(--line); border-radius: 12px; background: #fff; cursor: pointer; box-shadow: var(--shadow-xs); }
+.cardtype:hover { border-color: var(--navy); }
+.cardtype__label { flex: 1; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 10px; }
+.cardtype__disc { color: #1aa06f; font-style: normal; font-weight: 800; font-size: 0.9rem; }
+.cardtype__chev { color: var(--muted); }
+
+/* Campos en sheets (cupón / facturación) */
+.sheet__field { display: block; margin-bottom: 16px; }
+.sheet__field > span { display: block; font-weight: 700; color: var(--ink); margin-bottom: 8px; font-size: 0.92rem; }
+.sheet__input { display: flex; align-items: center; gap: 8px; border-bottom: 1.5px solid var(--line); }
+.sheet__input input, .sheet__input select { flex: 1; border: none; padding: 10px 0; font-size: 1rem; color: var(--ink); background: transparent; outline: none; font-family: inherit; }
+.sheet__input input.is-err { color: var(--red); }
+.sheet__input input.is-err + .sheet__clear, .sheet__field .sheet__input:focus-within { border-color: var(--navy); }
+.sheet__clear { background: none; border: none; color: var(--muted); display: grid; place-items: center; padding: 4px; }
+.field-err { display: block; color: var(--red); font-size: 0.82rem; margin-top: 6px; }
