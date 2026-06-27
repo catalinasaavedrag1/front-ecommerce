@@ -37,6 +37,12 @@ export default function Header() {
         </div>
       </div>
 
+      <Link to="/tiendas" className="header__loc" aria-label="Despacho y retiro">
+        <Icon name="pin" />
+        <span>Despacha a <strong>Santiago Centro</strong></span>
+        <Icon name="chevron" className="header__loc-chev" />
+      </Link>
+
       <div className="header__main">
         <button className="header__burger" aria-label="Abrir menú" onClick={() => setMenuOpen(true)}>
           <Icon name="menu" />

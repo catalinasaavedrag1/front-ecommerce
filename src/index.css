@@ -112,6 +112,13 @@ h1, h2, h3, h4 {
 .header__top a .ic { font-size: 1.05em; }
 .header__top-help { margin-left: auto; }
 
+/* Barra de ubicación (solo móvil, estilo app) */
+.header__loc { display: none; align-items: center; gap: 8px; padding: 9px 16px; background: var(--navy); color: #fff; font-size: 0.82rem; }
+.header__loc .ic { font-size: 1.05rem; flex-shrink: 0; }
+.header__loc span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #cfe0f2; }
+.header__loc strong { color: #fff; font-weight: 700; }
+.header__loc-chev { margin-left: auto; opacity: 0.85; }
+
 .header__main {
   max-width: var(--maxw); margin: 0 auto; padding: 14px 22px;
   display: flex; align-items: center; gap: 20px;
@@ -701,9 +708,21 @@ input:focus, select:focus, textarea:focus { border-color: var(--navy-700); box-s
   .about-stats { grid-template-columns: repeat(4, 1fr); }
 }
 @media (max-width: 880px) {
-  .header__main { flex-wrap: wrap; }
-  .header__burger { display: block; }
-  .search { order: 3; flex-basis: 100%; max-width: none; }
+  /* Header estilo app: oculta barra utilitaria de escritorio, muestra ubicación */
+  .header__top { display: none; }
+  .header__loc { display: flex; }
+  .header__main { flex-wrap: wrap; gap: 12px; padding: 11px 16px; }
+  .header__burger { display: block; font-size: 1.5rem; padding: 0; }
+  .brand { gap: 8px; }
+  .brand__mark { width: 38px; height: 34px; }
+  .brand__text { font-size: 1.3rem; }
+  .search { order: 3; flex-basis: 100%; max-width: none; border-width: 1.5px; }
+  .search input { padding: 10px 16px; font-size: 0.9rem; }
+  /* Favoritos y cuenta viven en la barra inferior: deja solo el carro */
+  .header__actions { gap: 0; margin-left: auto; }
+  .header__actions .header__icon-link, .account { display: none; }
+  .header__cart .header__icon-label { display: none; }
+  .header__cart .ic { font-size: 1.5rem; }
   .catnav { display: none; }
   .catnav.is-open { display: block; }
   .catnav.is-open > ul { flex-direction: column; align-items: stretch; }
@@ -721,7 +740,28 @@ input:focus, select:focus, textarea:focus { border-color: var(--navy-700); box-s
   .footer__news-form input { min-width: 0; flex: 1; }
 }
 @media (max-width: 540px) {
-  .catgrid__items, .b2bperks, .features__grid, .dashgrid, .choices, .formgrid, .trustbar, .inspo, .about-values, .about-stats { grid-template-columns: 1fr 1fr; }
+  .b2bperks, .features__grid, .dashgrid, .choices, .formgrid, .trustbar, .inspo, .about-values, .about-stats { grid-template-columns: 1fr 1fr; }
+  /* Tira de categorías horizontal con íconos circulares (estilo app) */
+  .catgrid { margin-top: 26px; }
+  .catgrid__items {
+    display: flex; grid-template-columns: none; gap: 16px;
+    overflow-x: auto; padding: 4px 16px 10px; margin: 0 -16px;
+    scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .catgrid__items::-webkit-scrollbar { display: none; }
+  .catgrid__item {
+    flex: 0 0 auto; width: 74px; background: none; border: none; padding: 0;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    font-size: 0.7rem; line-height: 1.15; scroll-snap-align: start;
+  }
+  .catgrid__item:hover { transform: none; box-shadow: none; border: none; }
+  .catgrid__icon {
+    width: 64px; height: 64px; margin: 0; border-radius: 50%;
+    background: #eef3fb; color: var(--navy); display: grid; place-items: center;
+    font-size: 1.7rem; box-shadow: var(--shadow-xs);
+  }
+  .catgrid__item:active .catgrid__icon { background: #dce7f7; }
   .storecard { grid-template-columns: 1fr; }
   .storecard__map { min-height: 90px; }
   .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -731,6 +771,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--navy-700); box-s
   .formgrid { grid-template-columns: 1fr; }
   .toast { left: 14px; right: 14px; width: auto; }
   .hero h1 { font-size: 1.7rem; }
+  .container, .home { padding: 18px 16px 40px; }
+  .home > section { margin-top: 30px; }
+  .projcard { padding: 14px 16px; }
+  .projcard__icon { width: 40px; height: 40px; font-size: 1.3rem; }
+  .row__more { font-size: 0.82rem; }
 }
 
 /* ---------- Iconos (alineación inline) ---------- */
@@ -1278,3 +1323,14 @@ input:focus, select:focus, textarea:focus { border-color: var(--navy-700); box-s
 .account__badge { background: #e6f6ef; color: var(--b2b-700); border: 1px solid #c7e8da; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 8px; border-radius: 999px; }
 .b2bhero__note { display: flex; align-items: center; gap: 8px; margin: 14px 0 0; font-size: 0.84rem; color: #dff0e8; }
 .b2bhero__note .ic { color: #fff; }
+
+/* ---------- Mobile app polish (al final para ganar en orden de cascada) ---------- */
+@media (max-width: 540px) {
+  .section-title,
+  .home .section-title,
+  .row__head--center .section-title { font-size: 1.18rem; margin-bottom: 14px; line-height: 1.2; }
+  .page-title { font-size: 1.45rem; }
+  .cat-intro h1 { font-size: 1.4rem; line-height: 1.2; }
+  .cat-intro p { font-size: 0.9rem; }
+  .row__head--center { gap: 2px; }
+}
