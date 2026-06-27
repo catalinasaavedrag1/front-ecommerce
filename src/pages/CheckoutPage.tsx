@@ -247,24 +247,7 @@ export default function CheckoutPage() {
   }
 
   const stepIndex = (id: StepId) => ORDER.indexOf(id) + 1
-
-  const Step = ({ id, title, summary, children }: { id: StepId; title: string; summary?: ReactNode; children: ReactNode }) => {
-    const isDone = done.has(id)
-    const isOpen = open === id
-    const isPending = !isDone && !isOpen
-    return (
-      <section className={`ckstep ${isOpen ? 'is-open' : ''} ${isDone ? 'is-done' : ''} ${isPending ? 'is-pending' : ''}`}>
-        <header className="ckstep__head" onClick={() => { if (isDone) setOpen(id) }}>
-          <span className="ckstep__num">{isDone ? <Icon name="check" /> : stepIndex(id)}</span>
-          <span className="ckstep__title">{title}</span>
-          {isDone && !isOpen && <button className="ckstep__edit" onClick={(e) => { e.stopPropagation(); setOpen(id) }}>Editar</button>}
-          {isPending && <span className="ckstep__pend">Pendiente</span>}
-        </header>
-        {isDone && !isOpen && summary && <div className="ckstep__summary">{summary}</div>}
-        {isOpen && <div className="ckstep__body">{children}</div>}
-      </section>
-    )
-  }
+  const stepProps = { done, open, setOpen }
 
   return (
     <CheckoutShell>
@@ -274,7 +257,7 @@ export default function CheckoutPage() {
         <div className="cksteps">
 
           {/* 1 DATOS */}
-          <Step id="datos" title="Tus datos" summary={<>{data.name} {data.lastname} · {data.email}</>}>
+          <Step {...stepProps} id="datos" title="Tus datos" summary={<>{data.name} {data.lastname} · {data.email}</>}>
             <p className="ckhelp">Primero necesitamos tus datos para enviarte el comprobante y avisarte el estado de tu pedido.</p>
             <div className="buyersel">
               <button className={`buyersel__opt ${buyer === 'persona' ? 'is-active' : ''}`} onClick={() => { setBuyer('persona'); setDoc('boleta') }}>
@@ -295,7 +278,7 @@ export default function CheckoutPage() {
           </Step>
 
           {/* 2 ENTREGA */}
-          <Step id="entrega" title="Elige un tipo de entrega" summary={<>{deliveryLabel} · {groups.length} {groups.length === 1 ? 'entrega' : 'entregas'}</>}>
+          <Step {...stepProps} id="entrega" title="Elige un tipo de entrega" summary={<>{deliveryLabel} · {groups.length} {groups.length === 1 ? 'entrega' : 'entregas'}</>}>
             <p className="ckhelp">Elige cómo recibir cada grupo de productos. Te mostramos costo y fecha antes de pagar.</p>
             {anyDomicilio && (
               <button className="dl-addr" onClick={() => setOpen('direccion')}>
@@ -363,7 +346,7 @@ export default function CheckoutPage() {
           </Step>
 
           {/* 3 DIRECCION */}
-          <Step id="direccion" title="Dirección de entrega" summary={allRetiro ? 'No requiere dirección · retiro en tienda' : comuna && `${addr.street} ${addr.number}, ${comuna}`}>
+          <Step {...stepProps} id="direccion" title="Dirección de entrega" summary={allRetiro ? 'No requiere dirección · retiro en tienda' : comuna && `${addr.street} ${addr.number}, ${comuna}`}>
             {allRetiro ? (
               <>
                 <p className="ckhelp">Elegiste retiro en tienda en todas tus entregas, así que no necesitamos una dirección.</p>
@@ -409,7 +392,7 @@ export default function CheckoutPage() {
           </Step>
 
           {/* 4 PAGO — estilo "Elige un medio de pago" */}
-          <Step id="pago" title="Elige un medio de pago" summary={payment ? payDesc(payment, selectedCard) : undefined}>
+          <Step {...stepProps} id="pago" title="Elige un medio de pago" summary={payment ? payDesc(payment, selectedCard) : undefined}>
             <h3 className="paysec__title">Tarjetas guardadas</h3>
             <div className="savedcards">
               {cards.map((c) => (
@@ -470,7 +453,7 @@ export default function CheckoutPage() {
           </Step>
 
           {/* 5 REVISION */}
-          <Step id="revision" title="Revisa y confirma">
+          <Step {...stepProps} id="revision" title="Revisa y confirma">
             <p className="ckhelp">Revisa que todo esté correcto. No se realizará ningún cobro hasta que confirmes.</p>
             <div className="review">
               <ReviewRow title="Tus datos" onEdit={() => setOpen('datos')}>{data.name} {data.lastname}<br />{data.email} · {data.phone}</ReviewRow>
@@ -645,6 +628,25 @@ export default function CheckoutPage() {
         </Sheet>
       )}
     </CheckoutShell>
+  )
+}
+
+function Step({ id, title, summary, children, done, open, setOpen }: { id: StepId; title: string; summary?: ReactNode; children: ReactNode; done: Set<StepId>; open: StepId; setOpen: (id: StepId) => void }) {
+  const isDone = done.has(id)
+  const isOpen = open === id
+  const isPending = !isDone && !isOpen
+  const idx = ORDER.indexOf(id) + 1
+  return (
+    <section className={`ckstep ${isOpen ? 'is-open' : ''} ${isDone ? 'is-done' : ''} ${isPending ? 'is-pending' : ''}`}>
+      <header className="ckstep__head" onClick={() => { if (isDone) setOpen(id) }}>
+        <span className="ckstep__num">{isDone ? <Icon name="check" /> : idx}</span>
+        <span className="ckstep__title">{title}</span>
+        {isDone && !isOpen && <button className="ckstep__edit" onClick={(e) => { e.stopPropagation(); setOpen(id) }}>Editar</button>}
+        {isPending && <span className="ckstep__pend">Pendiente</span>}
+      </header>
+      {isDone && !isOpen && summary && <div className="ckstep__summary">{summary}</div>}
+      {isOpen && <div className="ckstep__body">{children}</div>}
+    </section>
   )
 }
 
