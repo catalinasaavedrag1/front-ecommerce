@@ -4,6 +4,8 @@ import path from 'node:path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // En GitHub Pages el sitio se sirve bajo /<repo>/; en local, bajo /.
+  base: process.env.GITHUB_PAGES === 'true' ? '/front-ecommerce/' : '/',
   plugins: [react()],
   resolve: {
     alias: {
