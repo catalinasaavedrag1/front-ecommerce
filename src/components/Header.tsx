@@ -1,31 +1,24 @@
-import { useState, type FormEvent } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, NavLink } from 'react-router-dom'
 import { categories } from '@/data/products'
 import { categoryTree } from '@/data/menu'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import { useWishlist } from '@/context/WishlistContext'
 import ModeSwitch from './ModeSwitch'
+import SearchBar from './SearchBar'
 import Icon, { CategoryIcon } from './Icon'
 
 export default function Header() {
   const { mode, customer, logout } = useApp()
   const { count } = useCart()
   const wishlist = useWishlist()
-  const navigate = useNavigate()
-  const [q, setQ] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const [mega, setMega] = useState(false)
   const [megaCat, setMegaCat] = useState(categories[0].id)
   // Drill-down mobile: categoría seleccionada y subcategoría seleccionada
   const [mobCat, setMobCat] = useState<string | null>(null)
   const [mobSub, setMobSub] = useState<number | null>(null)
-
-  const onSearch = (e: FormEvent) => {
-    e.preventDefault()
-    navigate(`/buscar?q=${encodeURIComponent(q.trim())}`)
-    closeMenu()
-  }
 
   const closeMenu = () => { setMenuOpen(false); setMobCat(null); setMobSub(null) }
   const closeMega = () => setMega(false)
@@ -64,21 +57,7 @@ export default function Header() {
           </span>
         </Link>
 
-        <form className="search" onSubmit={onSearch} role="search">
-          <input
-            type="search"
-            placeholder="¿Qué estás buscando hoy?"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            aria-label="Buscar productos"
-          />
-          <button type="submit" aria-label="Buscar">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
-              <path d="m20 20-3-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </button>
-        </form>
+        <SearchBar />
 
         <div className="header__actions">
           <ModeSwitch />

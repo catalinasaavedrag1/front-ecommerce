@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { products } from '@/data/products'
+import { categories, products } from '@/data/products'
 import ProductCard from '@/components/ProductCard'
+import { CategoryIcon } from '@/components/Icon'
 
 export default function SearchPage() {
   const [params] = useSearchParams()
@@ -10,19 +11,25 @@ export default function SearchPage() {
   const results = useMemo(() => {
     if (!q) return []
     return products.filter((p) =>
-      [p.name, p.brand, p.sku, ...(p.tags ?? [])]
-        .join(' ')
-        .toLowerCase()
-        .includes(q),
+      [p.name, p.brand, p.sku, ...(p.tags ?? [])].join(' ').toLowerCase().includes(q),
     )
+  }, [q])
+
+  // Categorías relacionadas (por coincidencia en sus productos) para el estado vacío.
+  const related = useMemo(() => {
+    if (!q) return categories.slice(0, 6)
+    const ids = new Set(
+      products.filter((p) => `${p.name} ${p.brand}`.toLowerCase().includes(q)).map((p) => p.categoryId),
+    )
+    const rel = categories.filter((c) => ids.has(c.id))
+    return (rel.length ? rel : categories).slice(0, 6)
   }, [q])
 
   return (
     <div className="container">
-      <h1 className="page-title">
-        {q ? `Resultados para “${q}”` : 'Buscar'}
-      </h1>
-      {q && <p className="lead">{results.length} productos encontrados</p>}
+      <nav className="breadcrumb"><Link to="/">Inicio</Link> <span>/</span> <span>Búsqueda</span></nav>
+      <h1 className="page-title">{q ? `Resultados para “${q}”` : 'Buscar'}</h1>
+      {q && results.length > 0 && <p className="lead">{results.length} productos encontrados</p>}
 
       {results.length ? (
         <div className="grid">
@@ -31,9 +38,26 @@ export default function SearchPage() {
           ))}
         </div>
       ) : (
-        <div className="empty">
-          <p>{q ? 'No encontramos productos con ese término.' : 'Escribe en la barra de búsqueda.'}</p>
-          <Link to="/" className="btn btn--primary">Ver catálogo</Link>
+        <div className="noresults">
+          <h2>No encontramos productos para “{q}”.</h2>
+          <p>Te sugerimos:</p>
+          <ul className="noresults__tips">
+            <li>Revisa la ortografía o usa términos más generales (ej. “pintura” en vez de la marca).</li>
+            <li>Busca por categoría más abajo.</li>
+            <li>Si necesitas algo específico para tu empresa, solicítalo por cotización.</li>
+          </ul>
+          <div className="noresults__cats">
+            {related.map((c) => (
+              <Link key={c.id} to={`/categoria/${c.slug}`} className="noresults__cat">
+                <CategoryIcon id={c.id} /> {c.name}
+              </Link>
+            ))}
+          </div>
+          <div className="noresults__actions">
+            <Link to="/cotizacion" className="btn btn--ghost">Solicitar cotización</Link>
+            <Link to="/ayuda" className="btn btn--ghost">Contactar a ventas</Link>
+            <Link to="/" className="btn btn--primary">Ver catálogo</Link>
+          </div>
         </div>
       )}
     </div>

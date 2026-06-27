@@ -17,6 +17,7 @@ export default function CategoryPage() {
   const [delivery, setDelivery] = useState(false)
   const [brands, setBrands] = useState<string[]>([])
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [view, setView] = useState<'grid' | 'list'>('grid')
 
   const all = category ? productsByCategory(category.id) : []
   const brandList = useMemo(() => Array.from(new Set(all.map((p) => p.brand))).sort(), [all])
@@ -116,6 +117,10 @@ export default function CategoryPage() {
           <Icon name="filter" /> Filtros{activeCount ? <span className="cat-toolbar__count">{activeCount}</span> : null}
         </button>
         <span className="cat-toolbar__results">{items.length} productos</span>
+        <div className="viewtoggle" role="group" aria-label="Vista">
+          <button className={view === 'grid' ? 'is-active' : ''} onClick={() => setView('grid')} aria-label="Vista grilla"><Icon name="filter" /></button>
+          <button className={view === 'list' ? 'is-active' : ''} onClick={() => setView('list')} aria-label="Vista lista"><Icon name="list" /></button>
+        </div>
         <label className="cat-toolbar__sort">
           Ordenar
           <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
@@ -129,6 +134,18 @@ export default function CategoryPage() {
         </label>
       </div>
 
+      {activeCount > 0 && (
+        <div className="active-filters">
+          {onlyOffers && <button className="afchip" onClick={() => setOnlyOffers(false)}>Ofertas <Icon name="close" /></button>}
+          {pickup && <button className="afchip" onClick={() => setPickup(false)}>Retiro hoy <Icon name="close" /></button>}
+          {delivery && <button className="afchip" onClick={() => setDelivery(false)}>Despacho <Icon name="close" /></button>}
+          {brands.map((b) => (
+            <button key={b} className="afchip" onClick={() => toggleBrand(b)}>{b} <Icon name="close" /></button>
+          ))}
+          <button className="afchip afchip--clear" onClick={clearFilters}>Limpiar todo</button>
+        </div>
+      )}
+
       <div className="cat-layout">
         <aside className="filters filters--desk">
           <div className="filters__top">
@@ -140,7 +157,7 @@ export default function CategoryPage() {
 
         <section className="cat-main">
           {items.length ? (
-            <div className="grid">
+            <div className={`grid ${view === 'list' ? 'grid--list' : ''}`}>
               {items.map((p) => <ProductCard key={p.id} product={p} />)}
             </div>
           ) : (

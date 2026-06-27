@@ -8,6 +8,7 @@ import Rating from '@/components/Rating'
 import ProductCard from '@/components/ProductCard'
 import ProductImage from '@/components/ProductImage'
 import Icon from '@/components/Icon'
+import Calculator from '@/components/Calculator'
 import { useWishlist } from '@/context/WishlistContext'
 import { priceFor, nextVolumeTier } from '@/utils/pricing'
 import { formatCLP } from '@/utils/format'
@@ -32,6 +33,7 @@ export default function ProductPage() {
   }
 
   const related = productsByCategory(product.categoryId).filter((p) => p.id !== product.id).slice(0, 4)
+  const complements = (product.complementaryIds ?? []).map(getProduct).filter(Boolean) as typeof related
   const price = priceFor(product, qty, mode, customer)
   const nextTier = mode === 'b2b' ? nextVolumeTier(product, qty) : undefined
 
@@ -161,6 +163,8 @@ export default function ProductPage() {
               <li><Icon name="store" /> Retiro en tienda disponible</li>
               <li><Icon name="return" /> 30 días para cambios</li>
             </ul>
+
+            <Calculator product={product} />
           </div>
         </div>
 
@@ -212,6 +216,17 @@ export default function ProductPage() {
           </tbody>
         </table>
       </section>
+
+      {complements.length > 0 && (
+        <section className="row">
+          <h2 className="section-title">Completa tu compra</h2>
+          <div className="grid">
+            {complements.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {related.length > 0 && (
         <section className="row">
