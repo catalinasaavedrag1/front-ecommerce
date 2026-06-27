@@ -8,7 +8,7 @@ import PriceTag from './PriceTag'
 import ProductImage from './ProductImage'
 import Rating from './Rating'
 import Icon from './Icon'
-import { availabilityFor, badgesFor } from '@/utils/catalog'
+import { availabilityFor, badgesFor, keySpec } from '@/utils/catalog'
 
 export default function ProductCard({ product }: { product: Product }) {
   const { mode } = useApp()
@@ -46,6 +46,7 @@ export default function ProductCard({ product }: { product: Product }) {
         <Link to={`/producto/${product.id}`} className="card__name">
           {product.name}
         </Link>
+        {keySpec(product) && <span className="card__attr">{keySpec(product)}</span>}
         <Rating value={product.rating} reviews={product.reviews} />
         <PriceTag product={product} qty={qty} compact />
         <span className="card__unit">Precio por {product.unit}</span>

@@ -59,7 +59,17 @@ export default function CheckoutPage() {
 
   return (
     <div className="container">
-      <h1 className="page-title">Checkout {mode === 'b2b' ? '· Empresa' : ''}</h1>
+      <h1 className="page-title">Finalizar compra {mode === 'b2b' ? '· Empresa' : ''}</h1>
+
+      <ol className="steps">
+        <li className="steps__item is-done"><span>1</span> Carro</li>
+        <li className="steps__item is-current"><span>2</span> Datos y entrega</li>
+        <li className="steps__item"><span>3</span> Confirmación</li>
+      </ol>
+      {!customer && mode === 'b2c' && (
+        <p className="checkout__guest"><Icon name="user" /> Puedes comprar como invitado. Creas tu cuenta después, si quieres.</p>
+      )}
+
       <form className="checkout" onSubmit={submit}>
         <div className="checkout__main">
           <section className="panel">
@@ -231,9 +241,10 @@ export default function CheckoutPage() {
               <dd>{formatCLP(totals.gross)}</dd>
             </div>
           </dl>
-          <button type="submit" className="btn btn--primary btn--block" disabled={!creditOk}>
-            Confirmar pedido
+          <button type="submit" className="btn btn--primary btn--block btn--lg" disabled={!creditOk}>
+            {mode === 'b2b' && payment === 'credito' ? 'Confirmar con crédito' : `Pagar ${formatCLP(totals.gross)}`}
           </button>
+          <p className="checkout__safe"><Icon name="lock" /> Compra protegida · Pago seguro</p>
           <Link to="/carro" className="summary__continue">
             ← Volver al carro
           </Link>

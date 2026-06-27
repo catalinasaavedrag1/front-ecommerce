@@ -25,6 +25,15 @@ export function badgesFor(p: Product, opts?: { mode?: 'b2c' | 'b2b' }): Badge[] 
   return out.slice(0, 3)
 }
 
+/** Atributo más relevante para mostrar en la card (comparación rápida). */
+export function keySpec(p: Product): string | undefined {
+  const priority = ['Potencia', 'Voltaje', 'Capacidad', 'Rendimiento', 'Contenido', 'Medida', 'Formato', 'Sección', 'Largo', 'Material', 'Peso', 'Espesor']
+  for (const k of priority) {
+    if (p.specs[k]) return `${k}: ${p.specs[k]}`
+  }
+  return undefined
+}
+
 export interface Availability {
   pickupToday: boolean
   delivery: boolean

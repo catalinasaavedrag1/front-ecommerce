@@ -33,6 +33,15 @@ const perks: { icon: IconName; title: string; text: string }[] = [
 
 const brands = ['Bauker', 'Toolmax', 'Colormax', 'Lumen', 'Andescem', 'Hidroflex', 'AgroVida', 'Maderba']
 
+const projects: { label: string; to: string; icon: IconName }[] = [
+  { label: 'Quiero pintar', to: '/categoria/pinturas', icon: 'pinturas' },
+  { label: 'Renovar mi baño', to: '/categoria/bano', icon: 'bano' },
+  { label: 'Equipar mi taller', to: '/categoria/herramientas', icon: 'herramientas' },
+  { label: 'Materiales de construcción', to: '/categoria/construccion', icon: 'construccion' },
+  { label: 'Preparar el jardín', to: '/categoria/jardin', icon: 'jardin' },
+  { label: 'Climatizar mi hogar', to: '/categoria/electrohogar', icon: 'electrohogar' },
+]
+
 export default function HomePage() {
   const { mode } = useApp()
   const offers = products.filter((p) => p.retailOffer).slice(0, 6)
@@ -64,6 +73,19 @@ export default function HomePage() {
             <Link key={c.id} to={`/categoria/${c.slug}`} className="catgrid__item">
               <span className="catgrid__icon"><CategoryIcon id={c.id} /></span>
               <span>{c.name}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="projects">
+        <div className="row__head"><h2 className="section-title">Compra por proyecto</h2></div>
+        <div className="projects__grid">
+          {projects.map((p) => (
+            <Link key={p.label} to={p.to} className="projcard">
+              <span className="projcard__icon"><Icon name={p.icon} /></span>
+              <span className="projcard__label">{p.label}</span>
+              <Icon name="chevron" className="projcard__chev" />
             </Link>
           ))}
         </div>
