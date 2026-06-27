@@ -13,7 +13,7 @@ const features: { icon: IconName; title: string; text: string }[] = [
 ]
 
 export default function B2BPortalPage() {
-  const { customer, setMode, mode } = useApp()
+  const { customer } = useApp()
   const isBusiness = customer?.type === 'b2b'
 
   return (
@@ -28,23 +28,19 @@ export default function B2BPortalPage() {
             mantención, retail y profesionales.
           </p>
           <div className="hero__cta">
-            {!isBusiness && (
-              <Link to="/ingresar" className="btn btn--primary">
-                Crear cuenta empresa
-              </Link>
+            {isBusiness ? (
+              <Link to="/" className="btn btn--primary">Ir a comprar con precios empresa</Link>
+            ) : (
+              <>
+                <Link to="/ingresar" className="btn btn--primary">Ingresar como empresa</Link>
+                <Link to="/ingresar" className="btn btn--ghost">Crear cuenta empresa</Link>
+              </>
             )}
-            {mode !== 'b2b' && (
-              <button className="btn btn--ghost" onClick={() => setMode('b2b')}>
-                Ver precios empresa
-              </button>
-            )}
-            <Link to="/cotizacion" className="btn btn--ghost">
-              Solicitar cotización
-            </Link>
-            <Link to="/empresas/credito" className="btn btn--ghost">
-              Solicitar línea de crédito
-            </Link>
+            <Link to="/cotizacion" className="btn btn--ghost">Solicitar cotización</Link>
           </div>
+          {!isBusiness && (
+            <p className="b2bhero__note"><Icon name="lock" /> Los precios netos y por volumen se activan al ingresar con tu cuenta de empresa.</p>
+          )}
         </div>
         <div className="b2bhero__art" aria-hidden><Icon name="building" /></div>
       </section>
@@ -106,11 +102,11 @@ export default function B2BPortalPage() {
       <section className="ctaband">
         <div>
           <h2>¿Listo para comprar al por mayor?</h2>
-          <p>Activa el modo Empresas y revisa los precios netos de todo el catálogo.</p>
+          <p>{isBusiness ? 'Ya tienes precios empresa activos en todo el catálogo.' : 'Ingresa con tu cuenta de empresa y verás los precios netos en todo el catálogo.'}</p>
         </div>
-        <button className="btn btn--primary btn--lg" onClick={() => setMode('b2b')}>
-          Activar modo Empresas
-        </button>
+        <Link to={isBusiness ? '/' : '/ingresar'} className="btn btn--primary btn--lg">
+          {isBusiness ? 'Ir a comprar' : 'Ingresar como empresa'}
+        </Link>
       </section>
     </div>
   )

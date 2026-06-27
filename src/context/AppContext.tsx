@@ -2,16 +2,15 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import type { Customer, SalesMode } from '@/types'
 
 interface AppState {
+  /** Modo de venta DERIVADO del cliente: B2C por defecto, B2B solo si la
+   *  sesión es de una cuenta de venta empresa. No se puede cambiar a mano. */
   mode: SalesMode
-  setMode: (mode: SalesMode) => void
   customer: Customer | null
   login: (customer: Customer) => void
   logout: () => void
 }
 
 const AppContext = createContext<AppState | undefined>(undefined)
-
-const MODE_KEY = 'mimbral.mode'
 const CUSTOMER_KEY = 'mimbral.customer'
 
 function readStored<T>(key: string): T | null {
@@ -24,31 +23,20 @@ function readStored<T>(key: string): T | null {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<SalesMode>(() => readStored<SalesMode>(MODE_KEY) ?? 'b2c')
   const [customer, setCustomer] = useState<Customer | null>(() => readStored<Customer>(CUSTOMER_KEY))
-
-  useEffect(() => {
-    localStorage.setItem(MODE_KEY, JSON.stringify(mode))
-  }, [mode])
 
   useEffect(() => {
     if (customer) localStorage.setItem(CUSTOMER_KEY, JSON.stringify(customer))
     else localStorage.removeItem(CUSTOMER_KEY)
   }, [customer])
 
-  const setMode = (next: SalesMode) => setModeState(next)
+  // El modo lo determina la cuenta: empresa => b2b; en cualquier otro caso b2c.
+  const mode: SalesMode = customer?.type === 'b2b' ? 'b2b' : 'b2c'
 
-  const login = (next: Customer) => {
-    setCustomer(next)
-    setModeState(next.type)
-  }
-
+  const login = (next: Customer) => setCustomer(next)
   const logout = () => setCustomer(null)
 
-  const value = useMemo<AppState>(
-    () => ({ mode, setMode, customer, login, logout }),
-    [mode, customer],
-  )
+  const value = useMemo<AppState>(() => ({ mode, customer, login, logout }), [mode, customer])
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }

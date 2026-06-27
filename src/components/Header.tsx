@@ -5,7 +5,6 @@ import { categoryTree } from '@/data/menu'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import { useWishlist } from '@/context/WishlistContext'
-import ModeSwitch from './ModeSwitch'
 import SearchBar from './SearchBar'
 import Icon, { CategoryIcon } from './Icon'
 
@@ -60,9 +59,9 @@ export default function Header() {
         <SearchBar />
 
         <div className="header__actions">
-          <ModeSwitch />
           {customer ? (
             <div className="account">
+              {mode === 'b2b' && <span className="account__badge">Empresa</span>}
               <Link to="/cuenta" className="account__hi">Hola, <strong>{customer.name.split(' ')[0]}</strong></Link>
               <button className="account__logout" onClick={logout}>Salir</button>
             </div>

@@ -285,8 +285,8 @@ export default function CheckoutPage() {
             <div className="paylist">
               <PayOpt id="webpay" cur={payment} set={setPayment} title="Webpay" desc="Pago inmediato con débito o crédito. Tu pedido se confirma automáticamente." icon="card" />
               <PayOpt id="transferencia" cur={payment} set={setPayment} title="Transferencia" desc="Te mostramos los datos bancarios al finalizar. Tu pedido queda pendiente hasta validar el pago." icon="bank" />
-              {buyer === 'empresa' && <PayOpt id="credito" cur={payment} set={setPayment} title="Línea de crédito empresa" desc={`Usa tu crédito disponible${customer?.creditLine ? ` (${formatCLP((customer.creditLine) - (customer.creditUsed ?? 0))})` : ''} para confirmar el pedido.`} icon="wallet" />}
-              {buyer === 'empresa' && <PayOpt id="oc" cur={payment} set={setPayment} title="Orden de compra" desc="Adjunta tu OC. Coordinamos el despacho contra factura." icon="doc" />}
+              {customer?.type === 'b2b' && <PayOpt id="credito" cur={payment} set={setPayment} title="Línea de crédito empresa" desc={`Usa tu crédito disponible${customer?.creditLine ? ` (${formatCLP((customer.creditLine) - (customer.creditUsed ?? 0))})` : ''} para confirmar el pedido.`} icon="wallet" />}
+              {customer?.type === 'b2b' && <PayOpt id="oc" cur={payment} set={setPayment} title="Orden de compra" desc="Adjunta tu OC. Coordinamos el despacho contra factura." icon="doc" />}
             </div>
             <button className="btn btn--primary ckstep__next" disabled={!payment} onClick={() => complete('pago')}>Revisar pedido</button>
           </Step>

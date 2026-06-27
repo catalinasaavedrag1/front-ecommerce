@@ -704,7 +704,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--navy-700); box-s
   .header__main { flex-wrap: wrap; }
   .header__burger { display: block; }
   .search { order: 3; flex-basis: 100%; max-width: none; }
-  .modeswitch { display: none; }
   .catnav { display: none; }
   .catnav.is-open { display: block; }
   .catnav.is-open > ul { flex-direction: column; align-items: stretch; }
@@ -1199,3 +1198,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--navy-700); box-s
   .ckheader { gap: 12px; padding: 10px 16px; }
   .ckheader__safe { display: none; }
 }
+
+/* Indicador de cuenta empresa (B2B activado por login) */
+.account__badge { background: #e6f6ef; color: var(--b2b-700); border: 1px solid #c7e8da; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 8px; border-radius: 999px; }
+.b2bhero__note { display: flex; align-items: center; gap: 8px; margin: 14px 0 0; font-size: 0.84rem; color: #dff0e8; }
+.b2bhero__note .ic { color: #fff; }
