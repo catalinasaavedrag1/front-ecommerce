@@ -147,7 +147,7 @@ export default function ProductPage() {
                 </button>
               </div>
               <button className="btn btn--primary btn--lg" onClick={onAdd}>
-                {added ? '✓ Agregado' : mode === 'b2b' ? 'Agregar a la orden' : 'Agregar al carro'}
+                {added ? <><Icon name="check" /> Agregado</> : mode === 'b2b' ? 'Agregar a la orden' : 'Agregar al carro'}
               </button>
             </div>
 
@@ -238,6 +238,21 @@ export default function ProductPage() {
           </div>
         </section>
       )}
+
+      <div className="buybar">
+        <div className="buybar__info">
+          <span className="buybar__price">{formatCLP(price.unitGross)}</span>
+          <span className="buybar__unit">por {product.unit}</span>
+        </div>
+        <div className="buybar__qty">
+          <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Restar">−</button>
+          <span>{qty}</span>
+          <button onClick={() => setQty((q) => q + 1)} aria-label="Sumar">+</button>
+        </div>
+        <button className="btn btn--primary buybar__btn" onClick={onAdd}>
+          {added ? <><Icon name="check" /> Listo</> : 'Agregar'}
+        </button>
+      </div>
     </div>
   )
 }

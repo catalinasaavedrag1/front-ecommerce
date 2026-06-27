@@ -1,0 +1,21 @@
+{
+  "name": "Mimbral · Construcción y Hogar",
+  "short_name": "Mimbral",
+  "description": "Todo para la construcción y el mejoramiento del hogar. Venta a personas y empresas.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#173a8a",
+  "lang": "es-CL",
+  "categories": ["shopping", "business"],
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -812,6 +812,81 @@ input:focus, select:focus, textarea:focus { border-color: var(--navy-700); box-s
 .chatfab:hover { transform: scale(1.06); background: var(--navy-700); }
 .chatfab .ic { font-size: 1.5rem; }
 
+/* ---------- Mobile bottom navigation (app-like) ---------- */
+.botnav { display: none; }
+@media (max-width: 880px) {
+  .botnav {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 90;
+    background: rgba(255, 255, 255, 0.96);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    backdrop-filter: saturate(180%) blur(14px);
+    border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    box-shadow: 0 -4px 18px rgba(16, 42, 99, 0.08);
+  }
+  .botnav__tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 8px 0 7px;
+    color: var(--muted);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.14s, transform 0.1s;
+  }
+  .botnav__tab:active { transform: scale(0.92); }
+  .botnav__tab.is-active { color: var(--navy); }
+  .botnav__ic { position: relative; display: grid; place-items: center; font-size: 1.42rem; line-height: 1; }
+  .botnav__tab.is-active .botnav__ic::after {
+    content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px; border-radius: 50%; background: var(--red);
+  }
+  .botnav__badge {
+    position: absolute; top: -5px; right: -9px; min-width: 16px; height: 16px;
+    padding: 0 4px; border-radius: 9px; background: var(--red); color: #fff;
+    font-size: 0.6rem; font-weight: 800; display: grid; place-items: center;
+    border: 2px solid #fff; box-sizing: border-box;
+  }
+  .botnav__label { line-height: 1; }
+  /* Deja espacio para la barra inferior y respeta la safe-area del notch */
+  body { padding-bottom: calc(58px + env(safe-area-inset-bottom, 0)); }
+  .chatfab { bottom: calc(72px + env(safe-area-inset-bottom, 0)); right: 16px; width: 50px; height: 50px; }
+}
+
+/* ---------- Sticky PDP buy bar (mobile) ---------- */
+.buybar { display: none; }
+@media (max-width: 880px) {
+  .buybar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: fixed;
+    left: 0; right: 0;
+    bottom: calc(58px + env(safe-area-inset-bottom, 0));
+    z-index: 88;
+    padding: 10px 14px;
+    background: #fff;
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -6px 18px rgba(16, 42, 99, 0.1);
+  }
+  .buybar__info { display: flex; flex-direction: column; line-height: 1.1; }
+  .buybar__price { font-family: var(--display); font-weight: 800; font-size: 1.15rem; color: var(--navy); }
+  .buybar__unit { font-size: 0.68rem; color: var(--muted); }
+  .buybar__qty { display: flex; align-items: center; gap: 2px; margin-left: auto; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .buybar__qty button { width: 32px; height: 36px; background: var(--bg); border: none; font-size: 1.1rem; color: var(--navy); -webkit-tap-highlight-color: transparent; }
+  .buybar__qty button:active { background: var(--line-2); }
+  .buybar__qty span { min-width: 26px; text-align: center; font-weight: 700; font-size: 0.9rem; }
+  .buybar__btn { padding: 11px 18px; border-radius: 12px; font-size: 0.92rem; white-space: nowrap; }
+}
+
 /* ---------- Mobile full-screen menu ---------- */
 .mobnav-overlay { position: fixed; inset: 0; background: rgba(16, 42, 99, 0.5); z-index: 95; }
 .mobnav { position: absolute; left: 0; top: 0; height: 100%; width: min(88vw, 380px); background: #fff; display: flex; flex-direction: column; animation: slideRight 0.25s ease; box-shadow: var(--shadow-lg); }
