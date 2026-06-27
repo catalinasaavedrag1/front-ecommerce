@@ -5,6 +5,7 @@ import { useCart } from '@/context/CartContext'
 import { buildTotals } from '@/utils/cart'
 import { formatCLP, formatRut } from '@/utils/format'
 import OrderSummary from '@/components/checkout/OrderSummary'
+import ProductImage from '@/components/ProductImage'
 import Icon from '@/components/Icon'
 
 type StepId = 'datos' | 'entrega' | 'direccion' | 'documento' | 'pago' | 'revision'
@@ -14,11 +15,52 @@ const REGIONS = ['Región Metropolitana', 'Región del Maule', 'Región del Biob
 const COMUNAS = ['Santiago', 'La Florida', 'Maipú', 'Providencia', 'San Javier', 'Concepción', 'Antofagasta', 'Isla de Pascua']
 const NO_COVERAGE = ['Isla de Pascua']
 
-const STORES = [
-  { id: 's1', name: 'Mimbral La Florida', addr: 'Av. Vicuña Mackenna 7500, La Florida', hours: 'Lun a Sáb 09:00 – 21:00', eta: 'Disponible hoy desde las 16:00' },
-  { id: 's2', name: 'Mimbral San Javier · Balmaceda', addr: 'Balmaceda 123, San Javier', hours: 'Lun a Sáb 09:00 – 18:30', eta: 'Disponible hoy desde las 16:00' },
-  { id: 's3', name: 'Mimbral Concepción', addr: 'Autopista Concepción-Talcahuano 8900', hours: 'Lun a Dom 09:00 – 21:00', eta: 'Disponible mañana desde las 11:00' },
+// Tiendas para retiro (estilo "Selecciona un punto de entrega")
+const PICKUP = [
+  { id: 'p1', name: 'Mimbral Santiago Centro', addr: "Av. L. B. O'Higgins 1234, Santiago", km: 3 },
+  { id: 'p2', name: 'Mimbral Providencia', addr: 'Av. Providencia 2120, Providencia', km: 6 },
+  { id: 'p3', name: 'Mimbral Maipú', addr: 'Av. Pajaritos 2890, Maipú', km: 8 },
+  { id: 'p4', name: 'Mimbral La Florida', addr: 'Av. Vicuña Mackenna 7500, La Florida', km: 12 },
 ]
+
+// ---------- Fechas (estilo "Cambiar fecha") ----------
+const DOW = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb']
+const DOW_LONG = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
+const MON = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+const MON_FULL = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+const pad = (n: number) => String(n).padStart(2, '0')
+
+type DateOpt = { date: Date; iso: string }
+function genDates(n: number): DateOpt[] {
+  const out: DateOpt[] = []
+  const base = new Date()
+  for (let i = 1; i <= n; i++) {
+    const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i)
+    out.push({ date: d, iso: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` })
+  }
+  return out
+}
+const chipLabel = (d: Date) => `${cap(DOW[d.getDay()])} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}`
+const longLabel = (d: Date) => `${DOW_LONG[d.getDay()]} ${d.getDate()} de ${MON[d.getMonth()]}.`
+function rangeLabel(items: DateOpt[]) {
+  const a = items[0].date, b = items[items.length - 1].date
+  const ma = `${MON_FULL[a.getMonth()]} ${a.getFullYear()}`, mb = `${MON_FULL[b.getMonth()]} ${b.getFullYear()}`
+  return ma === mb ? ma : `${ma} - ${mb}`
+}
+
+type CartLineT = ReturnType<typeof buildTotals>['lines'][number]
+type Group = { id: string; n: number; bulky: boolean; lines: CartLineT[] }
+function buildGroups(lines: CartLineT[]): Group[] {
+  const normal = lines.filter((l) => !l.product.bulky)
+  const bulky = lines.filter((l) => l.product.bulky)
+  const groups: Omit<Group, 'n'>[] = []
+  if (normal.length) groups.push({ id: 'g-std', bulky: false, lines: normal })
+  if (bulky.length) groups.push({ id: 'g-bulky', bulky: true, lines: bulky })
+  if (!groups.length) groups.push({ id: 'g-all', bulky: false, lines })
+  return groups.map((g, i) => ({ ...g, n: i + 1 }))
+}
+type Sel = { method: 'retiro' | 'domicilio'; storeId: string; dateIso: string }
 
 export default function CheckoutPage() {
   const { mode, customer } = useApp()
@@ -26,14 +68,24 @@ export default function CheckoutPage() {
   const totals = buildTotals(lines, mode, customer)
   const hasBulky = totals.lines.some((l) => l.product.bulky)
 
+  const dates = genDates(10)
+  const groups = buildGroups(totals.lines)
+  const dateObj = (iso: string) => dates.find((d) => d.iso === iso)?.date ?? dates[0].date
+  const groupCost = (g: Group, s: Sel) => (s.method === 'retiro' ? 0 : g.bulky ? 24990 : 4990)
+
   const [buyer, setBuyer] = useState<'persona' | 'empresa'>(mode === 'b2b' ? 'empresa' : 'persona')
   const [data, setData] = useState({ name: customer?.name?.split(' ')[0] ?? '', lastname: '', email: customer?.email ?? '', phone: '' })
-  const [delivery, setDelivery] = useState<'retiro' | 'despacho' | 'programado' | ''>('')
+  const [groupSel, setGroupSel] = useState<Record<string, Sel>>(() => {
+    const init: Record<string, Sel> = {}
+    for (const g of groups) init[g.id] = { method: 'domicilio', storeId: PICKUP[0].id, dateIso: dates[0].iso }
+    return init
+  })
+  const selFor = (id: string): Sel => groupSel[id] ?? { method: 'domicilio', storeId: PICKUP[0].id, dateIso: dates[0].iso }
+  const setSel = (id: string, patch: Partial<Sel>) => setGroupSel((p) => ({ ...p, [id]: { ...selFor(id), ...patch } }))
+
   const [region, setRegion] = useState('')
   const [comuna, setComuna] = useState('')
   const [addr, setAddr] = useState({ street: '', number: '', extra: '', ref: '', receiver: '', phone: '' })
-  const [store, setStore] = useState('')
-  const [progDate, setProgDate] = useState('')
   const [doc, setDoc] = useState<'boleta' | 'factura'>(mode === 'b2b' ? 'factura' : 'boleta')
   const [fact, setFact] = useState({ rut: customer?.rut ? formatRut(customer.rut) : '', razon: customer?.company ?? '', giro: '', dir: '', email: '' })
   const [payment, setPayment] = useState('')
@@ -42,13 +94,24 @@ export default function CheckoutPage() {
   const [calc, setCalc] = useState(false)
   const [placed, setPlaced] = useState<string | null>(null)
   const [processing, setProcessing] = useState(false)
+  // Bottom sheets
+  const [dateSheet, setDateSheet] = useState<string | null>(null)
+  const [storeSheet, setStoreSheet] = useState<string | null>(null)
 
-  const noCoverage = (delivery === 'despacho' || delivery === 'programado') && comuna !== '' && NO_COVERAGE.includes(comuna)
-  const shipping = delivery === 'retiro' ? 0 : !comuna || noCoverage ? null : delivery === 'programado' ? 6990 : 4990
-  const deliveryLabel =
-    delivery === 'retiro' ? 'Retiro en tienda' : delivery === 'programado' ? 'Despacho programado' : delivery === 'despacho' ? 'Despacho a domicilio' : undefined
-  const eta = delivery === 'retiro' ? (STORES.find((s) => s.id === store)?.eta ?? 'Hoy desde las 16:00') : delivery === 'programado' ? progDate || 'Fecha por elegir' : 'Llega entre miércoles y viernes'
+  const anyDomicilio = groups.some((g) => selFor(g.id).method === 'domicilio')
+  const anyRetiro = groups.some((g) => selFor(g.id).method === 'retiro')
+  const allRetiro = !anyDomicilio
+  const delivery: 'retiro' | 'despacho' = allRetiro ? 'retiro' : 'despacho'
+  const noCoverage = anyDomicilio && comuna !== '' && NO_COVERAGE.includes(comuna)
+  const shipping = noCoverage ? null : groups.reduce((s, g) => s + groupCost(g, selFor(g.id)), 0)
+  const deliveryLabel = allRetiro ? 'Retiro en tienda' : anyRetiro ? 'Entrega mixta' : 'Despacho a domicilio'
+  const firstDom = groups.find((g) => selFor(g.id).method === 'domicilio')
+  const eta = firstDom ? `Llega el ${longLabel(dateObj(selFor(firstDom.id).dateIso))}` : 'Retiro en tienda'
 
+  const completeEntrega = () => {
+    setDone((p) => { const n = new Set(p).add('entrega'); if (allRetiro) n.add('direccion'); return n })
+    setOpen(allRetiro ? 'documento' : 'direccion')
+  }
   const complete = (id: StepId) => {
     setDone((p) => new Set(p).add(id))
     const next = ORDER[ORDER.indexOf(id) + 1]
@@ -75,20 +138,18 @@ export default function CheckoutPage() {
             {transfer && ' Quedará confirmado cuando validemos tu transferencia (te enviamos los datos de pago al correo).'}
           </p>
           <div className="cksuccess__box">
-            {delivery === 'retiro' ? (
-              <>
-                <h3><Icon name="store" /> Retiro en tienda</h3>
-                <p>{STORES.find((s) => s.id === store)?.name}</p>
-                <p className="muted">{eta}</p>
-                <p className="cksuccess__bring"><Icon name="user" /> Lleva tu carnet de identidad y el número de pedido.</p>
-              </>
-            ) : (
-              <>
-                <h3><Icon name="truck" /> {deliveryLabel}</h3>
-                <p>{addr.street} {addr.number}, {comuna}</p>
-                <p className="muted">Entrega estimada: {eta}</p>
-              </>
-            )}
+            <h3><Icon name={allRetiro ? 'store' : 'truck'} /> {deliveryLabel}</h3>
+            {groups.map((g) => {
+              const s = selFor(g.id)
+              return (
+                <p key={g.id} className="muted">
+                  Entrega {g.n}: {s.method === 'retiro'
+                    ? `Retiro en ${PICKUP.find((p) => p.id === s.storeId)?.name}`
+                    : `${longLabel(dateObj(s.dateIso))} · ${addr.street ? `${addr.street} ${addr.number}, ${comuna}` : comuna || 'tu dirección'}`}
+                </p>
+              )
+            })}
+            {allRetiro && <p className="cksuccess__bring"><Icon name="user" /> Lleva tu carnet de identidad y el número de pedido.</p>}
             <div className="cksuccess__pay"><span>{doc === 'factura' ? 'Factura' : 'Boleta'}</span><span>·</span><span>{payLabel(payment)}</span><span>·</span><strong>{formatCLP(totals.gross + (shipping ?? 0))}</strong></div>
           </div>
           <div className="cksuccess__actions">
@@ -162,58 +223,90 @@ export default function CheckoutPage() {
             <button className="btn btn--primary ckstep__next" disabled={!data.name || !data.email.includes('@') || !data.phone} onClick={() => complete('datos')}>Continuar a entrega</button>
           </Step>
 
-          {/* 2 ENTREGA */}
-          <Step id="entrega" title="¿Cómo quieres recibir tu compra?" summary={deliveryLabel}>
-            <p className="ckhelp">Elige cómo prefieres recibir tu pedido. Te mostraremos costo y fecha antes de pagar.</p>
-            {hasBulky && <div className="ckwarn"><Icon name="box" /> Tu pedido tiene productos grandes o pesados: recomendamos <strong>despacho programado</strong>.</div>}
-            <div className="delivery-cards">
-              <button className={`dcard ${delivery === 'retiro' ? 'is-active' : ''}`} onClick={() => setDelivery('retiro')}>
-                <Icon name="store" className="dcard__icon" />
-                <strong>Retiro en tienda</strong>
-                <span>Retíralo en una tienda Mimbral. Ideal para ahorrar despacho.</span>
-                <em className="dcard__cost">Gratis · disponible hoy</em>
+          {/* 2 ENTREGA — estilo "Elige un tipo de entrega" */}
+          <Step id="entrega" title="Elige un tipo de entrega" summary={<>{deliveryLabel} · {groups.length} {groups.length === 1 ? 'entrega' : 'entregas'}</>}>
+            <p className="ckhelp">Elige cómo recibir cada grupo de productos. Te mostramos costo y fecha antes de pagar.</p>
+            {anyDomicilio && (
+              <button className="dl-addr" onClick={() => setOpen('direccion')}>
+                <Icon name="pin" />
+                <span>{addr.street ? `${addr.street} ${addr.number}, ${comuna}` : 'Agrega tu dirección de entrega'}</span>
+                <Icon name="chevron" className="dl-addr__chev" />
               </button>
-              <button className={`dcard ${delivery === 'despacho' ? 'is-active' : ''}`} onClick={() => setDelivery('despacho')}>
-                <Icon name="truck" className="dcard__icon" />
-                <strong>Despacho a domicilio</strong>
-                <span>Recíbelo en la dirección que indiques.</span>
-                <em className="dcard__cost">{comuna && !noCoverage ? `$4.990 · ${eta}` : 'Desde $4.990'}</em>
-              </button>
-              <button className={`dcard ${delivery === 'programado' ? 'is-active' : ''}`} onClick={() => setDelivery('programado')}>
-                <Icon name="calendar" className="dcard__icon" />
-                <strong>Despacho programado</strong>
-                <span>Elige una fecha. Recomendado para productos grandes o de obra.</span>
-                <em className="dcard__cost">Desde $6.990</em>
-              </button>
+            )}
+            {hasBulky && <div className="ckwarn"><Icon name="box" /> Tu pedido tiene productos grandes o pesados: pueden llegar en una entrega aparte.</div>}
+
+            <div className="dl-groups">
+              {groups.map((g) => {
+                const s = selFor(g.id)
+                const cost = groupCost(g, s)
+                return (
+                  <div className="dl-group" key={g.id}>
+                    <div className="dl-group__head">
+                      <strong>Entrega {g.n}</strong>
+                      <div className="dl-thumbs">
+                        {g.lines.slice(0, 4).map((l) => (
+                          <ProductImage key={l.product.id} product={l.product} className="dl-thumb" />
+                        ))}
+                        {g.lines.length > 4 && <span className="dl-thumbs__more">+{g.lines.length - 4}</span>}
+                      </div>
+                    </div>
+
+                    {/* Retiro en tienda */}
+                    <div className="dl-method">
+                      <div className="dl-method__title"><Icon name="store" /> Retiro en tienda</div>
+                      {PICKUP.slice(0, 2).map((st) => {
+                        const active = s.method === 'retiro' && s.storeId === st.id
+                        return (
+                          <div key={st.id} role="button" tabIndex={0} className={`dl-opt ${active ? 'is-active' : ''}`} onClick={() => setSel(g.id, { method: 'retiro', storeId: st.id })}>
+                            <span className="dl-radio" aria-hidden />
+                            <span className="dl-opt__info">
+                              <strong className="dl-opt__when">Retira mañana, {chipLabel(dates[0].date).split(' ')[1]}</strong>
+                              <span className="muted">En {st.name} ({st.km} km)</span>
+                            </span>
+                            <span className="dl-opt__price dl-opt__price--free">Gratis</span>
+                          </div>
+                        )
+                      })}
+                      <div className="dl-method__links">
+                        <button className="link-btn" onClick={() => setStoreSheet(g.id)}>Más opciones</button>
+                        <span className="dl-sep" />
+                        <button className="link-btn">¿Retira alguien más?</button>
+                      </div>
+                    </div>
+
+                    {/* Envío a domicilio */}
+                    <div className="dl-method">
+                      <div className="dl-method__title"><Icon name="truck" /> Envío a domicilio</div>
+                      <div role="button" tabIndex={0} className={`dl-opt ${s.method === 'domicilio' ? 'is-active' : ''}`} onClick={() => setSel(g.id, { method: 'domicilio' })}>
+                        <span className="dl-radio" aria-hidden />
+                        <span className="dl-opt__info">
+                          <strong className="dl-opt__when">Llega el {longLabel(dateObj(s.dateIso))}</strong>
+                          <span className="muted">De 9 a 21 h</span>
+                          <button className="link-btn dl-opt__change" onClick={(e) => { e.stopPropagation(); setSel(g.id, { method: 'domicilio' }); setDateSheet(g.id) }}>Cambiar fecha</button>
+                        </span>
+                        <span className="dl-opt__price">{formatCLP(cost)}</span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
-            <button className="btn btn--primary ckstep__next" disabled={!delivery} onClick={() => complete('entrega')}>
-              {delivery === 'retiro' ? 'Continuar a elegir tienda' : 'Continuar a dirección'}
+
+            <button className="btn btn--primary ckstep__next" onClick={completeEntrega}>
+              {allRetiro ? 'Continuar a documento' : 'Continuar a dirección'}
             </button>
           </Step>
 
-          {/* 3 DIRECCION / TIENDA */}
-          <Step id="direccion" title={delivery === 'retiro' ? 'Elige tu tienda' : 'Dirección de entrega'} summary={delivery === 'retiro' ? STORES.find((s) => s.id === store)?.name : comuna && `${addr.street} ${addr.number}, ${comuna}`}>
-            {delivery === 'retiro' ? (
+          {/* 3 DIRECCION */}
+          <Step id="direccion" title="Dirección de entrega" summary={allRetiro ? 'No requiere dirección · retiro en tienda' : comuna && `${addr.street} ${addr.number}, ${comuna}`}>
+            {allRetiro ? (
               <>
-                <p className="ckhelp">Elige dónde quieres retirar tu compra.</p>
-                <div className="storelist">
-                  {STORES.map((s) => (
-                    <button key={s.id} className={`storeopt ${store === s.id ? 'is-active' : ''}`} onClick={() => setStore(s.id)}>
-                      <div className="storeopt__info">
-                        <strong>{s.name}</strong>
-                        <span className="storeopt__eta"><Icon name="check" /> {s.eta}</span>
-                        <span className="muted">{s.addr}</span>
-                        <span className="muted">{s.hours}</span>
-                      </div>
-                      <span className="storeopt__pick">{store === s.id ? 'Seleccionada' : 'Retirar aquí'}</span>
-                    </button>
-                  ))}
-                </div>
-                <button className="btn btn--primary ckstep__next" disabled={!store} onClick={() => complete('direccion')}>Continuar a documento</button>
+                <p className="ckhelp">Elegiste retiro en tienda en todas tus entregas, así que no necesitamos una dirección.</p>
+                <button className="btn btn--primary ckstep__next" onClick={() => complete('direccion')}>Continuar a documento</button>
               </>
             ) : (
               <>
-                <p className="ckhelp">Indícanos dónde recibir tu compra. Con esto calculamos disponibilidad, costo y fecha.</p>
+                <p className="ckhelp">Indícanos dónde recibir tus entregas a domicilio. Con esto confirmamos cobertura y la fecha.</p>
                 <div className="formgrid">
                   <label>Región
                     <select value={region} onChange={(e) => setRegion(e.target.value)}><option value="">Selecciona</option>{REGIONS.map((r) => <option key={r}>{r}</option>)}</select>
@@ -222,17 +315,16 @@ export default function CheckoutPage() {
                     <select value={comuna} onChange={(e) => { setComuna(e.target.value); setCalc(true); setTimeout(() => setCalc(false), 700) }}>
                       <option value="">Selecciona</option>{COMUNAS.map((c) => <option key={c}>{c}</option>)}
                     </select>
-                    <small>Primero elige tu comuna para ver opciones reales de despacho.</small>
+                    <small>Primero elige tu comuna para confirmar cobertura de despacho.</small>
                   </label>
                 </div>
-                {calc && <p className="ckcalc"><span className="spinner spinner--navy" /> Calculando opciones de entrega…</p>}
+                {calc && <p className="ckcalc"><span className="spinner spinner--navy" /> Confirmando cobertura de despacho…</p>}
                 {comuna && !calc && noCoverage && (
-                  <div className="ckwarn ckwarn--err"><Icon name="close" /> Por ahora no tenemos despacho para esta comuna. Cambia la comuna o elige <button className="link-btn" onClick={() => { setDelivery('retiro'); setOpen('entrega') }}>retiro en tienda</button>.</div>
+                  <div className="ckwarn ckwarn--err"><Icon name="close" /> Por ahora no tenemos despacho para esta comuna. Cambia la comuna o elige <button className="link-btn" onClick={() => setOpen('entrega')}>retiro en tienda</button>.</div>
                 )}
                 {comuna && !calc && !noCoverage && (
                   <>
-                    <div className="ckok"><Icon name="check" /> Despacho disponible · {eta} · {formatCLP(shipping ?? 4990)}</div>
-                    {hasBulky && <div className="ckwarn"><Icon name="box" /> Tu pedido podría llegar en 2 entregas porque hay productos de bodegas distintas.</div>}
+                    <div className="ckok"><Icon name="check" /> Despacho disponible · {eta}</div>
                     <div className="formgrid">
                       <label className="formgrid__full">Calle<input value={addr.street} onChange={(e) => setAddr({ ...addr, street: e.target.value })} placeholder="Nombre de la calle" /></label>
                       <label>Número<input value={addr.number} onChange={(e) => setAddr({ ...addr, number: e.target.value })} placeholder="1234" /></label>
@@ -240,17 +332,12 @@ export default function CheckoutPage() {
                       <label className="formgrid__full">Referencia (opcional)<input value={addr.ref} onChange={(e) => setAddr({ ...addr, ref: e.target.value })} placeholder="Cerca de…" /></label>
                       <label>Quién recibe<input value={addr.receiver} onChange={(e) => setAddr({ ...addr, receiver: e.target.value })} placeholder="Nombre" /></label>
                       <label>Teléfono de contacto<input value={addr.phone} onChange={(e) => setAddr({ ...addr, phone: e.target.value })} placeholder="+56 9 …" /></label>
-                      {delivery === 'programado' && (
-                        <label className="formgrid__full">Fecha de entrega
-                          <select value={progDate} onChange={(e) => setProgDate(e.target.value)}><option value="">Elige una fecha</option><option>Mié 1 de julio</option><option>Vie 3 de julio</option><option>Lun 6 de julio</option></select>
-                        </label>
-                      )}
                     </div>
                   </>
                 )}
                 <div className="ckstep__nav">
-                  <button className="btn btn--ghost" onClick={() => setOpen('entrega')}>Volver a forma de entrega</button>
-                  <button className="btn btn--primary" disabled={!comuna || noCoverage || !addr.street || !addr.number || (delivery === 'programado' && !progDate)} onClick={() => complete('direccion')}>Guardar y continuar</button>
+                  <button className="btn btn--ghost" onClick={() => setOpen('entrega')}>Volver a entrega</button>
+                  <button className="btn btn--primary" disabled={!comuna || noCoverage || !addr.street || !addr.number} onClick={() => complete('direccion')}>Guardar y continuar</button>
                 </div>
               </>
             )}
@@ -297,8 +384,18 @@ export default function CheckoutPage() {
             <div className="review">
               <ReviewRow title="Tus datos" onEdit={() => setOpen('datos')}>{data.name} {data.lastname}<br />{data.email} · {data.phone}</ReviewRow>
               <ReviewRow title="Entrega" onEdit={() => setOpen('entrega')}>
-                {deliveryLabel} · {eta}<br />
-                {delivery === 'retiro' ? STORES.find((s) => s.id === store)?.name : `${addr.street} ${addr.number}, ${comuna}`}
+                {groups.map((g) => {
+                  const s = selFor(g.id)
+                  return (
+                    <div key={g.id}>
+                      <strong>Entrega {g.n}:</strong>{' '}
+                      {s.method === 'retiro'
+                        ? `Retiro en ${PICKUP.find((p) => p.id === s.storeId)?.name} · Gratis`
+                        : `${longLabel(dateObj(s.dateIso))} · ${formatCLP(groupCost(g, s))}`}
+                    </div>
+                  )
+                })}
+                {anyDomicilio && comuna && <div className="muted">{addr.street} {addr.number}, {comuna}</div>}
               </ReviewRow>
               <ReviewRow title="Documento" onEdit={() => setOpen('documento')}>{doc === 'factura' ? `Factura · ${fact.razon}` : 'Boleta'}</ReviewRow>
               <ReviewRow title="Pago" onEdit={() => setOpen('pago')}>{payLabel(payment)}</ReviewRow>
@@ -311,13 +408,89 @@ export default function CheckoutPage() {
         </div>
 
         <div className="cksummary-desk">
-          <OrderSummary totals={totals} shipping={shipping} deliveryLabel={deliveryLabel} etaLabel={delivery ? eta : undefined} />
+          <OrderSummary totals={totals} shipping={shipping} deliveryLabel={deliveryLabel} etaLabel={eta} />
           <Link to="/carro" className="cksummary__back">← Volver al carro</Link>
         </div>
       </div>
 
-      <OrderSummary totals={totals} shipping={shipping} deliveryLabel={deliveryLabel} etaLabel={delivery ? eta : undefined} mobile />
+      <OrderSummary totals={totals} shipping={shipping} deliveryLabel={deliveryLabel} etaLabel={eta} mobile />
+
+      {/* ---------- Bottom sheet: Cambiar fecha ---------- */}
+      {dateSheet && (() => {
+        const g = groups.find((x) => x.id === dateSheet)!
+        const s = selFor(g.id)
+        const cost = g.bulky ? 24990 : 4990
+        const [draft, setDraft] = [s.dateIso, (iso: string) => setSel(g.id, { dateIso: iso })]
+        return (
+          <Sheet title="Cambiar fecha" onClose={() => setDateSheet(null)}>
+            <div className="sheet__lead">
+              <div><strong>Llega el {longLabel(dateObj(s.dateIso))}</strong><span className="muted">De 9 a 21 h</span></div>
+              <strong className="sheet__lead-price">{formatCLP(cost)}</strong>
+            </div>
+            <p className="sheet__q">¿En qué fecha quieres recibir tu despacho?</p>
+            <div className="sheet__monthrow">
+              <strong>{rangeLabel(dates)}</strong>
+              <span className="sheet__monthnav"><Icon name="chevron" className="ic--flip" /><Icon name="chevron" /></span>
+            </div>
+            <div className="datechips">
+              {dates.map((d) => (
+                <button key={d.iso} className={`datechip ${draft === d.iso ? 'is-active' : ''}`} onClick={() => setDraft(d.iso)}>
+                  <strong>{chipLabel(d.date)}</strong>
+                  <span>{formatCLP(cost)}</span>
+                </button>
+              ))}
+            </div>
+            <button className="btn btn--dark sheet__cta" onClick={() => setDateSheet(null)}>Seleccionar</button>
+          </Sheet>
+        )
+      })()}
+
+      {/* ---------- Bottom sheet: Selecciona un punto de entrega ---------- */}
+      {storeSheet && (() => {
+        const g = groups.find((x) => x.id === storeSheet)!
+        const s = selFor(g.id)
+        return (
+          <Sheet title="Selecciona un punto de entrega" onClose={() => setStoreSheet(null)}>
+            <div className="dl-map" aria-hidden>
+              <span className="dl-map__pin dl-map__pin--a"><Icon name="store" /></span>
+              <span className="dl-map__pin dl-map__pin--b"><Icon name="store" /></span>
+              <span className="dl-map__label">Talca</span>
+            </div>
+            <div className="ckwarn ckwarn--soft"><Icon name="clock" /> Recuerda que tienes hasta <strong>7 días calendario</strong> para retirar tu pedido en el lugar seleccionado.</div>
+            <p className="sheet__q">Puntos de entrega ({PICKUP.length})</p>
+            <div className="dl-points">
+              {PICKUP.map((st) => {
+                const active = s.method === 'retiro' && s.storeId === st.id
+                return (
+                  <button key={st.id} className={`dl-point ${active ? 'is-active' : ''}`} onClick={() => setSel(g.id, { method: 'retiro', storeId: st.id })}>
+                    <span className="dl-radio" aria-hidden />
+                    <span className="dl-point__day"><strong>Mañana</strong><span>{chipLabel(dates[0].date).split(' ')[1]}</span></span>
+                    <span className="dl-point__info"><strong>{st.name} <em>({st.km} km)</em></strong><span className="muted">{st.addr}</span></span>
+                    <span className="dl-opt__price dl-opt__price--free">Gratis</span>
+                  </button>
+                )
+              })}
+            </div>
+            <button className="btn btn--dark sheet__cta" onClick={() => setStoreSheet(null)}>Continuar</button>
+          </Sheet>
+        )
+      })()}
     </CheckoutShell>
+  )
+}
+
+function Sheet({ title, children, onClose }: { title: string; children: ReactNode; onClose: () => void }) {
+  return (
+    <div className="sheet-overlay" onClick={onClose}>
+      <div className="sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={title}>
+        <div className="sheet__bar" />
+        <header className="sheet__head">
+          <span className="sheet__title">{title}</span>
+          <button className="sheet__close" onClick={onClose} aria-label="Cerrar"><Icon name="close" /></button>
+        </header>
+        <div className="sheet__body">{children}</div>
+      </div>
+    </div>
   )
 }
 
@@ -362,5 +535,5 @@ function payLabel(p: string) {
   return { webpay: 'Webpay', transferencia: 'Transferencia bancaria', credito: 'Línea de crédito empresa', oc: 'Orden de compra', tarjeta: 'Tarjeta' }[p] ?? p
 }
 function stepTitle(id: StepId, delivery: string) {
-  return { datos: 'Tus datos', entrega: 'Entrega', direccion: delivery === 'retiro' ? 'Tienda' : 'Dirección', documento: 'Documento', pago: 'Pago', revision: 'Revisión' }[id]
+  return { datos: 'Tus datos', entrega: 'Entrega', direccion: delivery === 'retiro' ? 'Dirección' : 'Dirección', documento: 'Documento', pago: 'Pago', revision: 'Revisión' }[id]
 }
