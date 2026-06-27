@@ -1,6 +1,16 @@
 import { Link } from 'react-router-dom'
 import { useApp } from '@/context/AppContext'
 import { formatCLP, formatRut } from '@/utils/format'
+import Icon, { type IconName } from '@/components/Icon'
+
+const features: { icon: IconName; title: string; text: string }[] = [
+  { icon: 'percent', title: 'Descuentos por volumen', text: 'Tramos de precio que mejoran automáticamente según la cantidad.' },
+  { icon: 'wallet', title: 'Línea de crédito', text: 'Compra con facturación y paga a 30, 60 o 90 días.' },
+  { icon: 'doc', title: 'Cotizaciones en línea', text: 'Genera cotizaciones formales descargables en segundos.' },
+  { icon: 'store', title: 'Stock por bodega', text: 'Consulta disponibilidad en CD y sucursales antes de comprar.' },
+  { icon: 'truck', title: 'Despacho a faena', text: 'Entregas programadas en obra en todo Chile.' },
+  { icon: 'headset', title: 'Ejecutivo asignado', text: 'Atención dedicada para grandes volúmenes y licitaciones.' },
+]
 
 export default function B2BPortalPage() {
   const { customer, setMode, mode } = useApp()
@@ -31,9 +41,12 @@ export default function B2BPortalPage() {
             <Link to="/cotizacion" className="btn btn--ghost">
               Solicitar cotización
             </Link>
+            <Link to="/empresas/credito" className="btn btn--ghost">
+              Solicitar línea de crédito
+            </Link>
           </div>
         </div>
-        <div className="b2bhero__art" aria-hidden>🏢</div>
+        <div className="b2bhero__art" aria-hidden><Icon name="building" /></div>
       </section>
 
       {isBusiness && customer.creditLine ? (
@@ -70,9 +83,9 @@ export default function B2BPortalPage() {
             </div>
           </div>
           <div className="dash-actions">
-            <Link to="/mis-pedidos" className="btn btn--ghost">📦 Mis pedidos</Link>
-            <Link to="/cotizacion" className="btn btn--ghost">📝 Mis cotizaciones</Link>
-            <a href="#facturas" className="btn btn--ghost">🧾 Facturas</a>
+            <Link to="/mis-pedidos" className="btn btn--ghost"><Icon name="box" /> Mis pedidos</Link>
+            <Link to="/cotizacion" className="btn btn--ghost"><Icon name="doc" /> Mis cotizaciones</Link>
+            <a href="#facturas" className="btn btn--ghost"><Icon name="wallet" /> Facturas</a>
           </div>
         </section>
       ) : null}
@@ -80,36 +93,13 @@ export default function B2BPortalPage() {
       <section className="features">
         <h2 className="section-title">Beneficios para empresas</h2>
         <div className="features__grid">
-          <article>
-            <span className="features__icon">📊</span>
-            <h3>Descuentos por volumen</h3>
-            <p>Tramos de precio que mejoran automáticamente según la cantidad.</p>
-          </article>
-          <article>
-            <span className="features__icon">🧾</span>
-            <h3>Línea de crédito</h3>
-            <p>Compra con facturación y paga a 30, 60 o 90 días.</p>
-          </article>
-          <article>
-            <span className="features__icon">📝</span>
-            <h3>Cotizaciones en línea</h3>
-            <p>Genera cotizaciones formales descargables en segundos.</p>
-          </article>
-          <article>
-            <span className="features__icon">🏬</span>
-            <h3>Stock por bodega</h3>
-            <p>Consulta disponibilidad en CD y sucursales antes de comprar.</p>
-          </article>
-          <article>
-            <span className="features__icon">🚚</span>
-            <h3>Despacho a faena</h3>
-            <p>Entregas programadas en obra en todo Chile.</p>
-          </article>
-          <article>
-            <span className="features__icon">👷</span>
-            <h3>Ejecutivo asignado</h3>
-            <p>Atención dedicada para grandes volúmenes y licitaciones.</p>
-          </article>
+          {features.map((f) => (
+            <article key={f.title}>
+              <span className="features__icon"><Icon name={f.icon} /></span>
+              <h3>{f.title}</h3>
+              <p>{f.text}</p>
+            </article>
+          ))}
         </div>
       </section>
 

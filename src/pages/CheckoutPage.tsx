@@ -4,6 +4,7 @@ import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import { buildTotals } from '@/utils/cart'
 import { formatCLP, formatRut } from '@/utils/format'
+import Icon from '@/components/Icon'
 
 type Delivery = 'despacho' | 'retiro'
 type Payment = 'tarjeta' | 'transferencia' | 'credito'
@@ -120,7 +121,7 @@ export default function CheckoutPage() {
                   checked={delivery === 'despacho'}
                   onChange={() => setDelivery('despacho')}
                 />
-                <span>🚚 Despacho a domicilio{mode === 'b2b' ? ' / faena' : ''}</span>
+                <span><Icon name="truck" /> Despacho a domicilio{mode === 'b2b' ? ' / faena' : ''}</span>
               </label>
               <label className={`choice ${delivery === 'retiro' ? 'is-active' : ''}`}>
                 <input
@@ -129,7 +130,7 @@ export default function CheckoutPage() {
                   checked={delivery === 'retiro'}
                   onChange={() => setDelivery('retiro')}
                 />
-                <span>🏬 Retiro en tienda</span>
+                <span><Icon name="store" /> Retiro en tienda</span>
               </label>
             </div>
             {delivery === 'despacho' ? (
@@ -166,7 +167,7 @@ export default function CheckoutPage() {
             <div className="choices choices--col">
               <label className={`choice ${payment === 'tarjeta' ? 'is-active' : ''}`}>
                 <input type="radio" name="pay" checked={payment === 'tarjeta'} onChange={() => setPayment('tarjeta')} />
-                <span>💳 Tarjeta de crédito/débito</span>
+                <span><Icon name="card" /> Tarjeta de crédito/débito</span>
               </label>
               <label className={`choice ${payment === 'transferencia' ? 'is-active' : ''}`}>
                 <input
@@ -175,13 +176,13 @@ export default function CheckoutPage() {
                   checked={payment === 'transferencia'}
                   onChange={() => setPayment('transferencia')}
                 />
-                <span>🏦 Transferencia bancaria</span>
+                <span><Icon name="bank" /> Transferencia bancaria</span>
               </label>
               {mode === 'b2b' && (
                 <label className={`choice ${payment === 'credito' ? 'is-active' : ''}`}>
                   <input type="radio" name="pay" checked={payment === 'credito'} onChange={() => setPayment('credito')} />
                   <span>
-                    🧾 Línea de crédito Mimbral
+                    <Icon name="wallet" /> Línea de crédito Mimbral
                     {customer?.creditLine ? (
                       <small> · Disponible {formatCLP(creditAvailable)}</small>
                     ) : (

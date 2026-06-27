@@ -1,43 +1,82 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import type { Product } from '@/types'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
+import { useWishlist } from '@/context/WishlistContext'
 import PriceTag from './PriceTag'
+import ProductImage from './ProductImage'
 import Rating from './Rating'
+import Icon from './Icon'
+import { availabilityFor, badgesFor } from '@/utils/catalog'
 
 export default function ProductCard({ product }: { product: Product }) {
   const { mode } = useApp()
   const { add } = useCart()
+  const wishlist = useWishlist()
+  const navigate = useNavigate()
+  const [qty, setQty] = useState(1)
+  const faved = wishlist.has(product.id)
+  const badges = badgesFor(product, { mode })
+  const avail = availabilityFor(product)
 
   return (
     <article className="card">
-      <Link to={`/producto/${product.id}`} className="card__media" aria-label={product.name}>
-        <span className="card__glyph" aria-hidden>
-          {product.image}
-        </span>
-        {product.tags?.map((t) => (
-          <span key={t} className={`tag tag--${t.toLowerCase().replace(/\s/g, '-')}`}>
-            {t}
-          </span>
-        ))}
-      </Link>
+      <div className="card__media">
+        <Link to={`/producto/${product.id}`} className="card__media-link" aria-label={product.name}>
+          <ProductImage product={product} className="card__img" />
+        </Link>
+        <div className="card__badges">
+          {badges.map((b) => (
+            <span key={b.label} className={`tag tag--${b.kind}`}>{b.label}</span>
+          ))}
+        </div>
+        <button
+          className={`fav ${faved ? 'is-on' : ''}`}
+          onClick={() => wishlist.toggle(product.id)}
+          aria-label={faved ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+          aria-pressed={faved}
+        >
+          <Icon name="heart" filled={faved} />
+        </button>
+      </div>
+
       <div className="card__body">
         <span className="card__brand">{product.brand}</span>
         <Link to={`/producto/${product.id}`} className="card__name">
           {product.name}
         </Link>
         <Rating value={product.rating} reviews={product.reviews} />
-        <PriceTag product={product} compact />
-        {mode === 'b2b' && product.volumeTiers?.length ? (
-          <span className="card__hint">
-            Desde {product.volumeTiers[product.volumeTiers.length - 1].minQty}+ unidades, mejor precio
-          </span>
-        ) : product.freeShipping ? (
-          <span className="card__hint card__hint--ship">🚚 Despacho gratis</span>
-        ) : null}
-        <button className="btn btn--primary card__add" onClick={() => add(product.id)}>
-          {mode === 'b2b' ? 'Agregar a orden' : 'Agregar al carro'}
-        </button>
+        <PriceTag product={product} qty={qty} compact />
+        <span className="card__unit">Precio por {product.unit}</span>
+
+        <div className="card__avail">
+          <span className={`dot dot--${avail.delivery ? 'ok' : 'no'}`} aria-hidden />
+          {avail.pickupToday && <span className="card__av"><Icon name="store" /> Retiro hoy</span>}
+          {avail.fast && <span className="card__av"><Icon name="truck" /> Despacho rápido</span>}
+          {!avail.pickupToday && !avail.fast && <span className="card__av">{avail.label}</span>}
+        </div>
+
+        <div className="card__actions">
+          <div className="qty qty--xs">
+            <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Restar">−</button>
+            <input
+              type="number"
+              min={1}
+              value={qty}
+              onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
+            />
+            <button onClick={() => setQty((q) => q + 1)} aria-label="Sumar">+</button>
+          </div>
+          <button className="btn btn--primary card__add" onClick={() => add(product.id, qty)}>
+            Agregar
+          </button>
+        </div>
+        {mode === 'b2b' && (
+          <button className="card__quote" onClick={() => { add(product.id, qty); navigate('/cotizacion') }}>
+            <Icon name="doc" /> Cotizar
+          </button>
+        )}
       </div>
     </article>
   )

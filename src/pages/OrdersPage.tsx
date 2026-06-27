@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useApp } from '@/context/AppContext'
 import type { OrderRecord } from '@/types'
 import { formatCLP } from '@/utils/format'
+import Icon from '@/components/Icon'
 
 const sampleOrders: OrderRecord[] = [
   { id: 'MIM-528413', date: '2026-06-18', mode: 'b2b', total: 1284500, status: 'despachado', items: 12 },
@@ -36,8 +37,8 @@ export default function OrdersPage() {
               <span className={`status status--${o.status}`}>{statusLabel[o.status]}</span>
             </div>
             <div className="ordercard__meta">
-              <span>📅 {o.date}</span>
-              <span>📦 {o.items} productos</span>
+              <span><Icon name="calendar" /> {o.date}</span>
+              <span><Icon name="box" /> {o.items} productos</span>
               <span className={`pill pill--${o.mode}`}>
                 {o.mode === 'b2b' ? 'Empresa' : 'Persona'}
               </span>

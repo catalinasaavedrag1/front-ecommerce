@@ -3,6 +3,8 @@ import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import { buildTotals } from '@/utils/cart'
 import { formatCLP } from '@/utils/format'
+import ProductImage from '@/components/ProductImage'
+import Icon from '@/components/Icon'
 
 export default function CartPage() {
   const { mode, customer } = useApp()
@@ -30,8 +32,8 @@ export default function CartPage() {
         <div className="cartlines">
           {totals.lines.map((l) => (
             <div key={l.product.id} className="cartline">
-              <Link to={`/producto/${l.product.id}`} className="cartline__media" aria-hidden>
-                {l.product.image}
+              <Link to={`/producto/${l.product.id}`} className="cartline__media" aria-label={l.product.name}>
+                <ProductImage product={l.product} className="cartline__img" />
               </Link>
               <div className="cartline__info">
                 <Link to={`/producto/${l.product.id}`} className="cartline__name">
@@ -64,7 +66,7 @@ export default function CartPage() {
                 onClick={() => remove(l.product.id)}
                 aria-label="Eliminar"
               >
-                🗑
+                <Icon name="trash" />
               </button>
             </div>
           ))}

@@ -1,31 +1,48 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { categories, getCategory, productsByCategory } from '@/data/products'
+import { availabilityFor } from '@/utils/catalog'
 import ProductCard from '@/components/ProductCard'
+import ProductImage from '@/components/ProductImage'
+import Icon, { CategoryIcon } from '@/components/Icon'
 
-type SortKey = 'relevancia' | 'precio-asc' | 'precio-desc' | 'rating'
+type SortKey = 'relevancia' | 'precio-asc' | 'precio-desc' | 'vendidos' | 'rating' | 'disponibilidad'
 
 export default function CategoryPage() {
   const { slug = '' } = useParams()
   const category = getCategory(slug)
   const [sort, setSort] = useState<SortKey>('relevancia')
   const [onlyOffers, setOnlyOffers] = useState(false)
+  const [pickup, setPickup] = useState(false)
+  const [delivery, setDelivery] = useState(false)
+  const [brands, setBrands] = useState<string[]>([])
+  const [filtersOpen, setFiltersOpen] = useState(false)
+
+  const all = category ? productsByCategory(category.id) : []
+  const brandList = useMemo(() => Array.from(new Set(all.map((p) => p.brand))).sort(), [all])
 
   const items = useMemo(() => {
-    if (!category) return []
-    let list = productsByCategory(category.id)
+    let list = all
     if (onlyOffers) list = list.filter((p) => p.retailOffer)
+    if (brands.length) list = list.filter((p) => brands.includes(p.brand))
+    if (pickup) list = list.filter((p) => availabilityFor(p).pickupToday)
+    if (delivery) list = list.filter((p) => availabilityFor(p).delivery)
+    const price = (p: (typeof list)[number]) => p.retailOffer ?? p.retailPrice
     switch (sort) {
-      case 'precio-asc':
-        return [...list].sort((a, b) => (a.retailOffer ?? a.retailPrice) - (b.retailOffer ?? b.retailPrice))
-      case 'precio-desc':
-        return [...list].sort((a, b) => (b.retailOffer ?? b.retailPrice) - (a.retailOffer ?? a.retailPrice))
-      case 'rating':
-        return [...list].sort((a, b) => b.rating - a.rating)
-      default:
-        return list
+      case 'precio-asc': return [...list].sort((a, b) => price(a) - price(b))
+      case 'precio-desc': return [...list].sort((a, b) => price(b) - price(a))
+      case 'vendidos': return [...list].sort((a, b) => b.reviews - a.reviews)
+      case 'rating': return [...list].sort((a, b) => b.rating - a.rating)
+      case 'disponibilidad': return [...list].sort((a, b) => b.stock - a.stock)
+      default: return list
     }
-  }, [category, sort, onlyOffers])
+  }, [all, sort, onlyOffers, brands, pickup, delivery])
+
+  const toggleBrand = (b: string) =>
+    setBrands((prev) => (prev.includes(b) ? prev.filter((x) => x !== b) : [...prev, b]))
+
+  const clearFilters = () => { setOnlyOffers(false); setPickup(false); setDelivery(false); setBrands([]) }
+  const activeCount = (onlyOffers ? 1 : 0) + (pickup ? 1 : 0) + (delivery ? 1 : 0) + brands.length
 
   if (!category) {
     return (
@@ -36,68 +53,121 @@ export default function CategoryPage() {
     )
   }
 
+  const FiltersPanel = (
+    <>
+      <div className="filters__group">
+        <h4>Disponibilidad</h4>
+        <label className="filters__check"><input type="checkbox" checked={pickup} onChange={(e) => setPickup(e.target.checked)} /> Retiro hoy en tienda</label>
+        <label className="filters__check"><input type="checkbox" checked={delivery} onChange={(e) => setDelivery(e.target.checked)} /> Disponible para despacho</label>
+        <label className="filters__check"><input type="checkbox" checked={onlyOffers} onChange={(e) => setOnlyOffers(e.target.checked)} /> Solo ofertas</label>
+      </div>
+      <div className="filters__group">
+        <h4>Marca</h4>
+        {brandList.map((b) => (
+          <label className="filters__check" key={b}>
+            <input type="checkbox" checked={brands.includes(b)} onChange={() => toggleBrand(b)} /> {b}
+          </label>
+        ))}
+      </div>
+      <div className="filters__group">
+        <h4>Otras categorías</h4>
+        <ul className="filters__cats">
+          {categories.map((c) => (
+            <li key={c.id}>
+              <Link to={`/categoria/${c.slug}`} className={c.id === category.id ? 'is-active' : ''}>
+                <CategoryIcon id={c.id} /> {c.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
+  )
+
   return (
     <div className="container">
       <nav className="breadcrumb">
         <Link to="/">Inicio</Link> <span>/</span> <span>{category.name}</span>
       </nav>
 
+      <header className="cat-intro">
+        <h1><CategoryIcon id={category.id} className="cat-intro__icon" /> {category.name}</h1>
+        {category.blurb && <p>{category.blurb}</p>}
+      </header>
+
+      {category.subcats?.length ? (
+        <div className="cat-subnav" role="navigation" aria-label="Subcategorías">
+          {category.subcats.map((s, i) => {
+            const rep = all[i % Math.max(1, all.length)]
+            return (
+              <button key={s} className="subtile" onClick={() => setFiltersOpen(false)}>
+                <span className="subtile__img">
+                  {rep ? <ProductImage product={rep} /> : <span aria-hidden>{category.icon}</span>}
+                </span>
+                <span className="subtile__label">{s}</span>
+              </button>
+            )
+          })}
+        </div>
+      ) : null}
+
+      <div className="cat-toolbar">
+        <button className="cat-toolbar__filter" onClick={() => setFiltersOpen(true)}>
+          <Icon name="filter" /> Filtros{activeCount ? <span className="cat-toolbar__count">{activeCount}</span> : null}
+        </button>
+        <span className="cat-toolbar__results">{items.length} productos</span>
+        <label className="cat-toolbar__sort">
+          Ordenar
+          <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
+            <option value="relevancia">Relevancia</option>
+            <option value="precio-asc">Menor precio</option>
+            <option value="precio-desc">Mayor precio</option>
+            <option value="vendidos">Más vendidos</option>
+            <option value="rating">Mejor evaluados</option>
+            <option value="disponibilidad">Disponibilidad</option>
+          </select>
+        </label>
+      </div>
+
       <div className="cat-layout">
-        <aside className="filters">
-          <h3>Filtrar</h3>
-          <label className="filters__check">
-            <input
-              type="checkbox"
-              checked={onlyOffers}
-              onChange={(e) => setOnlyOffers(e.target.checked)}
-            />
-            Solo ofertas
-          </label>
-          <h4>Otras categorías</h4>
-          <ul className="filters__cats">
-            {categories.map((c) => (
-              <li key={c.id}>
-                <Link
-                  to={`/categoria/${c.slug}`}
-                  className={c.id === category.id ? 'is-active' : ''}
-                >
-                  {c.icon} {c.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
+        <aside className="filters filters--desk">
+          <div className="filters__top">
+            <h3>Filtrar</h3>
+            {activeCount > 0 && <button className="link-btn" onClick={clearFilters}>Limpiar</button>}
+          </div>
+          {FiltersPanel}
         </aside>
 
         <section className="cat-main">
-          <div className="cat-head">
-            <h1>
-              {category.icon} {category.name}
-            </h1>
-            <div className="cat-head__tools">
-              <span className="cat-head__count">{items.length} productos</span>
-              <label>
-                Ordenar:
-                <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
-                  <option value="relevancia">Relevancia</option>
-                  <option value="precio-asc">Menor precio</option>
-                  <option value="precio-desc">Mayor precio</option>
-                  <option value="rating">Mejor evaluados</option>
-                </select>
-              </label>
-            </div>
-          </div>
-
           {items.length ? (
             <div className="grid">
-              {items.map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
+              {items.map((p) => <ProductCard key={p.id} product={p} />)}
             </div>
           ) : (
-            <p className="empty">No hay productos con esos filtros.</p>
+            <div className="empty">
+              <p>No hay productos con esos filtros.</p>
+              <button className="btn btn--ghost" onClick={clearFilters}>Limpiar filtros</button>
+            </div>
           )}
         </section>
       </div>
+
+      {/* Drawer de filtros (mobile) */}
+      {filtersOpen && (
+        <div className="drawer-overlay" onClick={() => setFiltersOpen(false)}>
+          <div className="drawer drawer--bottom" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Filtros">
+            <div className="drawer__head">
+              <h3>Filtrar</h3>
+              <button className="drawer__close" onClick={() => setFiltersOpen(false)} aria-label="Cerrar"><Icon name="close" /></button>
+            </div>
+            <div className="drawer__body filters">{FiltersPanel}</div>
+            <div className="drawer__foot">
+              <button className="btn btn--ghost" onClick={clearFilters}>Limpiar</button>
+              <button className="btn btn--primary" onClick={() => setFiltersOpen(false)}>Ver {items.length} productos</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

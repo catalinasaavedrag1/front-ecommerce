@@ -4,6 +4,7 @@ import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import { buildTotals } from '@/utils/cart'
 import { formatCLP } from '@/utils/format'
+import Icon from '@/components/Icon'
 
 export default function QuotePage() {
   const { customer } = useApp()
@@ -15,7 +16,7 @@ export default function QuotePage() {
   if (sent) {
     return (
       <div className="container confirm">
-        <div className="confirm__check">📝</div>
+        <div className="confirm__check"><Icon name="check" /></div>
         <h1>Cotización enviada</h1>
         <p>
           Folio <strong>{sent}</strong>. Un ejecutivo te contactará con la

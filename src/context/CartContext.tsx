@@ -8,6 +8,8 @@ interface CartState {
   remove: (productId: string) => void
   clear: () => void
   count: number
+  /** Último producto agregado (para mostrar confirmación/toast). */
+  lastAdded: { productId: string; qty: number; ts: number } | null
 }
 
 const CartContext = createContext<CartState | undefined>(undefined)
@@ -27,6 +29,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(CART_KEY, JSON.stringify(lines))
   }, [lines])
 
+  const [lastAdded, setLastAdded] = useState<CartState['lastAdded']>(null)
+
   const add: CartState['add'] = (productId, qty = 1) => {
     setLines((prev) => {
       const existing = prev.find((l) => l.productId === productId)
@@ -37,6 +41,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { productId, qty }]
     })
+    setLastAdded({ productId, qty, ts: Date.now() })
   }
 
   const setQty: CartState['setQty'] = (productId, qty) => {
@@ -55,8 +60,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const count = useMemo(() => lines.reduce((sum, l) => sum + l.qty, 0), [lines])
 
   const value = useMemo<CartState>(
-    () => ({ lines, add, setQty, remove, clear, count }),
-    [lines, count],
+    () => ({ lines, add, setQty, remove, clear, count, lastAdded }),
+    [lines, count, lastAdded],
   )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

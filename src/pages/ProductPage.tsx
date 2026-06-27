@@ -6,6 +6,9 @@ import { useCart } from '@/context/CartContext'
 import PriceTag from '@/components/PriceTag'
 import Rating from '@/components/Rating'
 import ProductCard from '@/components/ProductCard'
+import ProductImage from '@/components/ProductImage'
+import Icon from '@/components/Icon'
+import { useWishlist } from '@/context/WishlistContext'
 import { priceFor, nextVolumeTier } from '@/utils/pricing'
 import { formatCLP } from '@/utils/format'
 
@@ -14,8 +17,10 @@ export default function ProductPage() {
   const product = getProduct(id)
   const { mode, customer } = useApp()
   const { add } = useCart()
+  const wishlist = useWishlist()
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
+  const [view, setView] = useState(0)
 
   if (!product) {
     return (
@@ -45,15 +50,36 @@ export default function ProductPage() {
       </nav>
 
       <div className="pdp">
-        <div className="pdp__media">
-          <span className="pdp__glyph" aria-hidden>
-            {product.image}
-          </span>
-          {product.tags?.map((t) => (
-            <span key={t} className={`tag tag--${t.toLowerCase().replace(/\s/g, '-')}`}>
-              {t}
-            </span>
-          ))}
+        <div className="pdp__gallery">
+          <div className="pdp__stage">
+            <ProductImage product={product} variant={view} className="pdp__img" />
+            <div className="pdp__badges">
+              {product.tags?.map((t) => (
+                <span key={t} className={`tag tag--${t.toLowerCase().replace(/\s/g, '-')}`}>
+                  {t}
+                </span>
+              ))}
+            </div>
+            <button
+              className={`fav fav--lg ${wishlist.has(product.id) ? 'is-on' : ''}`}
+              onClick={() => wishlist.toggle(product.id)}
+              aria-label="Favorito"
+            >
+              <Icon name="heart" filled={wishlist.has(product.id)} />
+            </button>
+          </div>
+          <div className="pdp__thumbs">
+            {[0, 1, 2].map((v) => (
+              <button
+                key={v}
+                className={`pdp__thumb ${view === v ? 'is-active' : ''}`}
+                onClick={() => setView(v)}
+                aria-label={`Vista ${v + 1}`}
+              >
+                <ProductImage product={product} variant={v} className="pdp__thumb-img" />
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="pdp__info">
@@ -98,7 +124,7 @@ export default function ProductPage() {
 
             {nextTier && (
               <p className="pdp__tierhint">
-                💡 Agrega {nextTier.minQty - qty} más y baja a{' '}
+                Agrega {nextTier.minQty - qty} más y baja a{' '}
                 {formatCLP(nextTier.unitNet)} neto por unidad.
               </p>
             )}
@@ -131,9 +157,9 @@ export default function ProductPage() {
             </div>
 
             <ul className="pdp__perks">
-              {product.freeShipping && <li>🚚 Despacho gratis en compras sobre $49.990</li>}
-              <li>🏬 Retiro en tienda disponible</li>
-              <li>↩️ 30 días para cambios</li>
+              {product.freeShipping && <li><Icon name="truck" /> Despacho gratis en compras sobre $49.990</li>}
+              <li><Icon name="store" /> Retiro en tienda disponible</li>
+              <li><Icon name="return" /> 30 días para cambios</li>
             </ul>
           </div>
         </div>
@@ -157,9 +183,9 @@ export default function ProductPage() {
           ) : (
             <div className="stockbox">
               <h3>Disponibilidad</h3>
-              <p className="stockbox__ok">✓ {product.stock} unidades en stock</p>
-              <p className="stockbox__deliv">📦 Llega en 24-72 hrs hábiles</p>
-              <p className="stockbox__deliv">🏬 Retiro hoy en tienda seleccionada</p>
+              <p className="stockbox__ok"><Icon name="check" /> {product.stock} unidades en stock</p>
+              <p className="stockbox__deliv"><Icon name="box" /> Llega en 24-72 hrs hábiles</p>
+              <p className="stockbox__deliv"><Icon name="store" /> Retiro hoy en tienda seleccionada</p>
             </div>
           )}
         </aside>

@@ -10,6 +10,14 @@ import QuotePage from './pages/QuotePage'
 import LoginPage from './pages/LoginPage'
 import OrdersPage from './pages/OrdersPage'
 import SearchPage from './pages/SearchPage'
+import WishlistPage from './pages/WishlistPage'
+import OffersPage from './pages/OffersPage'
+import StoresPage from './pages/StoresPage'
+import HelpPage from './pages/HelpPage'
+import AboutPage from './pages/AboutPage'
+import TrackingPage from './pages/TrackingPage'
+import CreditPage from './pages/CreditPage'
+import InspirationPage from './pages/InspirationPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 export default function App() {
@@ -23,9 +31,17 @@ export default function App() {
         <Route path="carro" element={<CartPage />} />
         <Route path="checkout" element={<CheckoutPage />} />
         <Route path="empresas" element={<B2BPortalPage />} />
+        <Route path="empresas/credito" element={<CreditPage />} />
         <Route path="cotizacion" element={<QuotePage />} />
+        <Route path="ofertas" element={<OffersPage />} />
+        <Route path="inspiracion" element={<InspirationPage />} />
+        <Route path="tiendas" element={<StoresPage />} />
+        <Route path="ayuda" element={<HelpPage />} />
+        <Route path="nosotros" element={<AboutPage />} />
+        <Route path="seguimiento" element={<TrackingPage />} />
         <Route path="ingresar" element={<LoginPage />} />
         <Route path="mis-pedidos" element={<OrdersPage />} />
+        <Route path="favoritos" element={<WishlistPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

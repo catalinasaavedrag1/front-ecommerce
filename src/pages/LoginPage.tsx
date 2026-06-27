@@ -93,10 +93,10 @@ export default function LoginPage() {
         <div className="auth__demo">
           <span>Cuentas de demostración:</span>
           <button className="link-btn" onClick={() => quick(demoB2C)}>
-            👤 Persona (Camila)
+            Persona (Camila)
           </button>
           <button className="link-btn" onClick={() => quick(demoB2B)}>
-            🏢 Empresa (Constructora Andes)
+            Empresa (Constructora Andes)
           </button>
         </div>
       </div>
