@@ -6,7 +6,7 @@ import { buildTotals } from '@/utils/cart'
 import { formatCLP, formatRut } from '@/utils/format'
 import OrderSummary from '@/components/checkout/OrderSummary'
 import ProductImage from '@/components/ProductImage'
-import Icon from '@/components/Icon'
+import Icon, { type IconName } from '@/components/Icon'
 
 type StepId = 'datos' | 'entrega' | 'direccion' | 'pago' | 'revision'
 const ORDER: StepId[] = ['datos', 'entrega', 'direccion', 'pago', 'revision']
@@ -33,6 +33,7 @@ const CARD_TYPES: CardType[] = [
   { id: 'prepago', label: 'Tarjeta de prepago', brand: 'PRE', tone: 'prepaid' },
 ]
 type Card = { id: string; brand: string; kind: string; last4: string; fav: boolean; loyalty?: boolean }
+const MONTHS_NUM = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
 
 // ---------- Fechas ----------
 const DOW = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb']
@@ -119,7 +120,10 @@ export default function CheckoutPage() {
   const [acceptPuntos, setAcceptPuntos] = useState(false)
   const [acceptTerms, setAcceptTerms] = useState(false)
   const [doc, setDoc] = useState<'boleta' | 'factura'>(mode === 'b2b' ? 'factura' : 'boleta')
-  const [fact, setFact] = useState({ rut: customer?.rut ? formatRut(customer.rut) : '', razon: customer?.company ?? '', giro: '', dir: '', region: '', comuna: '', contacto: '' })
+  const [fact, setFact] = useState({ rut: customer?.rut ? formatRut(customer.rut) : '', razon: customer?.company ?? '', giro: '', dir: '', region: '', comuna: '', contacto: '', celular: '', correo: '' })
+  const [cardForm, setCardForm] = useState<CardType | null>(null)
+  const [cardData, setCardData] = useState({ number: '', month: '', year: '', cvv: '' })
+  const YEARS = Array.from({ length: 9 }, (_, i) => String(new Date().getFullYear() + i))
 
   const [open, setOpen] = useState<StepId>('datos')
   const [done, setDone] = useState<Set<StepId>>(new Set())
@@ -159,11 +163,18 @@ export default function CheckoutPage() {
     const next = ORDER[ORDER.indexOf(id) + 1]
     if (next) setOpen(next)
   }
-  const addCard = (t: CardType) => {
+  const addCard = (t: CardType, last4: string) => {
     const id = `c${cards.length + 1}`
-    const last4 = ['4421', '7788', '1090', '3312', '6605'][cards.length % 5]
     setCards((prev) => [...prev, { id, brand: t.brand, kind: t.label.replace('Tarjeta de ', '').replace('Tarjeta ', ''), last4, fav: false, loyalty: t.loyalty }])
-    setPayCard(id); setPayment('tarjeta'); setCardSheet(false)
+    setPayCard(id); setPayment('tarjeta')
+  }
+  const cardDigits = cardData.number.replace(/\D/g, '')
+  const cardValid = cardDigits.length >= 13 && !!cardData.month && !!cardData.year && cardData.cvv.length >= 3
+  const useCard = () => {
+    if (!cardForm || !cardValid) return
+    addCard(cardForm, cardDigits.slice(-4))
+    setCardData({ number: '', month: '', year: '', cvv: '' })
+    setCardForm(null); setCardSheet(false)
   }
   const removeCard = (id: string) => {
     setCards((prev) => prev.filter((c) => c.id !== id))
@@ -561,7 +572,7 @@ export default function CheckoutPage() {
         <Sheet title="Agregar tarjeta" onClose={() => setCardSheet(false)}>
           <div className="cardtypes">
             {CARD_TYPES.map((t) => (
-              <button key={t.id} className="cardtype" onClick={() => addCard(t)}>
+              <button key={t.id} className="cardtype" onClick={() => setCardForm(t)}>
                 <span className={`cardbrand cardbrand--${t.tone}`}>{t.brand}</span>
                 <span className="cardtype__label">{t.label}{t.desc && <em className="cardtype__disc">{t.desc}</em>}</span>
                 <Icon name="chevron" className="cardtype__chev" />
@@ -571,9 +582,37 @@ export default function CheckoutPage() {
         </Sheet>
       )}
 
+      {/* ---------- Sheet: formulario de tarjeta ---------- */}
+      {cardForm && (
+        <Sheet title={cardForm.label} icon="card" onClose={() => setCardForm(null)}>
+          <p className="cardform__sub">Paga con tu {cardForm.label.toLowerCase()}{cardForm.desc ? ` y obtén ${cardForm.desc}` : ''}</p>
+          <div className="cardform">
+            <div className="cardbox">
+              <input value={cardData.number} onChange={(e) => setCardData({ ...cardData, number: e.target.value.replace(/[^\d ]/g, '').slice(0, 19) })} placeholder={`Número de ${cardForm.label.toLowerCase()}`} inputMode="numeric" />
+            </div>
+            <div className="cardbox">
+              <select value={cardData.month} onChange={(e) => setCardData({ ...cardData, month: e.target.value })}>
+                <option value="">Mes de vencimiento</option>{MONTHS_NUM.map((m) => <option key={m}>{m}</option>)}
+              </select>
+            </div>
+            <div className="cardbox">
+              <select value={cardData.year} onChange={(e) => setCardData({ ...cardData, year: e.target.value })}>
+                <option value="">Año de vencimiento</option>{YEARS.map((y) => <option key={y}>{y}</option>)}
+              </select>
+            </div>
+            <div className="cardbox cardbox--cvv">
+              <input value={cardData.cvv} onChange={(e) => setCardData({ ...cardData, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) })} placeholder="CVV" inputMode="numeric" />
+              <span className="cardbox__cvvic"><Icon name="card" /></span>
+            </div>
+          </div>
+          <button className="btn btn--dark sheet__cta" disabled={!cardValid} onClick={useCard}>Usar esta tarjeta</button>
+          <p className="cardform__note">Para validar tu tarjeta, es posible se haga un cargo que luego será reversado.</p>
+        </Sheet>
+      )}
+
       {/* ---------- Sheet: ¿Tienes un cupón? ---------- */}
       {couponSheet && (
-        <Sheet title="¿Tienes un cupón?" onClose={() => setCouponSheet(false)}>
+        <Sheet title="¿Tienes un cupón?" icon="tag" onClose={() => setCouponSheet(false)}>
           <label className="sheet__field">
             <span>Ingresa un código de cupón</span>
             <div className="sheet__input">
@@ -588,7 +627,7 @@ export default function CheckoutPage() {
 
       {/* ---------- Sheet: Datos de facturación ---------- */}
       {factSheet && (
-        <Sheet title="Datos de facturación" onClose={() => setFactSheet(false)}>
+        <Sheet title="Datos de facturación" icon="doc" onClose={() => setFactSheet(false)}>
           <label className="sheet__field">
             <span>RUT de la Empresa</span>
             <div className="sheet__input"><input value={fact.rut} onChange={(e) => setFact({ ...fact, rut: e.target.value })} placeholder="Ingresa el RUT de la Empresa" className={fact.rut && !isValidRut(fact.rut) ? 'is-err' : ''} /></div>
@@ -599,7 +638,9 @@ export default function CheckoutPage() {
           <label className="sheet__field"><span>Dirección</span><div className="sheet__input"><input value={fact.dir} onChange={(e) => setFact({ ...fact, dir: e.target.value })} placeholder="Ingresa Calle y Número" /></div></label>
           <label className="sheet__field"><span>Región</span><div className="sheet__input"><select value={fact.region} onChange={(e) => setFact({ ...fact, region: e.target.value })}><option value="">Selecciona Región</option>{REGIONS.map((r) => <option key={r}>{r}</option>)}</select></div></label>
           <label className="sheet__field"><span>Comuna</span><div className="sheet__input"><select value={fact.comuna} onChange={(e) => setFact({ ...fact, comuna: e.target.value })}><option value="">Selecciona Comuna</option>{COMUNAS.map((c) => <option key={c}>{c}</option>)}</select></div></label>
-          <label className="sheet__field"><span>Contacto</span><div className="sheet__input"><input value={fact.contacto} onChange={(e) => setFact({ ...fact, contacto: e.target.value })} placeholder="Correo de facturación" /></div></label>
+          <label className="sheet__field"><span>Contacto</span><div className="sheet__input"><input value={fact.contacto} onChange={(e) => setFact({ ...fact, contacto: e.target.value })} placeholder="Ingresa Nombre" /></div></label>
+          <label className="sheet__field"><span>Celular</span><div className="sheet__input sheet__input--phone"><span className="sheet__prefix">+56 <Icon name="chevron" className="ic--down" /></span><input value={fact.celular} onChange={(e) => setFact({ ...fact, celular: e.target.value.replace(/\D/g, '').slice(0, 9) })} placeholder="Ingresa Celular" inputMode="numeric" /></div></label>
+          <label className="sheet__field"><span>Correo electrónico</span><div className="sheet__input"><input value={fact.correo} onChange={(e) => setFact({ ...fact, correo: e.target.value })} placeholder="Ingresa Correo Electrónico" type="email" /></div></label>
           <button className="btn btn--dark sheet__cta" disabled={!isValidRut(fact.rut) || !fact.razon} onClick={saveFact}>Guardar</button>
         </Sheet>
       )}
@@ -607,12 +648,13 @@ export default function CheckoutPage() {
   )
 }
 
-function Sheet({ title, children, onClose }: { title: string; children: ReactNode; onClose: () => void }) {
+function Sheet({ title, icon, children, onClose }: { title: string; icon?: IconName; children: ReactNode; onClose: () => void }) {
   return (
     <div className="sheet-overlay" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={title}>
         <div className="sheet__bar" />
-        <header className="sheet__head">
+        <header className={`sheet__head ${icon ? 'sheet__head--left' : ''}`}>
+          {icon && <span className="sheet__head-ic"><Icon name={icon} /></span>}
           <span className="sheet__title">{title}</span>
           <button className="sheet__close" onClick={onClose} aria-label="Cerrar"><Icon name="close" /></button>
         </header>

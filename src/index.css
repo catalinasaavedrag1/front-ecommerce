@@ -1483,3 +1483,24 @@ input:focus, select:focus, textarea:focus { border-color: var(--navy-700); box-s
 .sheet__input input.is-err + .sheet__clear, .sheet__field .sheet__input:focus-within { border-color: var(--navy); }
 .sheet__clear { background: none; border: none; color: var(--muted); display: grid; place-items: center; padding: 4px; }
 .field-err { display: block; color: var(--red); font-size: 0.82rem; margin-top: 6px; }
+
+/* ---------- Sheet header con icono (cupón / facturación / tarjeta) ---------- */
+.sheet__head--left { justify-content: flex-start; gap: 12px; padding-left: 18px; }
+.sheet__head--left .sheet__title { font-family: var(--display); }
+.sheet__head-ic { display: grid; place-items: center; color: var(--navy); font-size: 1.3rem; }
+.ic--down { transform: rotate(90deg); font-size: 0.9em; }
+
+/* ---------- Formulario de tarjeta ---------- */
+.cardform__sub { font-weight: 800; color: var(--ink); font-size: 1rem; margin: 0 0 16px; }
+.cardform { display: flex; flex-direction: column; gap: 14px; }
+.cardbox { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 12px; padding: 0 16px; height: 58px; background: #fff; }
+.cardbox:focus-within { border-color: var(--navy); }
+.cardbox input, .cardbox select { flex: 1; border: none; outline: none; background: transparent; font-size: 1rem; color: var(--ink); font-family: inherit; height: 100%; }
+.cardbox select { color: var(--ink); }
+.cardbox select:invalid { color: var(--muted); }
+.cardbox__cvvic { width: 40px; height: 26px; border-radius: 4px; background: linear-gradient(#c8d0da, #aeb8c4); display: grid; place-items: center; color: #fff; flex-shrink: 0; }
+.cardbox__cvvic .ic { font-size: 1rem; }
+.cardform__note { color: var(--muted); font-size: 0.85rem; margin: 14px 0 0; line-height: 1.4; }
+
+/* ---------- Prefijo celular ---------- */
+.sheet__input--phone .sheet__prefix { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: var(--ink); padding-right: 12px; margin-right: 12px; border-right: 1px solid var(--line); }
