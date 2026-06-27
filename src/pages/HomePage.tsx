@@ -7,9 +7,9 @@ import HeroCarousel, { type Slide } from '@/components/HeroCarousel'
 import Icon, { CategoryIcon, type IconName } from '@/components/Icon'
 
 const b2cSlides: Slide[] = [
-  { id: 's1', bg: 'linear-gradient(120deg,#102a63,#1f4aa8)', eyebrow: 'Temporada de invierno', title: 'Tu hogar más cálido con Mimbral', ctaLabel: 'Ver ofertas', ctaTo: '/categoria/temporada', productId: 'p-038', discount: 17 },
-  { id: 's2', bg: 'linear-gradient(120deg,#0f6347,#1aa06f)', eyebrow: 'Renueva tus espacios', title: 'Pinturas con hasta 20% de descuento', ctaLabel: 'Ver pinturas', ctaTo: '/categoria/pinturas', productId: 'p-013', discount: 20 },
-  { id: 's3', bg: 'linear-gradient(120deg,#7a1d15,#e1251b)', eyebrow: 'Maestros y profesionales', title: 'Potencia para todos tus proyectos', ctaLabel: 'Ver herramientas', ctaTo: '/categoria/herramientas', productId: 'p-008', discount: 19 },
+  { id: 's1', bg: 'linear-gradient(120deg,#102a63,#1f4aa8)', eyebrow: 'Temporada de invierno', title: 'Tu hogar más cálido con Mimbral', ctaLabel: 'Ver ofertas', ctaTo: '/categoria/electrohogar', productId: 'p-034', discount: 17 },
+  { id: 's2', bg: 'linear-gradient(120deg,#0f6347,#1aa06f)', eyebrow: 'Renueva tus espacios', title: 'Pinturas con hasta 20% de descuento', ctaLabel: 'Ver pinturas', ctaTo: '/categoria/pinturas', productId: 'p-016', discount: 20 },
+  { id: 's3', bg: 'linear-gradient(120deg,#7a1d15,#e1251b)', eyebrow: 'Maestros y profesionales', title: 'Potencia para todos tus proyectos', ctaLabel: 'Ver herramientas', ctaTo: '/categoria/herramientas', productId: 'p-006', discount: 19 },
 ]
 
 const b2bSlides: Slide[] = [

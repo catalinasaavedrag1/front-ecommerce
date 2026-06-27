@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { categories } from '@/data/products'
+import { categoryTree } from '@/data/menu'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import { useWishlist } from '@/context/WishlistContext'
@@ -15,12 +16,23 @@ export default function Header() {
   const [q, setQ] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const [mega, setMega] = useState(false)
+  const [megaCat, setMegaCat] = useState(categories[0].id)
+  // Drill-down mobile: categoría seleccionada y subcategoría seleccionada
+  const [mobCat, setMobCat] = useState<string | null>(null)
+  const [mobSub, setMobSub] = useState<number | null>(null)
 
   const onSearch = (e: FormEvent) => {
     e.preventDefault()
     navigate(`/buscar?q=${encodeURIComponent(q.trim())}`)
-    setMenuOpen(false)
+    closeMenu()
   }
+
+  const closeMenu = () => { setMenuOpen(false); setMobCat(null); setMobSub(null) }
+  const closeMega = () => setMega(false)
+
+  const activeCat = categories.find((c) => c.id === megaCat) ?? categories[0]
+  const mobCategory = categories.find((c) => c.id === mobCat)
+  const mobSubcats = mobCat ? categoryTree[mobCat] ?? [] : []
 
   return (
     <header className="header">
@@ -34,11 +46,7 @@ export default function Header() {
       </div>
 
       <div className="header__main">
-        <button
-          className="header__burger"
-          aria-label="Abrir menú"
-          onClick={() => setMenuOpen((v) => !v)}
-        >
+        <button className="header__burger" aria-label="Abrir menú" onClick={() => setMenuOpen(true)}>
           <Icon name="menu" />
         </button>
 
@@ -76,12 +84,8 @@ export default function Header() {
           <ModeSwitch />
           {customer ? (
             <div className="account">
-              <span className="account__hi">
-                Hola, <strong>{customer.name.split(' ')[0]}</strong>
-              </span>
-              <button className="account__logout" onClick={logout}>
-                Salir
-              </button>
+              <span className="account__hi">Hola, <strong>{customer.name.split(' ')[0]}</strong></span>
+              <button className="account__logout" onClick={logout}>Salir</button>
             </div>
           ) : (
             <Link to="/ingresar" className="header__icon-link">
@@ -104,87 +108,127 @@ export default function Header() {
 
       <nav className="catnav" aria-label="Categorías">
         <ul>
-          <li
-            className="catnav__mega-trigger"
-            onMouseEnter={() => setMega(true)}
-            onMouseLeave={() => setMega(false)}
-          >
+          <li className="catnav__mega-trigger" onMouseEnter={() => setMega(true)} onMouseLeave={closeMega}>
             <button className="catnav__all" aria-expanded={mega}>
               <Icon name="menu" /> Categorías
             </button>
             {mega && (
-              <div className="mega" onMouseEnter={() => setMega(true)}>
-                {categories.map((c) => (
-                  <div className="mega__col" key={c.id}>
-                    <Link to={`/categoria/${c.slug}`} className="mega__head" onClick={() => setMega(false)}>
-                      <CategoryIcon id={c.id} /> {c.name}
-                    </Link>
-                    <ul>
-                      {(c.subcats ?? []).map((s) => (
-                        <li key={s}>
-                          <Link to={`/categoria/${c.slug}`} onClick={() => setMega(false)}>
-                            {s}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
+              <div className="mega">
+                <ul className="mega__rail">
+                  {categories.map((c) => (
+                    <li
+                      key={c.id}
+                      className={`mega__rail-item ${megaCat === c.id ? 'is-active' : ''}`}
+                      onMouseEnter={() => setMegaCat(c.id)}
+                    >
+                      <Link to={`/categoria/${c.slug}`} onClick={closeMega}>
+                        <CategoryIcon id={c.id} /> <span>{c.name}</span>
+                        <Icon name="chevron" className="mega__rail-chev" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mega__panel">
+                  <Link to={`/categoria/${activeCat.slug}`} className="mega__panel-head" onClick={closeMega}>
+                    {activeCat.name} <span>Ver todo →</span>
+                  </Link>
+                  <div className="mega__cols">
+                    {(categoryTree[activeCat.id] ?? []).map((sub) => (
+                      <div className="mega__group" key={sub.name}>
+                        <Link to={`/categoria/${activeCat.slug}`} className="mega__group-title" onClick={closeMega}>{sub.name}</Link>
+                        <ul>
+                          {sub.children.map((ch) => (
+                            <li key={ch}>
+                              <Link to={`/buscar?q=${encodeURIComponent(ch)}`} onClick={closeMega}>{ch}</Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             )}
           </li>
-          <li>
-            <NavLink to="/" end onClick={() => setMenuOpen(false)}>
-              Inicio
-            </NavLink>
-          </li>
+          <li><NavLink to="/" end onClick={closeMenu}>Inicio</NavLink></li>
           {categories.slice(0, 5).map((c) => (
-            <li key={c.id}>
-              <NavLink to={`/categoria/${c.slug}`} onClick={() => setMenuOpen(false)}>
-                {c.name}
-              </NavLink>
-            </li>
+            <li key={c.id}><NavLink to={`/categoria/${c.slug}`} onClick={closeMenu}>{c.name}</NavLink></li>
           ))}
-          <li>
-            <NavLink to="/ofertas" className="catnav__hot" onClick={() => setMenuOpen(false)}>
-              Ofertas
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/inspiracion" onClick={() => setMenuOpen(false)}>
-              Inspiración
-            </NavLink>
-          </li>
-          <li className="catnav__b2b">
-            <NavLink to="/empresas" onClick={() => setMenuOpen(false)}>
-              Empresas
-            </NavLink>
-          </li>
+          <li><NavLink to="/ofertas" className="catnav__hot" onClick={closeMenu}>Ofertas</NavLink></li>
+          <li><NavLink to="/inspiracion" onClick={closeMenu}>Inspiración</NavLink></li>
+          <li className="catnav__b2b"><NavLink to="/empresas" onClick={closeMenu}>Empresas</NavLink></li>
         </ul>
       </nav>
 
       {menuOpen && (
-        <div className="mobnav-overlay" onClick={() => setMenuOpen(false)}>
+        <div className="mobnav-overlay" onClick={closeMenu}>
           <div className="mobnav" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Menú">
-            <div className="mobnav__head">
-              <span className="mobnav__title">Categorías</span>
-              <button className="drawer__close" onClick={() => setMenuOpen(false)} aria-label="Cerrar"><Icon name="close" /></button>
-            </div>
-            <div className="mobnav__list">
-              {categories.map((c) => (
-                <Link key={c.id} to={`/categoria/${c.slug}`} className="mobnav__item" onClick={() => setMenuOpen(false)}>
-                  <span className="mobnav__icon"><CategoryIcon id={c.id} /></span>
-                  <span>{c.name}</span>
-                  <Icon name="chevron" className="mobnav__chev" />
-                </Link>
-              ))}
-            </div>
-            <div className="mobnav__foot">
-              <Link to="/ofertas" onClick={() => setMenuOpen(false)} className="mobnav__link">Ofertas</Link>
-              <Link to="/empresas" onClick={() => setMenuOpen(false)} className="mobnav__link">Venta empresas</Link>
-              <Link to="/tiendas" onClick={() => setMenuOpen(false)} className="mobnav__link">Tiendas</Link>
-              <Link to="/seguimiento" onClick={() => setMenuOpen(false)} className="mobnav__link">Sigue tu pedido</Link>
-            </div>
+            {/* Nivel 0: categorías */}
+            {mobCat === null && (
+              <>
+                <div className="mobnav__head">
+                  <span className="mobnav__title">Categorías</span>
+                  <button className="drawer__close" onClick={closeMenu} aria-label="Cerrar"><Icon name="close" /></button>
+                </div>
+                <div className="mobnav__list">
+                  {categories.map((c) => (
+                    <button key={c.id} className="mobnav__item" onClick={() => { setMobCat(c.id); setMobSub(null) }}>
+                      <span className="mobnav__icon"><CategoryIcon id={c.id} /></span>
+                      <span>{c.name}</span>
+                      <Icon name="chevron" className="mobnav__chev" />
+                    </button>
+                  ))}
+                </div>
+                <div className="mobnav__foot">
+                  <Link to="/ofertas" onClick={closeMenu} className="mobnav__link">Ofertas</Link>
+                  <Link to="/empresas" onClick={closeMenu} className="mobnav__link">Venta empresas</Link>
+                  <Link to="/tiendas" onClick={closeMenu} className="mobnav__link">Tiendas</Link>
+                </div>
+              </>
+            )}
+
+            {/* Nivel 1: subcategorías */}
+            {mobCat !== null && mobSub === null && mobCategory && (
+              <>
+                <div className="mobnav__head">
+                  <button className="mobnav__back" onClick={() => setMobCat(null)} aria-label="Volver"><Icon name="chevron" className="mobnav__back-ic" /></button>
+                  <span className="mobnav__title">{mobCategory.name}</span>
+                  <button className="drawer__close" onClick={closeMenu} aria-label="Cerrar"><Icon name="close" /></button>
+                </div>
+                <div className="mobnav__list">
+                  <Link to={`/categoria/${mobCategory.slug}`} className="mobnav__item mobnav__item--all" onClick={closeMenu}>
+                    Ver todo en {mobCategory.name}
+                  </Link>
+                  {mobSubcats.map((sub, i) => (
+                    <button key={sub.name} className="mobnav__item" onClick={() => setMobSub(i)}>
+                      <span>{sub.name}</span>
+                      <Icon name="chevron" className="mobnav__chev" />
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Nivel 2: sub-subcategorías */}
+            {mobCat !== null && mobSub !== null && mobCategory && mobSubcats[mobSub] && (
+              <>
+                <div className="mobnav__head">
+                  <button className="mobnav__back" onClick={() => setMobSub(null)} aria-label="Volver"><Icon name="chevron" className="mobnav__back-ic" /></button>
+                  <span className="mobnav__title">{mobSubcats[mobSub].name}</span>
+                  <button className="drawer__close" onClick={closeMenu} aria-label="Cerrar"><Icon name="close" /></button>
+                </div>
+                <div className="mobnav__list">
+                  <Link to={`/categoria/${mobCategory.slug}`} className="mobnav__item mobnav__item--all" onClick={closeMenu}>
+                    Ver todo en {mobSubcats[mobSub].name}
+                  </Link>
+                  {mobSubcats[mobSub].children.map((ch) => (
+                    <Link key={ch} to={`/buscar?q=${encodeURIComponent(ch)}`} className="mobnav__item mobnav__item--leaf" onClick={closeMenu}>
+                      {ch}
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

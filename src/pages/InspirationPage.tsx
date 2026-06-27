@@ -10,12 +10,12 @@ interface Idea {
 }
 
 const ideas: Idea[] = [
-  { title: 'Renueva tu baño en un fin de semana', tag: 'Baños', from: '#0b7da3', to: '#075d79', cat: 'banos-cocina' },
-  { title: 'Living luminoso con iluminación LED', tag: 'Iluminación', from: '#e69408', to: '#a86a00', cat: 'electrico' },
+  { title: 'Renueva tu baño en un fin de semana', tag: 'Baño', from: '#0b7da3', to: '#075d79', cat: 'bano' },
+  { title: 'Living luminoso con iluminación LED', tag: 'Iluminación', from: '#6b4fa0', to: '#4a3578', cat: 'decoracion' },
   { title: 'Terraza lista para el verano', tag: 'Jardín', from: '#3f9d2f', to: '#2c6f21', cat: 'jardin' },
   { title: 'Pisos flotantes que transforman', tag: 'Pisos', from: '#a9743f', to: '#7c5026', cat: 'pisos' },
-  { title: 'Cocina moderna y funcional', tag: 'Cocina', from: '#0a3d62', to: '#06283d', cat: 'banos-cocina' },
-  { title: 'Color: tendencias en pintura', tag: 'Pinturas', from: '#1b7a5a', to: '#14624a', cat: 'pinturas' },
+  { title: 'Cocina moderna y funcional', tag: 'Cocina', from: '#173a8a', to: '#102a63', cat: 'cocina' },
+  { title: 'Equipa tu taller', tag: 'Herramientas', from: '#b21d15', to: '#7a1d15', cat: 'herramientas' },
 ]
 
 export default function InspirationPage() {

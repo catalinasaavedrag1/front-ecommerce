@@ -40,6 +40,8 @@ export interface Product {
   unit: string
   /** Glifo opcional (legacy). La imagen real se genera con ProductImage. */
   image?: string
+  /** Palabra(s) clave para la foto de stock del producto. */
+  photo?: string
   rating: number
   reviews: number
   /** Stock total disponible a público */

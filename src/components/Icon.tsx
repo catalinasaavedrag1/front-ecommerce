@@ -14,6 +14,7 @@ export type IconName =
   // categorías
   | 'construccion' | 'ferreteria' | 'herramientas' | 'pinturas' | 'electricidad'
   | 'gasfiteria' | 'jardin' | 'banos-cocina' | 'pisos' | 'seguridad' | 'maderas' | 'temporada'
+  | 'bano' | 'cocina' | 'electrohogar' | 'decoracion' | 'dormitorio' | 'muebles' | 'aire-libre' | 'automovil'
 
 const paths: Record<IconName, JSX.Element> = {
   search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-3-3" /></>,
@@ -71,6 +72,14 @@ const paths: Record<IconName, JSX.Element> = {
   seguridad: <><path d="M4 13a8 8 0 0 1 16 0z" /><path d="M3 13h18v2H3z" /><path d="M11 5h2v3h-2z" /></>,
   maderas: <><path d="M3 7h18v4H3zM3 13h18v4H3z" /><path d="M8 7v4M15 13v4" /></>,
   temporada: <><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" /></>,
+  bano: <><path d="M5 4v8M5 8h6a3 3 0 0 1 3 3" /><path d="M3 12h18v2a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z" /><path d="M8 19l-1 2M16 19l1 2" /></>,
+  cocina: <><path d="M8 3a2 2 0 0 1 4 0c2 0 3 1 3 4H8z" /><path d="M7 8h9l-1 12H8z" /></>,
+  electrohogar: <><path d="M6 3h12v18H6z" /><path d="M6 10h12" /><path d="M9 6v1M9 14v2" /></>,
+  decoracion: <><path d="M9 3h6l3 7H6z" /><path d="M12 10v8" /><path d="M9 21h6" /></>,
+  dormitorio: <><path d="M3 18V9h13a4 4 0 0 1 4 4v5" /><path d="M3 14h17" /><path d="M3 18v2M20 18v2" /><path d="M6 9V7a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v2" /></>,
+  muebles: <><path d="M4 11a2 2 0 0 1 4 0v3h8v-3a2 2 0 0 1 4 0v6H4z" /><path d="M6 17v2M18 17v2" /><path d="M8 14v-3a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v3" /></>,
+  'aire-libre': <><path d="M12 3 4 19h16z" /><path d="M12 9 8 19M12 9l4 10" /><path d="M3 21h18" /></>,
+  automovil: <><path d="M3 13l2-5h14l2 5v5h-3v-2H6v2H3z" /><circle cx="7" cy="16" r="1.4" /><circle cx="17" cy="16" r="1.4" /></>,
 }
 
 const filledNames = new Set<IconName>(['heart', 'shield', 'bolt', 'star', 'pin', 'filter', 'tag', 'leaf', 'jardin', 'electricidad'])

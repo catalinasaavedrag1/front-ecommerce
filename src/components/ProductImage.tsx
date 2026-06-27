@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import type { Product } from '@/types'
+import { productPhotoUrl } from '@/data/products'
 
 /**
  * Ilustración de producto generada con SVG (sin depender de imágenes remotas).
@@ -27,6 +29,14 @@ const palettes: Record<string, Palette> = {
   seguridad: { bgFrom: '#fff4e8', bgTo: '#ffe3c2', main: '#e8651e', dark: '#b14710', accent: '#0a3d62' },
   maderas: { bgFrom: '#f4ece2', bgTo: '#e7d6c0', main: '#a9743f', dark: '#7c5026', accent: '#2c6f21' },
   temporada: { bgFrom: '#fff6df', bgTo: '#ffe9ad', main: '#f0a500', dark: '#b97c00', accent: '#0b7da3' },
+  bano: { bgFrom: '#e9f6fb', bgTo: '#d2ecf6', main: '#0b7da3', dark: '#075d79', accent: '#173a8a' },
+  cocina: { bgFrom: '#eef3f8', bgTo: '#dde7f0', main: '#173a8a', dark: '#102a63', accent: '#e1251b' },
+  electrohogar: { bgFrom: '#fff6df', bgTo: '#ffe9ad', main: '#f0a500', dark: '#b97c00', accent: '#173a8a' },
+  decoracion: { bgFrom: '#f3eefb', bgTo: '#e4d9f5', main: '#6b4fa0', dark: '#4a3578', accent: '#e1251b' },
+  dormitorio: { bgFrom: '#fdf0ef', bgTo: '#f8d9d6', main: '#c2554c', dark: '#933c35', accent: '#173a8a' },
+  muebles: { bgFrom: '#f4ece2', bgTo: '#e7d6c0', main: '#a9743f', dark: '#7c5026', accent: '#173a8a' },
+  'aire-libre': { bgFrom: '#edf8e6', bgTo: '#d7efc7', main: '#3f9d2f', dark: '#2c6f21', accent: '#0b7da3' },
+  automovil: { bgFrom: '#eef1f4', bgTo: '#dde3e9', main: '#37424d', dark: '#1f262d', accent: '#e1251b' },
 }
 
 function artFor(categoryId: string, p: Palette) {
@@ -136,6 +146,8 @@ function artFor(categoryId: string, p: Palette) {
         </g>
       )
     case 'gasfiteria':
+    case 'bano':
+    case 'cocina':
     case 'banos-cocina':
       return (
         <g>
@@ -199,6 +211,22 @@ interface Props {
 }
 
 export default function ProductImage({ product, className, variant = 0 }: Props) {
+  const [imgError, setImgError] = useState(false)
+
+  // Foto de stock real; si falla la carga, cae a la ilustración SVG.
+  if (!imgError) {
+    return (
+      <img
+        className={className}
+        src={productPhotoUrl(product, variant)}
+        alt={product.name}
+        loading="lazy"
+        onError={() => setImgError(true)}
+        style={{ objectFit: 'cover', width: '100%', height: '100%', display: 'block', background: '#eef2f6' }}
+      />
+    )
+  }
+
   const p = palettes[product.categoryId] ?? palettes.ferreteria
   const gid = `g-${product.id}-${variant}`
   const scale = 1 + variant * 0.12
