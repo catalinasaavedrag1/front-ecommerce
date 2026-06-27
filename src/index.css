@@ -165,7 +165,8 @@ h1, h2, h3, h4 {
 .catnav { background: var(--navy-700); position: relative; }
 .catnav > ul { max-width: var(--maxw); margin: 0 auto; padding: 0 18px; display: flex; list-style: none; gap: 2px; align-items: center; }
 .catnav a { display: block; padding: 12px 14px; color: #dceaf5; font-size: 0.86rem; font-weight: 600; white-space: nowrap; border-bottom: 3px solid transparent; }
-.catnav a:hover, .catnav a.active { color: #fff; border-color: var(--amber); }
+.catnav a:hover, .catnav a.active { color: #fff; border-color: #fff; }
+.catnav__hot.active, .catnav__hot:hover { border-color: var(--red); }
 .catnav__all { background: var(--navy-900); color: #fff; border: none; padding: 12px 18px; font-weight: 700; font-size: 0.86rem; height: 100%; }
 .catnav__mega-trigger { position: static; }
 .catnav__b2b { margin-left: auto; }
@@ -973,4 +974,29 @@ input:focus, select:focus, textarea:focus { border-color: var(--navy-700); box-s
 @media (max-width: 540px) {
   .projects__grid { grid-template-columns: 1fr; }
   .steps__item { padding: 7px 12px; font-size: 0.82rem; }
+}
+
+/* ---------- Accesibilidad y consistencia ---------- */
+:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; border-radius: 4px; }
+.header :focus-visible, .carousel :focus-visible { outline-color: #fff; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}
+.card__add.is-added { background: var(--b2b); color: #fff; box-shadow: none; }
+.card__add.is-added:hover { background: var(--b2b-700); }
+
+/* Header mobile: barra superior en una sola línea deslizable (no crece en alto) */
+@media (max-width: 880px) {
+  .header__top-inner { justify-content: flex-start; gap: 18px; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .header__top-inner::-webkit-scrollbar { display: none; }
+  .header__top a { white-space: nowrap; }
+  .header__top-help { margin-left: 0; }
+  .header__main { padding: 12px 16px; gap: 14px; }
+  .brand__text { font-size: 1.3rem; }
+  .brand__mark { width: 46px; height: 42px; }
+}
+/* Targets táctiles cómodos en móvil */
+@media (max-width: 540px) {
+  .qty--xs button, .qty--sm button { min-width: 34px; min-height: 38px; }
+  .fav { width: 40px; height: 40px; }
 }

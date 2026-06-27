@@ -16,7 +16,14 @@ export default function ProductCard({ product }: { product: Product }) {
   const wishlist = useWishlist()
   const navigate = useNavigate()
   const [qty, setQty] = useState(1)
+  const [added, setAdded] = useState(false)
   const faved = wishlist.has(product.id)
+
+  const onAdd = () => {
+    add(product.id, qty)
+    setAdded(true)
+    setTimeout(() => setAdded(false), 1600)
+  }
   const badges = badgesFor(product, { mode })
   const avail = availabilityFor(product)
 
@@ -69,8 +76,8 @@ export default function ProductCard({ product }: { product: Product }) {
             />
             <button onClick={() => setQty((q) => q + 1)} aria-label="Sumar">+</button>
           </div>
-          <button className="btn btn--primary card__add" onClick={() => add(product.id, qty)}>
-            Agregar
+          <button className={`btn btn--primary card__add ${added ? 'is-added' : ''}`} onClick={onAdd}>
+            {added ? <><Icon name="check" /> Agregado</> : 'Agregar'}
           </button>
         </div>
         {mode === 'b2b' && (
