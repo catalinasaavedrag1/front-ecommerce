@@ -16,16 +16,17 @@ export default function CheckoutPage() {
   const [delivery, setDelivery] = useState<Delivery>('despacho')
   const [payment, setPayment] = useState<Payment>(mode === 'b2b' ? 'credito' : 'tarjeta')
   const [done, setDone] = useState<string | null>(null)
+  const [processing, setProcessing] = useState(false)
 
   const creditAvailable = (customer?.creditLine ?? 0) - (customer?.creditUsed ?? 0)
   const creditOk = mode !== 'b2b' || payment !== 'credito' || totals.gross <= creditAvailable
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    if (!creditOk) return
+    if (!creditOk || processing) return
+    setProcessing(true)
     const order = `MIM-${Math.floor(100000 + (totals.gross % 900000))}`
-    setDone(order)
-    clear()
+    setTimeout(() => { setDone(order); clear() }, 1000)
   }
 
   if (done) {
@@ -241,8 +242,10 @@ export default function CheckoutPage() {
               <dd>{formatCLP(totals.gross)}</dd>
             </div>
           </dl>
-          <button type="submit" className="btn btn--primary btn--block btn--lg" disabled={!creditOk}>
-            {mode === 'b2b' && payment === 'credito' ? 'Confirmar con crédito' : `Pagar ${formatCLP(totals.gross)}`}
+          <button type="submit" className="btn btn--primary btn--block btn--lg" disabled={!creditOk || processing}>
+            {processing ? (
+              <><span className="spinner" /> Procesando pago…</>
+            ) : mode === 'b2b' && payment === 'credito' ? 'Confirmar con crédito' : `Pagar ${formatCLP(totals.gross)}`}
           </button>
           <p className="checkout__safe"><Icon name="lock" /> Compra protegida · Pago seguro</p>
           <Link to="/carro" className="summary__continue">

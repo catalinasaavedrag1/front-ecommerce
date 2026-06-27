@@ -1,7 +1,18 @@
+import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { categories } from '@/data/products'
+import Icon from './Icon'
 
 export default function Footer() {
+  const [news, setNews] = useState<'idle' | 'sending' | 'done'>('idle')
+
+  const onNews = (e: FormEvent) => {
+    e.preventDefault()
+    if (news !== 'idle') return
+    setNews('sending')
+    setTimeout(() => setNews('done'), 700)
+  }
+
   return (
     <footer className="footer">
       <div className="footer__news">
@@ -9,10 +20,16 @@ export default function Footer() {
           <strong>Recibe ofertas y novedades</strong>
           <span>Suscríbete y entérate antes de nuestras promociones.</span>
         </div>
-        <form className="footer__news-form" onSubmit={(e) => e.preventDefault()}>
-          <input type="email" placeholder="Tu correo electrónico" aria-label="Correo" required />
-          <button type="submit" className="btn btn--primary">Suscribirme</button>
-        </form>
+        {news === 'done' ? (
+          <p className="footer__news-ok"><Icon name="check" /> ¡Listo! Te suscribiste correctamente.</p>
+        ) : (
+          <form className="footer__news-form" onSubmit={onNews}>
+            <input type="email" placeholder="Tu correo electrónico" aria-label="Correo" required disabled={news === 'sending'} />
+            <button type="submit" className="btn btn--primary" disabled={news === 'sending'}>
+              {news === 'sending' ? 'Enviando…' : 'Suscribirme'}
+            </button>
+          </form>
+        )}
       </div>
       <div className="footer__grid">
         <div>

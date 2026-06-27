@@ -11,6 +11,8 @@ import LoginPage from './pages/LoginPage'
 import OrdersPage from './pages/OrdersPage'
 import SearchPage from './pages/SearchPage'
 import WishlistPage from './pages/WishlistPage'
+import AccountPage from './pages/AccountPage'
+import ListsPage from './pages/ListsPage'
 import OffersPage from './pages/OffersPage'
 import StoresPage from './pages/StoresPage'
 import HelpPage from './pages/HelpPage'
@@ -42,6 +44,8 @@ export default function App() {
         <Route path="ingresar" element={<LoginPage />} />
         <Route path="mis-pedidos" element={<OrdersPage />} />
         <Route path="favoritos" element={<WishlistPage />} />
+        <Route path="cuenta" element={<AccountPage />} />
+        <Route path="listas" element={<ListsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

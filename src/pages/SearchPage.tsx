@@ -3,10 +3,13 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { categories, products } from '@/data/products'
 import ProductCard from '@/components/ProductCard'
 import { CategoryIcon } from '@/components/Icon'
+import { ProductGridSkeleton } from '@/components/Skeleton'
+import { useBriefLoading } from '@/hooks/useBriefLoading'
 
 export default function SearchPage() {
   const [params] = useSearchParams()
   const q = (params.get('q') ?? '').toLowerCase().trim()
+  const loading = useBriefLoading([q])
 
   const results = useMemo(() => {
     if (!q) return []
@@ -29,9 +32,11 @@ export default function SearchPage() {
     <div className="container">
       <nav className="breadcrumb"><Link to="/">Inicio</Link> <span>/</span> <span>Búsqueda</span></nav>
       <h1 className="page-title">{q ? `Resultados para “${q}”` : 'Buscar'}</h1>
-      {q && results.length > 0 && <p className="lead">{results.length} productos encontrados</p>}
+      {q && !loading && results.length > 0 && <p className="lead">{results.length} productos encontrados</p>}
 
-      {results.length ? (
+      {loading && q ? (
+        <ProductGridSkeleton />
+      ) : results.length ? (
         <div className="grid">
           {results.map((p) => (
             <ProductCard key={p.id} product={p} />

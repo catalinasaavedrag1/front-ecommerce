@@ -5,6 +5,8 @@ import { availabilityFor } from '@/utils/catalog'
 import ProductCard from '@/components/ProductCard'
 import ProductImage from '@/components/ProductImage'
 import Icon, { CategoryIcon } from '@/components/Icon'
+import { ProductGridSkeleton } from '@/components/Skeleton'
+import { useBriefLoading } from '@/hooks/useBriefLoading'
 
 type SortKey = 'relevancia' | 'precio-asc' | 'precio-desc' | 'vendidos' | 'rating' | 'disponibilidad'
 
@@ -18,6 +20,7 @@ export default function CategoryPage() {
   const [brands, setBrands] = useState<string[]>([])
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [view, setView] = useState<'grid' | 'list'>('grid')
+  const loading = useBriefLoading([slug, sort, onlyOffers, pickup, delivery, brands.join(',')])
 
   const all = category ? productsByCategory(category.id) : []
   const brandList = useMemo(() => Array.from(new Set(all.map((p) => p.brand))).sort(), [all])
@@ -156,7 +159,9 @@ export default function CategoryPage() {
         </aside>
 
         <section className="cat-main">
-          {items.length ? (
+          {loading ? (
+            <ProductGridSkeleton count={Math.min(8, Math.max(4, all.length))} />
+          ) : items.length ? (
             <div className={`grid ${view === 'list' ? 'grid--list' : ''}`}>
               {items.map((p) => <ProductCard key={p.id} product={p} />)}
             </div>

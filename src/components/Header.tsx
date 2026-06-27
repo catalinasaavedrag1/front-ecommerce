@@ -63,7 +63,7 @@ export default function Header() {
           <ModeSwitch />
           {customer ? (
             <div className="account">
-              <span className="account__hi">Hola, <strong>{customer.name.split(' ')[0]}</strong></span>
+              <Link to="/cuenta" className="account__hi">Hola, <strong>{customer.name.split(' ')[0]}</strong></Link>
               <button className="account__logout" onClick={logout}>Salir</button>
             </div>
           ) : (
