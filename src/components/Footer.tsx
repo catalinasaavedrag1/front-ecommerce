@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { categories } from '@/data/products'
 import Icon from './Icon'
 
 export default function Footer() {
@@ -31,33 +30,13 @@ export default function Footer() {
           </form>
         )}
       </div>
-      <div className="footer__grid">
-        <div>
-          <h4>Categorías</h4>
-          <ul>
-            {categories.slice(0, 5).map((c) => (
-              <li key={c.id}>
-                <Link to={`/categoria/${c.slug}`}>{c.name}</Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <div className="footer__grid footer__grid--slim">
         <div>
           <h4>Empresas (B2B)</h4>
           <ul>
-            <li><Link to="/empresas">Portal Empresas</Link></li>
             <li><Link to="/cotizacion">Solicitar cotización</Link></li>
             <li><Link to="/empresas/credito">Línea de crédito Mimbral</Link></li>
             <li><a href="#licitaciones">Licitaciones y grandes obras</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Servicio al cliente</h4>
-          <ul>
-            <li><Link to="/seguimiento">Seguimiento de pedido</Link></li>
-            <li><Link to="/ayuda">Ayuda y preguntas frecuentes</Link></li>
-            <li><Link to="/tiendas">Nuestras tiendas</Link></li>
-            <li><Link to="/nosotros">Quiénes somos</Link></li>
           </ul>
         </div>
         <div>
@@ -67,8 +46,7 @@ export default function Footer() {
             personas y empresas en todo Chile.
           </p>
           <div className="footer__quick">
-            <Link to="/ofertas">Ofertas</Link>
-            <Link to="/inspiracion">Inspiración</Link>
+            <Link to="/nosotros">Quiénes somos</Link>
           </div>
           <div className="footer__pay">
             <span>Tarjetas</span>
