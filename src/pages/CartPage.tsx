@@ -188,14 +188,12 @@ export default function CartPage() {
         <button className="cart2-summary__expand" onClick={() => setSummaryOpen((v) => !v)} aria-expanded={summaryOpen}>
           {summaryOpen ? 'Ocultar detalle' : 'Ver detalle'} <Icon name="chevron" className={summaryOpen ? 'rot-up' : 'rot-down'} />
         </button>
-        {summaryOpen && (
-          <dl className="cart2-summary__detail">
-            <div><dt>Neto</dt><dd>{formatCLP(totals.net)}</dd></div>
-            <div><dt>IVA (19%)</dt><dd>{formatCLP(totals.iva)}</dd></div>
-            <div><dt>Despacho</dt><dd>{missingForFree > 0 ? 'Por calcular' : 'Gratis'}</dd></div>
-            {totals.savings > 0 && <div className="cart2-summary__save"><dt>Ahorro</dt><dd>-{formatCLP(totals.savings)}</dd></div>}
-          </dl>
-        )}
+        <dl className="cart2-summary__detail">
+          <div><dt>Neto</dt><dd>{formatCLP(totals.net)}</dd></div>
+          <div><dt>IVA (19%)</dt><dd>{formatCLP(totals.iva)}</dd></div>
+          <div><dt>Despacho</dt><dd>{missingForFree > 0 ? 'Por calcular' : 'Gratis'}</dd></div>
+          {totals.savings > 0 && <div className="cart2-summary__save"><dt>Ahorro</dt><dd>-{formatCLP(totals.savings)}</dd></div>}
+        </dl>
         <div className="cart2-summary__bar">
           <div className="cart2-summary__total">
             <small>Total ({selectedLines.reduce((s, l) => s + l.qty, 0)} {selectedLines.reduce((s, l) => s + l.qty, 0) === 1 ? 'ítem' : 'ítems'}) <span className="cart2-summary__hint">sin despacho</span></small>
