@@ -590,33 +590,52 @@ input[type="checkbox"]:focus, input[type="radio"]:focus { box-shadow: 0 0 0 3px 
 .card__quote:hover { background: #e6f6ef; }
 
 /* ---------- Category page ---------- */
-.cat-intro { margin-bottom: 12px; }
-.cat-intro h1 { font-size: 1.45rem; }
-.cat-intro p { color: var(--muted); margin: 4px 0 0; max-width: 70ch; }
+/* ===== Cabecera de categoría compacta ===== */
+.container.catpage { padding-top: 14px; }
+.breadcrumb--cat { font-size: 0.78rem; margin-bottom: 6px; }
+.cathead { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 12px; }
+.cathead__title { font-size: 1.4rem; line-height: 1.1; margin: 0; }
+.cathead__icon { font-size: 1.25em; color: var(--navy); vertical-align: -0.16em; }
+.cathead__desc { color: var(--muted); font-size: 0.9rem; margin: 0; flex: 1 1 320px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.cat-subnav {
-  display: flex; gap: 12px; overflow-x: auto; padding: 6px 2px 14px; margin-bottom: 6px;
-  scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+/* ===== Subcategorías como chips compactos ===== */
+.subchips {
+  display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 4px; margin-bottom: 16px;
+  scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; scrollbar-width: thin;
 }
-.cat-subnav::-webkit-scrollbar { height: 6px; }
-.cat-subnav::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
-.subtile { flex: 0 0 auto; width: 86px; background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 7px; scroll-snap-align: start; }
-.subtile__img { width: 72px; height: 72px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--line-2); display: grid; place-items: center; font-size: 1.7rem; transition: border-color 0.14s, transform 0.14s; }
-.subtile__img svg { width: 100%; height: 100%; }
-.subtile:hover .subtile__img { border-color: var(--navy); transform: translateY(-3px); }
-.subtile.is-active .subtile__img { border-color: var(--navy); border-width: 2px; box-shadow: 0 0 0 2px rgba(23,58,138,0.15); }
-.subtile.is-active .subtile__label { color: var(--navy); }
-.subtile__label { font-size: 0.8rem; font-weight: 600; color: var(--ink); text-align: center; line-height: 1.2; }
+.subchips::-webkit-scrollbar { height: 5px; }
+.subchips::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+.subchip {
+  flex: 0 0 auto; scroll-snap-align: start; min-height: 36px; padding: 7px 16px;
+  background: #fff; border: 1px solid var(--line); border-radius: 999px;
+  font-size: 0.86rem; font-weight: 600; color: var(--ink); white-space: nowrap; cursor: pointer;
+  transition: background 0.14s, border-color 0.14s, color 0.14s;
+}
+.subchip:hover { border-color: var(--navy); color: var(--navy); }
+.subchip.is-active { background: var(--navy); border-color: var(--navy); color: #fff; }
 
-.cat-toolbar {
-  display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
-  padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+/* ===== Toolbar compacta (dentro de la columna de productos) ===== */
+.toolbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 0 0 12px; margin-bottom: 16px; border-bottom: 1px solid var(--line);
 }
-.cat-toolbar__filter { display: none; align-items: center; gap: 8px; background: #fff; border: 1.5px solid var(--navy); color: var(--navy); border-radius: var(--radius-sm); padding: 9px 16px; font-weight: 700; font-size: 0.9rem; }
-.cat-toolbar__count { background: var(--red); color: #fff; border-radius: 999px; min-width: 18px; height: 18px; display: grid; place-items: center; font-size: 0.7rem; padding: 0 4px; }
-.cat-toolbar__results { color: var(--muted); font-size: 0.88rem; font-weight: 600; }
-.cat-toolbar__sort { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--muted); font-weight: 600; }
-.cat-toolbar__sort select { padding: 9px 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--line); font-weight: 600; }
+.toolbar__left, .toolbar__right { display: flex; align-items: center; gap: 12px; }
+.toolbar__filter { display: none; align-items: center; gap: 8px; background: #fff; border: 1.5px solid var(--navy); color: var(--navy); border-radius: var(--radius-sm); padding: 8px 14px; font-weight: 700; font-size: 0.88rem; min-height: 40px; }
+.toolbar__count { background: var(--red); color: #fff; border-radius: 999px; min-width: 18px; height: 18px; display: grid; place-items: center; font-size: 0.7rem; padding: 0 4px; }
+.toolbar__results { color: var(--ink); font-size: 0.9rem; font-weight: 700; }
+.toolbar__sort { display: flex; align-items: center; gap: 8px; font-size: 0.84rem; color: var(--muted); font-weight: 600; }
+.toolbar__sort select { padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--line); font-weight: 600; min-height: 40px; background: #fff; }
+
+/* ===== Chips de filtros activos (pegados a la toolbar) ===== */
+.activechips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: -4px 0 16px; }
+.activechips__clear { background: none; border: none; color: var(--muted); font-size: 0.82rem; font-weight: 600; cursor: pointer; padding: 5px 8px; text-decoration: underline; text-underline-offset: 2px; }
+.activechips__clear:hover { color: var(--navy); }
+
+/* En pantallas muy anchas, aprovechamos el espacio con 5 columnas */
+@media (min-width: 1500px) {
+  .container.catpage { max-width: 1480px; }
+  .cat-main .grid { grid-template-columns: repeat(5, 1fr); }
+}
 
 .filters__top { display: flex; justify-content: space-between; align-items: center; }
 .filters__group { padding: 14px 0; border-top: 1px solid var(--line); }
@@ -775,8 +794,8 @@ input[type="checkbox"]:focus, input[type="radio"]:focus { box-shadow: 0 0 0 3px 
   .hero h1 { font-size: 2rem; }
   .filters, .summary { position: static; }
   .filters--desk { display: none; }
-  .cat-toolbar__filter { display: inline-flex; }
-  .cat-toolbar { position: sticky; top: 64px; background: var(--bg); z-index: 20; }
+  .toolbar__filter { display: inline-flex; }
+  .toolbar { position: sticky; top: 56px; background: var(--bg); z-index: 20; padding-top: 8px; }
   .grid { grid-template-columns: repeat(2, 1fr); }
   .footer__grid { grid-template-columns: repeat(2, 1fr); }
   .footer__news-form input { min-width: 0; flex: 1; }
@@ -835,7 +854,6 @@ input[type="checkbox"]:focus, input[type="radio"]:focus { box-shadow: 0 0 0 3px 
 .pdp__perks li, .stockbox p, .storecard__addr, .storecard__row,
 .help__contact li, .creditbenefits li, .track-result__eta, .ordercard__meta span,
 .choice span { display: flex; align-items: center; gap: 8px; }
-.cat-intro__icon { font-size: 1.3em; color: var(--navy); vertical-align: -0.18em; }
 .b2bperks__icon, .creditbenefits__icon { color: var(--b2b); }
 .b2bperks__icon { font-size: 1.5rem; display: block; margin-bottom: 4px; }
 .creditbenefits__icon { font-size: 1.4rem; }
@@ -1064,11 +1082,9 @@ input[type="checkbox"]:focus, input[type="radio"]:focus { box-shadow: 0 0 0 3px 
 .viewtoggle button.is-active { background: var(--navy); color: #fff; }
 .viewtoggle button:not(:last-child) { border-right: 1px solid var(--line); }
 
-.active-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
 .afchip { display: inline-flex; align-items: center; gap: 6px; background: #eef3fb; border: 1px solid #cfe0f3; color: var(--navy); border-radius: 999px; padding: 5px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
 .afchip:hover { background: #e2edfa; }
 .afchip .ic { font-size: 0.9em; }
-.afchip--clear { background: none; border-color: transparent; color: var(--red); text-decoration: underline; }
 
 .grid--list { grid-template-columns: 1fr; gap: 14px; }
 .grid--list .card { flex-direction: row; align-items: stretch; }
@@ -1404,8 +1420,13 @@ input[type="checkbox"]:focus, input[type="radio"]:focus { box-shadow: 0 0 0 3px 
   .home .section-title,
   .row__head--center .section-title { font-size: 1.18rem; margin-bottom: 14px; line-height: 1.2; }
   .page-title { font-size: 1.45rem; }
-  .cat-intro h1 { font-size: 1.4rem; line-height: 1.2; }
-  .cat-intro p { font-size: 0.9rem; }
+  /* Cabecera de categoría aún más compacta en teléfonos */
+  .breadcrumb--cat { display: none; }
+  .cathead { margin-bottom: 10px; }
+  .cathead__title { font-size: 1.3rem; line-height: 1.2; }
+  .cathead__desc { display: none; }
+  .subchips { margin: 0 -16px 12px; padding: 2px 16px 4px; }
+  .toolbar__results { font-size: 0.85rem; }
   .row__head--center { gap: 2px; }
 }
 

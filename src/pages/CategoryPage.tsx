@@ -3,7 +3,6 @@ import { Link, useParams } from 'react-router-dom'
 import { categories, getCategory, productsByCategory } from '@/data/products'
 import { availabilityFor } from '@/utils/catalog'
 import ProductCard from '@/components/ProductCard'
-import ProductImage from '@/components/ProductImage'
 import Icon, { CategoryIcon } from '@/components/Icon'
 import { ProductGridSkeleton } from '@/components/Skeleton'
 import { useBriefLoading } from '@/hooks/useBriefLoading'
@@ -98,67 +97,39 @@ export default function CategoryPage() {
     </>
   )
 
+  const sortSelect = (
+    <label className="toolbar__sort">
+      <span className="toolbar__sort-lbl">Ordenar</span>
+      <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} aria-label="Ordenar productos">
+        <option value="relevancia">Relevancia</option>
+        <option value="precio-asc">Menor precio</option>
+        <option value="precio-desc">Mayor precio</option>
+        <option value="vendidos">Más vendidos</option>
+        <option value="rating">Mejor evaluados</option>
+        <option value="disponibilidad">Disponibilidad</option>
+      </select>
+    </label>
+  )
+
   return (
-    <div className="container">
-      <nav className="breadcrumb">
-        <Link to="/">Inicio</Link> <span>/</span> <span>{category.name}</span>
+    <div className="container catpage">
+      <nav className="breadcrumb breadcrumb--cat" aria-label="Ruta de navegación">
+        <Link to="/">Inicio</Link> <span aria-hidden>/</span> <span className="breadcrumb__current">{category.name}</span>
       </nav>
 
-      <header className="cat-intro">
-        <h1><CategoryIcon id={category.id} className="cat-intro__icon" /> {category.name}</h1>
-        {category.blurb && <p>{category.blurb}</p>}
+      <header className="cathead">
+        <h1 className="cathead__title"><CategoryIcon id={category.id} className="cathead__icon" /> {category.name}</h1>
+        {category.blurb && <p className="cathead__desc">{category.blurb}</p>}
       </header>
 
       {category.subcats?.length ? (
-        <div className="cat-subnav" role="navigation" aria-label="Subcategorías">
-          {category.subcats.map((s, i) => {
-            const rep = all[i % Math.max(1, all.length)]
-            return (
-              <button key={s} className={`subtile ${subcat === s ? 'is-active' : ''}`} aria-pressed={subcat === s} onClick={() => setSubcat(subcat === s ? null : s)}>
-                <span className="subtile__img">
-                  {rep ? <ProductImage product={rep} variant={i + 1} /> : <span aria-hidden>{category.icon}</span>}
-                </span>
-                <span className="subtile__label">{s}</span>
-              </button>
-            )
-          })}
+        <div className="subchips" role="navigation" aria-label="Subcategorías">
+          <button className={`subchip ${!subcat ? 'is-active' : ''}`} aria-pressed={!subcat} onClick={() => setSubcat(null)}>Todas</button>
+          {category.subcats.map((s) => (
+            <button key={s} className={`subchip ${subcat === s ? 'is-active' : ''}`} aria-pressed={subcat === s} onClick={() => setSubcat(subcat === s ? null : s)}>{s}</button>
+          ))}
         </div>
       ) : null}
-
-      <div className="cat-toolbar">
-        <button className="cat-toolbar__filter" onClick={() => setFiltersOpen(true)}>
-          <Icon name="filter" /> Filtros{activeCount ? <span className="cat-toolbar__count">{activeCount}</span> : null}
-        </button>
-        <span className="cat-toolbar__results" aria-live="polite">{items.length} productos</span>
-        <div className="viewtoggle" role="group" aria-label="Vista">
-          <button className={view === 'grid' ? 'is-active' : ''} onClick={() => setView('grid')} aria-label="Vista grilla"><Icon name="grid" /></button>
-          <button className={view === 'list' ? 'is-active' : ''} onClick={() => setView('list')} aria-label="Vista lista"><Icon name="list" /></button>
-        </div>
-        <label className="cat-toolbar__sort">
-          Ordenar
-          <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
-            <option value="relevancia">Relevancia</option>
-            <option value="precio-asc">Menor precio</option>
-            <option value="precio-desc">Mayor precio</option>
-            <option value="vendidos">Más vendidos</option>
-            <option value="rating">Mejor evaluados</option>
-            <option value="disponibilidad">Disponibilidad</option>
-          </select>
-        </label>
-      </div>
-
-      {activeCount > 0 && (
-        <div className="active-filters">
-          {subcat && <button className="afchip" onClick={() => setSubcat(null)}>{subcat} <Icon name="close" /></button>}
-          {onlyOffers && <button className="afchip" onClick={() => setOnlyOffers(false)}>Ofertas <Icon name="close" /></button>}
-          {pickup && <button className="afchip" onClick={() => setPickup(false)}>Retiro hoy <Icon name="close" /></button>}
-          {delivery && <button className="afchip" onClick={() => setDelivery(false)}>Despacho <Icon name="close" /></button>}
-          {brands.map((b) => (
-            <button key={b} className="afchip" onClick={() => toggleBrand(b)}>{b} <Icon name="close" /></button>
-          ))}
-          <button className="afchip afchip--clear" onClick={clearFilters}>Limpiar todo</button>
-        </div>
-      )}
 
       <div className="cat-layout">
         <aside className="filters filters--desk">
@@ -170,14 +141,43 @@ export default function CategoryPage() {
         </aside>
 
         <section className="cat-main">
+          <div className="toolbar">
+            <div className="toolbar__left">
+              <button className="toolbar__filter" onClick={() => setFiltersOpen(true)}>
+                <Icon name="filter" /> Filtros{activeCount ? <span className="toolbar__count">{activeCount}</span> : null}
+              </button>
+              <span className="toolbar__results" aria-live="polite">{items.length} {items.length === 1 ? 'producto' : 'productos'}</span>
+            </div>
+            <div className="toolbar__right">
+              {sortSelect}
+              <div className="viewtoggle" role="group" aria-label="Tipo de vista">
+                <button className={view === 'grid' ? 'is-active' : ''} onClick={() => setView('grid')} aria-label="Vista grilla" aria-pressed={view === 'grid'}><Icon name="grid" /></button>
+                <button className={view === 'list' ? 'is-active' : ''} onClick={() => setView('list')} aria-label="Vista lista" aria-pressed={view === 'list'}><Icon name="list" /></button>
+              </div>
+            </div>
+          </div>
+
+          {activeCount > 0 && (
+            <div className="activechips">
+              {subcat && <button className="afchip" onClick={() => setSubcat(null)}>{subcat} <Icon name="close" /></button>}
+              {onlyOffers && <button className="afchip" onClick={() => setOnlyOffers(false)}>Ofertas <Icon name="close" /></button>}
+              {pickup && <button className="afchip" onClick={() => setPickup(false)}>Retiro hoy <Icon name="close" /></button>}
+              {delivery && <button className="afchip" onClick={() => setDelivery(false)}>Despacho <Icon name="close" /></button>}
+              {brands.map((b) => (
+                <button key={b} className="afchip" onClick={() => toggleBrand(b)}>{b} <Icon name="close" /></button>
+              ))}
+              <button className="activechips__clear" onClick={clearFilters}>Limpiar todo</button>
+            </div>
+          )}
+
           {loading ? (
-            <ProductGridSkeleton count={Math.min(8, Math.max(4, all.length))} />
+            <ProductGridSkeleton count={Math.min(10, Math.max(5, all.length))} />
           ) : items.length ? (
             <div className={`grid ${view === 'list' ? 'grid--list' : ''}`}>
               {items.map((p) => <ProductCard key={p.id} product={p} />)}
             </div>
           ) : (
-            <div className="empty">
+            <div className="empty empty--cat">
               <p>No hay productos con esos filtros.</p>
               <button className="btn btn--ghost" onClick={clearFilters}>Limpiar filtros</button>
             </div>
