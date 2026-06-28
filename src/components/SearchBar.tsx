@@ -72,7 +72,7 @@ export default function SearchBar() {
       <form className="search" onSubmit={submit} role="search">
         <input
           type="search"
-          placeholder="¿Qué estás buscando hoy?"
+          placeholder="Buscar cemento, pinturas, herramientas…"
           value={q}
           onChange={(e) => { setQ(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
