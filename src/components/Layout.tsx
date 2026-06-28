@@ -15,6 +15,9 @@ export default function Layout() {
     window.scrollTo(0, 0)
   }, [pathname])
 
+  // El chat no debe estorbar en grillas de producto
+  const hideChat = /^\/(categoria|categorias|buscar|ofertas|favoritos|producto)(\/|$)/.test(pathname)
+
   return (
     <div className={`app app--${mode}`}>
       <Header />
@@ -29,9 +32,11 @@ export default function Layout() {
       </main>
       <Footer />
       <Toast />
-      <a href="#chat" className="chatfab" aria-label="Chat de ayuda">
-        <Icon name="chat" />
-      </a>
+      {!hideChat && (
+        <a href="#chat" className="chatfab" aria-label="Chat de ayuda">
+          <Icon name="chat" />
+        </a>
+      )}
       <MobileBottomNav />
     </div>
   )

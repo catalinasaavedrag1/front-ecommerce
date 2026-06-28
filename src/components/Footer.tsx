@@ -31,30 +31,35 @@ export default function Footer() {
         )}
       </div>
       <div className="footer__grid footer__grid--slim">
-        <div>
-          <h4>Empresas (B2B)</h4>
-          <ul>
+        <details className="footer__acc">
+          <summary>Empresas (B2B)<Icon name="chevron" className="footer__acc-chev" /></summary>
+          <ul className="footer__acc-body">
             <li><Link to="/cotizacion">Solicitar cotización</Link></li>
             <li><Link to="/empresas/credito">Línea de crédito Mimbral</Link></li>
             <li><a href="#licitaciones">Licitaciones y grandes obras</a></li>
           </ul>
-        </div>
-        <div>
-          <h4>Mimbral</h4>
-          <p className="footer__about">
-            Todo para la construcción y el mejoramiento del hogar. Atendemos a
-            personas y empresas en todo Chile.
-          </p>
-          <div className="footer__quick">
-            <Link to="/nosotros">Quiénes somos</Link>
+        </details>
+        <details className="footer__acc">
+          <summary>Mimbral<Icon name="chevron" className="footer__acc-chev" /></summary>
+          <div className="footer__acc-body">
+            <p className="footer__about">
+              Todo para la construcción y el mejoramiento del hogar. Atendemos a
+              personas y empresas en todo Chile.
+            </p>
+            <div className="footer__quick">
+              <Link to="/nosotros">Quiénes somos</Link>
+            </div>
           </div>
-          <div className="footer__pay">
+        </details>
+        <details className="footer__acc">
+          <summary>Medios de pago<Icon name="chevron" className="footer__acc-chev" /></summary>
+          <div className="footer__acc-body footer__pay">
             <span>Tarjetas</span>
             <span>Transferencia</span>
             <span>Crédito B2B</span>
             <span>Webpay</span>
           </div>
-        </div>
+        </details>
       </div>
       <div className="footer__legal">
         <span>© {new Date().getFullYear()} Mimbral SpA · Demo de e-commerce</span>

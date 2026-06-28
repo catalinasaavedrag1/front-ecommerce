@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 import { categories, products } from '@/data/products'
 import { useApp } from '@/context/AppContext'
 import ProductCard from '@/components/ProductCard'
-import OfferCard from '@/components/OfferCard'
 import HeroCarousel, { type Slide } from '@/components/HeroCarousel'
 import Icon, { CategoryIcon, type IconName } from '@/components/Icon'
 
@@ -124,13 +123,13 @@ export default function HomePage() {
 
       {offers.length > 0 && (
         <section className="row">
-          <div className="row__head row__head--center">
+          <div className="row__head">
             <h2 className="section-title">Ofertas</h2>
-            <Link to="/ofertas" className="row__more">Ver todas</Link>
+            <Link to="/ofertas" className="row__more">Ver todas →</Link>
           </div>
-          <div className="offergrid">
+          <div className="grid">
             {offers.map((p) => (
-              <OfferCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} />
             ))}
           </div>
         </section>

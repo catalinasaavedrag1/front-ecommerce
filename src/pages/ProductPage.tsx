@@ -1,17 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { getProduct, productsByCategory, warehouses } from '@/data/products'
+import { getProduct, productsByCategory, warehouses, getCategory } from '@/data/products'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import PriceTag from '@/components/PriceTag'
 import Rating from '@/components/Rating'
 import ProductCard from '@/components/ProductCard'
 import ProductImage from '@/components/ProductImage'
+import BottomSheet from '@/components/BottomSheet'
 import Icon from '@/components/Icon'
 import Calculator from '@/components/Calculator'
 import { useWishlist } from '@/context/WishlistContext'
 import { priceFor, nextVolumeTier } from '@/utils/pricing'
 import { formatCLP } from '@/utils/format'
+
+type DeliveryTab = 'despacho' | 'retiro' | 'tienda'
 
 export default function ProductPage() {
   const { id = '' } = useParams()
@@ -22,6 +25,21 @@ export default function ProductPage() {
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
   const [view, setView] = useState(0)
+  const [sheet, setSheet] = useState<DeliveryTab | null>(null)
+  const [showSticky, setShowSticky] = useState(false)
+  const buyRef = useRef<HTMLDivElement>(null)
+
+  // La sticky bar solo aparece cuando la zona de compra ya salió de pantalla
+  useEffect(() => {
+    const el = buyRef.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([e]) => setShowSticky(!e.isIntersecting && e.boundingClientRect.top < 0),
+      { threshold: 0 },
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [id])
 
   if (!product) {
     return (
@@ -32,40 +50,59 @@ export default function ProductPage() {
     )
   }
 
+  const category = getCategory(product.categoryId)
   const related = productsByCategory(product.categoryId).filter((p) => p.id !== product.id).slice(0, 4)
   const complements = (product.complementaryIds ?? []).map(getProduct).filter(Boolean) as typeof related
   const price = priceFor(product, qty, mode, customer)
   const nextTier = mode === 'b2b' ? nextVolumeTier(product, qty) : undefined
+
+  const maxQty = Math.min(product.stock, 30)
+  const lowStock = product.stock <= 12
+  const shipCost = product.bulky ? 24990 : 4990
+  const despachoOpts = [
+    { label: 'Llega mañana', cost: shipCost },
+    { label: 'Llega en 48 hrs', cost: Math.max(990, shipCost - 1000) },
+    { label: 'Llega en 72 hrs', cost: Math.max(990, shipCost - 2000) },
+  ]
+  const retiroOpts = [
+    { label: 'Retiro hoy', store: 'Tienda Balmaceda', when: 'Listo en 2 hrs' },
+    { label: 'Retiro mañana', store: 'Tienda Chorrillos', when: 'Mañana desde 11:00' },
+  ]
+
+  // Chips comerciales (máx. 4)
+  const chips: { label: string; kind: 'ok' | 'plain' | 'red' | 'warn' }[] = []
+  if (product.retailOffer) chips.push({ label: 'Oferta', kind: 'red' })
+  chips.push({ label: 'Retiro hoy', kind: 'ok' })
+  chips.push({ label: 'Despacho 24-72 hrs', kind: 'plain' })
+  chips.push(lowStock ? { label: `Solo ${product.stock} u.`, kind: 'warn' } : { label: 'Stock disponible', kind: 'ok' })
+  chips.push({ label: '12 cuotas sin interés', kind: 'plain' })
+  const visibleChips = chips.slice(0, 4)
 
   const onAdd = () => {
     add(product.id, qty)
     setAdded(true)
     setTimeout(() => setAdded(false), 1800)
   }
+  const clampQty = (n: number) => Math.max(1, Math.min(maxQty, n))
 
   return (
-    <div className="container">
+    <div className="container pdp-page">
       <nav className="breadcrumb">
         <Link to="/">Inicio</Link> <span>/</span>{' '}
-        <Link to={`/categoria/${product.categoryId}`}>Categoría</Link> <span>/</span>{' '}
-        <span>{product.name}</span>
+        <Link to={`/categoria/${category?.slug ?? product.categoryId}`}>{category?.name ?? 'Categoría'}</Link> <span>/</span>{' '}
+        <span className="breadcrumb__current">{product.name}</span>
       </nav>
 
       <div className="pdp">
+        {/* Galería */}
         <div className="pdp__gallery">
           <div className="pdp__stage">
             <ProductImage product={product} variant={view} className="pdp__img" />
-            <div className="pdp__badges">
-              {product.tags?.map((t) => (
-                <span key={t} className={`tag tag--${t.toLowerCase().replace(/\s/g, '-')}`}>
-                  {t}
-                </span>
-              ))}
-            </div>
             <button
               className={`fav fav--lg ${wishlist.has(product.id) ? 'is-on' : ''}`}
               onClick={() => wishlist.toggle(product.id)}
-              aria-label="Favorito"
+              aria-label={wishlist.has(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+              aria-pressed={wishlist.has(product.id)}
             >
               <Icon name="heart" filled={wishlist.has(product.id)} />
             </button>
@@ -84,175 +121,204 @@ export default function ProductPage() {
           </div>
         </div>
 
+        {/* Información principal + compra */}
         <div className="pdp__info">
           <span className="pdp__brand">{product.brand}</span>
-          <h1>{product.name}</h1>
+          <h1 className="pdp__title">{product.name}</h1>
           <div className="pdp__meta">
             <Rating value={product.rating} reviews={product.reviews} />
-            <span className="pdp__sku">SKU: {product.sku}</span>
+            <span className="pdp__sku">SKU {product.sku}</span>
           </div>
 
-          <p className="pdp__desc">{product.description}</p>
-
-          <div className="pdp__buybox">
+          <div className="pdp__priceblock">
             <PriceTag product={product} qty={qty} />
+            <span className="pdp__unit">Por {product.unit}</span>
+          </div>
 
-            {mode === 'b2b' && product.volumeTiers?.length ? (
-              <table className="tiers">
-                <thead>
-                  <tr>
-                    <th>Cantidad</th>
-                    <th>Precio neto unit.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className={qty < (product.volumeTiers[0]?.minQty ?? 1) ? 'is-active' : ''}>
-                    <td>1+</td>
-                    <td>{formatCLP(product.b2bNet)}</td>
-                  </tr>
-                  {product.volumeTiers.map((t, i) => {
-                    const upper = product.volumeTiers![i + 1]?.minQty
-                    const active = qty >= t.minQty && (!upper || qty < upper)
-                    return (
-                      <tr key={t.minQty} className={active ? 'is-active' : ''}>
-                        <td>{t.minQty}+</td>
-                        <td>{formatCLP(t.unitNet)}</td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            ) : null}
+          {visibleChips.length > 0 && (
+            <div className="pdp__chips">
+              {visibleChips.map((c) => (
+                <span key={c.label} className={`pchip pchip--${c.kind}`}>{c.label}</span>
+              ))}
+            </div>
+          )}
 
-            {nextTier && (
-              <p className="pdp__tierhint">
-                Agrega {nextTier.minQty - qty} más y baja a{' '}
-                {formatCLP(nextTier.unitNet)} neto por unidad.
-              </p>
-            )}
+          {/* Bloque de entrega */}
+          <div className="pdp__delivery">
+            <div className="pdp__delivery-head"><Icon name="pin" /> Entrega en <strong>Santiago Centro</strong></div>
+            <button className="delrow" onClick={() => setSheet('despacho')}>
+              <span className="delrow__ic"><Icon name="truck" /></span>
+              <span className="delrow__txt"><strong>Despacho a domicilio</strong><span>Llega entre 24-72 hrs · Desde {formatCLP(despachoOpts[2].cost)}</span></span>
+              <Icon name="chevron" className="delrow__chev" />
+            </button>
+            <button className="delrow" onClick={() => setSheet('retiro')}>
+              <span className="delrow__ic"><Icon name="store" /></span>
+              <span className="delrow__txt"><strong>Retiro en tienda</strong><span>Retiro gratis hoy · {retiroOpts[0].store}</span></span>
+              <Icon name="chevron" className="delrow__chev" />
+            </button>
+            <button className="delrow" onClick={() => setSheet('tienda')}>
+              <span className="delrow__ic"><Icon name="box" /></span>
+              <span className="delrow__txt"><strong>Disponible en tienda</strong><span>{product.stock} unidades disponibles</span></span>
+              <Icon name="chevron" className="delrow__chev" />
+            </button>
+          </div>
 
+          {/* Tramos por volumen (B2B) */}
+          {mode === 'b2b' && product.volumeTiers?.length ? (
+            <table className="tiers">
+              <thead><tr><th>Cantidad</th><th>Precio neto unit.</th></tr></thead>
+              <tbody>
+                <tr className={qty < (product.volumeTiers[0]?.minQty ?? 1) ? 'is-active' : ''}>
+                  <td>1+</td><td>{formatCLP(product.b2bNet)}</td>
+                </tr>
+                {product.volumeTiers.map((t, i) => {
+                  const upper = product.volumeTiers![i + 1]?.minQty
+                  const active = qty >= t.minQty && (!upper || qty < upper)
+                  return <tr key={t.minQty} className={active ? 'is-active' : ''}><td>{t.minQty}+</td><td>{formatCLP(t.unitNet)}</td></tr>
+                })}
+              </tbody>
+            </table>
+          ) : null}
+          {nextTier && (
+            <p className="pdp__tierhint">Agrega {nextTier.minQty - qty} más y baja a {formatCLP(nextTier.unitNet)} neto por unidad.</p>
+          )}
+
+          {/* Zona de compra */}
+          <div className="pdp__buy" ref={buyRef}>
             <div className="qtyrow">
               <div className="qty">
-                <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Restar">
-                  −
-                </button>
-                <input
-                  type="number"
-                  min={1}
-                  value={qty}
-                  onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
-                />
-                <button onClick={() => setQty((q) => q + 1)} aria-label="Sumar">
-                  +
-                </button>
+                <button onClick={() => setQty((q) => clampQty(q - 1))} aria-label="Restar">−</button>
+                <input type="number" min={1} max={maxQty} value={qty} onChange={(e) => setQty(clampQty(Number(e.target.value) || 1))} />
+                <button onClick={() => setQty((q) => clampQty(q + 1))} aria-label="Sumar">+</button>
               </div>
-              <button className="btn btn--primary btn--lg" onClick={onAdd}>
+              <button className="btn btn--primary btn--lg pdp__add" onClick={onAdd}>
                 {added ? <><Icon name="check" /> Agregado</> : mode === 'b2b' ? 'Agregar a la orden' : 'Agregar al carro'}
               </button>
             </div>
-
-            <div className="pdp__subtotal">
-              Subtotal ({qty} {product.unit}): <strong>{formatCLP(price.unitGross * qty)}</strong>
-              {mode === 'b2b' && (
-                <span> · Neto {formatCLP(price.unitNet * qty)}</span>
-              )}
+            <div className="pdp__buy-foot">
+              <span className="pdp__subtotal">Subtotal ({qty} {product.unit}): <strong>{formatCLP(price.unitGross * qty)}</strong>{mode === 'b2b' && <span className="muted"> · Neto {formatCLP(price.unitNet * qty)}</span>}</span>
+              <span className="pdp__max">Máximo {maxQty} unidades</span>
             </div>
-
-            <ul className="pdp__perks">
-              {product.freeShipping && <li><Icon name="truck" /> Despacho gratis en compras sobre $49.990</li>}
-              <li><Icon name="store" /> Retiro en tienda disponible</li>
-              <li><Icon name="return" /> 30 días para cambios</li>
-            </ul>
-
-            <Calculator product={product} />
           </div>
-        </div>
 
-        <aside className="pdp__side">
-          {mode === 'b2b' ? (
-            <div className="stockbox">
-              <h3>Stock por bodega</h3>
-              <ul>
-                {warehouses.map((w) => (
-                  <li key={w}>
-                    <span>{w}</span>
-                    <strong>{product.stockByWarehouse[w] ?? 0} u.</strong>
-                  </li>
-                ))}
-              </ul>
-              <Link to="/cotizacion" className="btn btn--ghost btn--block">
-                Solicitar cotización
-              </Link>
-            </div>
-          ) : (
-            <div className="stockbox">
-              <h3>Disponibilidad</h3>
-              <p className="stockbox__ok"><Icon name="check" /> {product.stock} unidades en stock</p>
-              <p className="stockbox__deliv"><Icon name="box" /> Llega en 24-72 hrs hábiles</p>
-              <p className="stockbox__deliv"><Icon name="store" /> Retiro hoy en tienda seleccionada</p>
-            </div>
+          <ul className="pdp__perks">
+            {product.freeShipping && <li><Icon name="truck" /> Despacho gratis en compras sobre $49.990</li>}
+            <li><Icon name="lock" /> Pago seguro Webpay y transferencia</li>
+            <li><Icon name="return" /> 30 días para cambios y devoluciones</li>
+          </ul>
+
+          {mode === 'b2b' && (
+            <Link to="/cotizacion" className="btn btn--ghost btn--block pdp__quote"><Icon name="doc" /> Solicitar cotización</Link>
           )}
-        </aside>
+
+          <Calculator product={product} />
+        </div>
       </div>
 
-      <section className="specs">
-        <h2 className="section-title">Especificaciones</h2>
-        <table>
-          <tbody>
-            {Object.entries(product.specs).map(([k, v]) => (
-              <tr key={k}>
-                <th>{k}</th>
-                <td>{v}</td>
-              </tr>
-            ))}
-            <tr>
-              <th>Marca</th>
-              <td>{product.brand}</td>
-            </tr>
-            <tr>
-              <th>Unidad de venta</th>
-              <td>{product.unit}</td>
-            </tr>
-          </tbody>
-        </table>
+      <section className="pdp-cols">
+        <div className="specs">
+          <h2 className="section-title">Especificaciones</h2>
+          <table>
+            <tbody>
+              {Object.entries(product.specs).map(([k, v]) => (<tr key={k}><th>{k}</th><td>{v}</td></tr>))}
+              <tr><th>Marca</th><td>{product.brand}</td></tr>
+              <tr><th>Unidad de venta</th><td>{product.unit}</td></tr>
+              <tr><th>SKU</th><td>{product.sku}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div className="pdp__desc-box">
+          <h2 className="section-title">Descripción</h2>
+          <p>{product.description}</p>
+          {mode === 'b2b' && (
+            <div className="stockbox stockbox--inline">
+              <h3>Stock por bodega</h3>
+              <ul>
+                {warehouses.map((w) => (<li key={w}><span>{w}</span><strong>{product.stockByWarehouse[w] ?? 0} u.</strong></li>))}
+              </ul>
+            </div>
+          )}
+        </div>
       </section>
 
       {complements.length > 0 && (
         <section className="row">
           <h2 className="section-title">Completa tu compra</h2>
-          <div className="grid">
-            {complements.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <div className="grid">{complements.map((p) => (<ProductCard key={p.id} product={p} />))}</div>
         </section>
       )}
 
       {related.length > 0 && (
-        <section className="row">
+        <section className="row pdp-related">
           <h2 className="section-title">Productos relacionados</h2>
-          <div className="grid">
-            {related.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <div className="grid">{related.map((p) => (<ProductCard key={p.id} product={p} />))}</div>
         </section>
       )}
 
-      <div className="buybar">
-        <div className="buybar__info">
-          <span className="buybar__price">{formatCLP(price.unitGross)}</span>
-          <span className="buybar__unit">por {product.unit}</span>
+      {/* Sticky bar (solo cuando la zona de compra salió de pantalla) */}
+      {showSticky && (
+        <div className="buybar">
+          <div className="buybar__media"><ProductImage product={product} className="buybar__img" /></div>
+          <div className="buybar__info">
+            <span className="buybar__price">{formatCLP(price.unitGross)}</span>
+            <span className="buybar__unit">por {product.unit}</span>
+          </div>
+          <div className="buybar__qty">
+            <button onClick={() => setQty((q) => clampQty(q - 1))} aria-label="Restar">−</button>
+            <span>{qty}</span>
+            <button onClick={() => setQty((q) => clampQty(q + 1))} aria-label="Sumar">+</button>
+          </div>
+          <button className="btn btn--primary buybar__btn" onClick={onAdd}>{added ? <><Icon name="check" /> Listo</> : 'Agregar'}</button>
         </div>
-        <div className="buybar__qty">
-          <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Restar">−</button>
-          <span>{qty}</span>
-          <button onClick={() => setQty((q) => q + 1)} aria-label="Sumar">+</button>
-        </div>
-        <button className="btn btn--primary buybar__btn" onClick={onAdd}>
-          {added ? <><Icon name="check" /> Listo</> : 'Agregar'}
-        </button>
-      </div>
+      )}
+
+      {/* Bottom sheet de entrega con tabs */}
+      {sheet && (
+        <BottomSheet title="Opciones de entrega" icon="truck" onClose={() => setSheet(null)}>
+          <div className="dsheet__comuna"><Icon name="pin" /> Comuna: <strong>Santiago Centro</strong><button className="link-btn">Cambiar</button></div>
+          <div className="dtabs" role="tablist">
+            <button role="tab" aria-selected={sheet === 'despacho'} className={`dtab ${sheet === 'despacho' ? 'is-active' : ''}`} onClick={() => setSheet('despacho')}>Despacho</button>
+            <button role="tab" aria-selected={sheet === 'retiro'} className={`dtab ${sheet === 'retiro' ? 'is-active' : ''}`} onClick={() => setSheet('retiro')}>Retiro</button>
+            <button role="tab" aria-selected={sheet === 'tienda'} className={`dtab ${sheet === 'tienda' ? 'is-active' : ''}`} onClick={() => setSheet('tienda')}>En tienda</button>
+          </div>
+
+          {sheet === 'despacho' && (
+            <div className="dopts">
+              {despachoOpts.map((o) => (
+                <div className="dopt" key={o.label}>
+                  <span className="dopt__ic"><Icon name="truck" /></span>
+                  <span className="dopt__txt"><strong>{o.label}</strong><span>Despacho a domicilio</span></span>
+                  <span className="dopt__price">{formatCLP(o.cost)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {sheet === 'retiro' && (
+            <div className="dopts">
+              {retiroOpts.map((o) => (
+                <div className="dopt" key={o.label}>
+                  <span className="dopt__ic"><Icon name="store" /></span>
+                  <span className="dopt__txt"><strong>{o.label} · {o.store}</strong><span>{o.when}</span></span>
+                  <span className="dopt__price dopt__price--free">Gratis</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {sheet === 'tienda' && (
+            <div className="dstore">
+              <p className="dstore__ok"><Icon name="check" /> Disponible en <strong>Tienda Balmaceda</strong></p>
+              <div className="dstore__grid">
+                <div><span>Stock</span><strong>{product.stock} unidades</strong></div>
+                <div><span>Pasillo</span><strong>A</strong></div>
+                <div><span>Rack</span><strong>03</strong></div>
+                <div><span>Nivel</span><strong>2</strong></div>
+              </div>
+              <p className="muted">Acércate a un asesor con el SKU {product.sku} para retirarlo en sala.</p>
+            </div>
+          )}
+          <button className="btn btn--primary sheet__cta" onClick={() => setSheet(null)}>Listo</button>
+        </BottomSheet>
+      )}
     </div>
   )
 }
