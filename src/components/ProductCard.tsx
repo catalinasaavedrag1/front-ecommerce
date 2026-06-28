@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { Product } from '@/types'
 import { useApp } from '@/context/AppContext'
@@ -12,18 +11,12 @@ import { availabilityFor, badgesFor, keySpec } from '@/utils/catalog'
 
 export default function ProductCard({ product }: { product: Product }) {
   const { mode } = useApp()
-  const { add } = useCart()
+  const { add, setQty, lines } = useCart()
   const wishlist = useWishlist()
   const navigate = useNavigate()
-  const [qty, setQty] = useState(1)
-  const [added, setAdded] = useState(false)
   const faved = wishlist.has(product.id)
+  const inCart = lines.find((l) => l.productId === product.id)?.qty ?? 0
 
-  const onAdd = () => {
-    add(product.id, qty)
-    setAdded(true)
-    setTimeout(() => setAdded(false), 1600)
-  }
   const badges = badgesFor(product, { mode })
   const avail = availabilityFor(product)
 
@@ -55,7 +48,7 @@ export default function ProductCard({ product }: { product: Product }) {
         </Link>
         {keySpec(product) && <span className="card__attr">{keySpec(product)}</span>}
         <Rating value={product.rating} reviews={product.reviews} />
-        <PriceTag product={product} qty={qty} compact />
+        <PriceTag product={product} qty={1} compact />
         <span className="card__unit">Precio por {product.unit}</span>
 
         <div className="card__avail">
@@ -66,22 +59,20 @@ export default function ProductCard({ product }: { product: Product }) {
         </div>
 
         <div className="card__actions">
-          <div className="qty qty--xs">
-            <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Restar">−</button>
-            <input
-              type="number"
-              min={1}
-              value={qty}
-              onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
-            />
-            <button onClick={() => setQty((q) => q + 1)} aria-label="Sumar">+</button>
-          </div>
-          <button className={`btn btn--primary card__add ${added ? 'is-added' : ''}`} onClick={onAdd}>
-            {added ? <><Icon name="check" /> Agregado</> : 'Agregar'}
-          </button>
+          {inCart === 0 ? (
+            <button className="btn btn--primary card__add" onClick={() => add(product.id, 1)}>
+              {mode === 'b2b' ? 'Agregar a la orden' : 'Agregar'}
+            </button>
+          ) : (
+            <div className="card__incart" role="group" aria-label="Cantidad en el carro">
+              <button onClick={() => setQty(product.id, inCart - 1)} aria-label="Quitar uno">−</button>
+              <span className="card__incart-q"><strong>{inCart}</strong> en carro</span>
+              <button onClick={() => setQty(product.id, inCart + 1)} aria-label="Agregar uno">+</button>
+            </div>
+          )}
         </div>
         {mode === 'b2b' && (
-          <button className="card__quote" onClick={() => { add(product.id, qty); navigate('/cotizacion') }}>
+          <button className="card__quote" onClick={() => { add(product.id, 1); navigate('/cotizacion') }}>
             <Icon name="doc" /> Cotizar
           </button>
         )}

@@ -550,7 +550,13 @@ input:focus, select:focus, textarea:focus { border-color: var(--navy-700); box-s
 .dot--ok { background: var(--success); }
 .dot--no { background: var(--danger); }
 .card__actions { display: flex; gap: 8px; margin-top: auto; align-items: stretch; }
-.card__actions .card__add { flex: 1; padding: 10px 12px; }
+.card__actions .card__add { flex: 1; padding: 11px 12px; }
+/* Estado "en carro": stepper enlazado al carro (estilo app) */
+.card__incart { flex: 1; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; border: 1.5px solid var(--navy); border-radius: var(--radius-sm); overflow: hidden; background: #fff; }
+.card__incart button { border: none; background: #eef3fb; color: var(--navy); font-size: 1.25rem; height: 100%; min-height: 42px; -webkit-tap-highlight-color: transparent; }
+.card__incart button:active { background: #dce7f7; }
+.card__incart-q { text-align: center; font-size: 0.6rem; color: var(--muted); line-height: 1; text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap; }
+.card__incart-q strong { display: block; font-size: 1.05rem; color: var(--navy); margin-bottom: 1px; letter-spacing: 0; text-transform: none; }
 .qty--xs { border-radius: 9px; }
 .qty--xs button { width: 30px; font-size: 1rem; }
 .qty--xs input { width: 34px; font-size: 0.9rem; }
@@ -767,7 +773,12 @@ input:focus, select:focus, textarea:focus { border-color: var(--navy-700); box-s
   .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .header__top-links span:not(:last-child), .header__top-links a:not(:first-child) { display: none; }
   .header__icon-label { display: none; }
-  .cartline { grid-template-columns: 60px 1fr auto; grid-template-areas: 'media info info' 'media qty total'; }
+  .cartline { grid-template-columns: 64px 1fr auto; grid-template-areas: 'media info remove' 'media qty total'; column-gap: 12px; row-gap: 10px; align-items: center; padding: 12px; }
+  .cartline__media { grid-area: media; align-self: start; width: 64px; height: 64px; }
+  .cartline__info { grid-area: info; }
+  .cartline__remove { grid-area: remove; align-self: start; }
+  .cartline .qty { grid-area: qty; justify-self: start; }
+  .cartline__total { grid-area: total; min-width: 0; align-self: center; }
   .formgrid { grid-template-columns: 1fr; }
   .toast { left: 14px; right: 14px; width: auto; }
   .hero h1 { font-size: 1.7rem; }
