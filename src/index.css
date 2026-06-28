@@ -268,14 +268,21 @@ h1, h2, h3, h4 {
 .trustbar__item span { font-size: 0.8rem; color: var(--muted); }
 
 .catgrid { margin-top: 30px; }
-.catgrid__items { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+.catgrid__items { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
 .catgrid__item {
-  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 20px 10px; text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--ink);
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 22px 12px; text-align: center; font-size: 0.86rem; font-weight: 700; color: var(--navy-900);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
   transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
 }
-.catgrid__item:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: var(--amber); }
-.catgrid__icon { display: block; font-size: 2.1rem; margin-bottom: 9px; }
+.catgrid__item:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: var(--navy); }
+.catgrid__icon {
+  width: 64px; height: 64px; border-radius: 50%; background: #eef3fb; color: var(--navy);
+  display: grid; place-items: center; font-size: 1.9rem;
+  transition: background 0.14s ease, color 0.14s ease, transform 0.14s ease;
+}
+.catgrid__item:hover .catgrid__icon { background: var(--navy); color: #fff; transform: scale(1.05); }
+.catgrid__icon svg { width: 32px; height: 32px; }
 
 .banners { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 28px; }
 .banner {
@@ -1619,9 +1626,12 @@ input[type="checkbox"]:focus, input[type="radio"]:focus { box-shadow: 0 0 0 3px 
 /* ================= Página Categorías ================= */
 .catspage__sub { color: var(--muted); margin: -6px 0 18px; }
 .catspage__list { display: flex; flex-direction: column; gap: 12px; }
-.catcard { border: 1px solid var(--line); border-radius: 14px; background: #fff; overflow: hidden; box-shadow: var(--shadow-xs); }
+.catcard { border: 1px solid var(--line); border-radius: 14px; background: #fff; overflow: hidden; box-shadow: var(--shadow-xs); transition: border-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease; }
+.catcard:hover { border-color: var(--navy); box-shadow: var(--shadow); transform: translateY(-3px); }
 .catcard__head { display: flex; align-items: center; gap: 14px; padding: 16px; color: var(--ink); font-weight: 700; }
-.catcard__ic { width: 44px; height: 44px; border-radius: 11px; background: #eef3fb; color: var(--navy); display: grid; place-items: center; font-size: 1.5rem; flex-shrink: 0; }
+.catcard__ic { width: 46px; height: 46px; border-radius: 12px; background: #eef3fb; color: var(--navy); display: grid; place-items: center; font-size: 1.5rem; flex-shrink: 0; transition: background 0.14s ease, color 0.14s ease; }
+.catcard:hover .catcard__ic { background: var(--navy); color: #fff; }
+.catcard__head:hover .catcard__name { color: var(--navy); }
 .catcard__name { flex: 1; font-size: 1rem; }
 .catcard__chev { color: var(--muted); }
 .catcard__subs { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 16px; }
@@ -2120,3 +2130,63 @@ input[type="checkbox"]:focus, input[type="radio"]:focus { box-shadow: 0 0 0 3px 
 .qacard__useful:hover { border-color: var(--navy); color: var(--navy); }
 .qacard__useful.is-voted { border-color: var(--navy); color: var(--navy); background: #eef2fb; }
 .qa__empty { color: var(--muted); padding: 16px; text-align: center; }
+
+/* ============================================================
+   Footer — tema claro y aireado estilo target.com
+   (overrides finales; ganan por orden de cascada)
+   ============================================================ */
+.footer { background: #fff; color: #4f5b66; margin-top: 56px; border-top: 1px solid var(--line); }
+.footer a { color: #4f5b66; }
+.footer a:hover { color: var(--navy); text-decoration: underline; }
+
+/* Barra de ayuda */
+.footer__help { grid-template-columns: repeat(3, 1fr); gap: 22px; padding: 30px 22px; margin-bottom: 0; border-bottom: 1px solid var(--line); }
+.footer__help-item { display: flex; align-items: center; gap: 13px; padding: 8px; border-radius: 12px; transition: background 0.14s; }
+.footer__help-item:hover { background: #f5f8fc; }
+.footer__help-ic { width: 46px; height: 46px; border-radius: 50%; background: #eef3fb; display: grid; place-items: center; flex-shrink: 0; }
+.footer__help-item .ic { color: var(--navy); font-size: 1.25rem; }
+.footer__help-item strong { display: block; color: var(--navy-900); font-size: 0.95rem; }
+.footer__help-item span { font-size: 0.82rem; color: var(--muted); }
+
+/* Newsletter como tarjeta suave */
+.footer__news { max-width: var(--maxw); margin: 26px auto; padding: 26px 28px; background: #f5f8fc; border: 1px solid var(--line); border-radius: 16px; }
+.footer__news-text strong { color: var(--navy-900); }
+.footer__news-text span { color: var(--muted); }
+.footer__news-ok { color: var(--b2b-700); }
+
+/* Columnas de enlaces */
+.footer__grid--slim { max-width: var(--maxw); }
+.footer__acc > summary { color: var(--navy-900); }
+.footer ul { font-size: 0.88rem; gap: 11px; }
+@media (min-width: 641px) {
+  .footer__grid--slim { padding: 12px 22px 40px; gap: 34px; }
+  .footer__acc > summary { color: var(--navy-900); margin-bottom: 14px; font-size: 1rem; letter-spacing: 0.01em; }
+}
+@media (max-width: 640px) {
+  .footer__acc { border-bottom-color: var(--line); }
+  .footer__acc > summary { color: var(--navy-900); }
+}
+
+/* Marca + redes + medios de pago */
+.footer__bottom { max-width: var(--maxw); margin: 0 auto; padding: 24px 22px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 18px 28px; flex-wrap: wrap; }
+.footer__brand { display: flex; align-items: center; gap: 12px; }
+.footer__brand:hover { text-decoration: none; }
+.footer__brand-mark { width: 40px; height: 36px; display: grid; place-items: center; flex-shrink: 0; }
+.footer__brand-text strong { display: block; font-family: var(--display); font-weight: 800; font-size: 1.15rem; color: var(--navy-900); line-height: 1.1; }
+.footer__brand-text span { font-size: 0.78rem; color: var(--muted); }
+.footer__social { max-width: none; margin: 0; padding: 0; border-top: none; display: flex; align-items: center; gap: 11px; }
+.footer__social > span { color: var(--navy-900); font-weight: 700; font-size: 0.88rem; }
+.footer__social a { width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 1px solid var(--line); color: var(--navy); display: grid; place-items: center; font-size: 1.05rem; transition: background 0.14s, color 0.14s, border-color 0.14s, transform 0.14s; }
+.footer__social a:hover { background: var(--navy); color: #fff; border-color: var(--navy); transform: translateY(-2px); }
+.footer__pay { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+.footer__pay span { font-size: 0.72rem; font-weight: 700; color: var(--navy-900); background: #fff; border: 1px solid var(--line); border-radius: 7px; padding: 6px 11px; }
+
+/* Legal */
+.footer__legal { max-width: var(--maxw); margin: 0 auto; border-top: 1px solid var(--line); color: var(--muted); padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; gap: 10px 24px; flex-wrap: wrap; font-size: 0.8rem; }
+.footer__legal-links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.footer__legal-links a { color: var(--muted); font-weight: 600; }
+.footer__legal-links a:hover { color: var(--navy); }
+@media (max-width: 720px) {
+  .footer__bottom { flex-direction: column; align-items: flex-start; gap: 18px; }
+  .footer__legal { flex-direction: column-reverse; align-items: flex-start; }
+}
