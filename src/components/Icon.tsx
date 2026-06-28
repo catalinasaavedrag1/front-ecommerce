@@ -10,7 +10,7 @@ export type IconName =
   | 'phone' | 'pin' | 'building' | 'filter' | 'chevron' | 'plus' | 'minus' | 'close'
   | 'menu' | 'doc' | 'percent' | 'bolt' | 'check' | 'clock' | 'mail' | 'map' | 'box'
   | 'calendar' | 'lock' | 'card' | 'bank' | 'tag' | 'star' | 'sparkle' | 'users'
-  | 'wallet' | 'list' | 'headset' | 'leaf' | 'trash' | 'trend' | 'handshake' | 'medal' | 'chat' | 'home' | 'grid' | 'scan' | 'share' | 'whatsapp' | 'bell' | 'dots'
+  | 'wallet' | 'list' | 'headset' | 'leaf' | 'trash' | 'trend' | 'handshake' | 'medal' | 'chat' | 'home' | 'grid' | 'scan' | 'share' | 'whatsapp' | 'bell' | 'dots' | 'thumb'
   // categorías
   | 'construccion' | 'ferreteria' | 'herramientas' | 'pinturas' | 'electricidad'
   | 'gasfiteria' | 'jardin' | 'banos-cocina' | 'pisos' | 'seguridad' | 'maderas' | 'temporada'
@@ -65,6 +65,7 @@ const paths: Record<IconName, JSX.Element> = {
   share: <><circle cx="18" cy="5" r="2.6" /><circle cx="6" cy="12" r="2.6" /><circle cx="18" cy="19" r="2.6" /><path d="m8.3 10.8 7.4-4.3M8.3 13.2l7.4 4.3" /></>,
   bell: <><path d="M6 9a6 6 0 0 1 12 0c0 4 1.5 5.5 2 6H4c.5-.5 2-2 2-6Z" /><path d="M10 19a2 2 0 0 0 4 0" /></>,
   dots: <><circle cx="12" cy="5" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="12" cy="19" r="1.4" /></>,
+  thumb: <><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z" /><path d="M7 11l4-7a2 2 0 0 1 3 2l-1 5h5a2 2 0 0 1 2 2.3l-1 6A2 2 0 0 1 16 21H7" /></>,
   whatsapp: <><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3Z" /><path d="M8.5 8.5c1.5 4 3 5.5 7 7" /></>,
   // categorías
   construccion: <><path d="M3 21h18" /><path d="M5 21V10l4-2 4 2v11" /><path d="M13 21V13l4-2 2 1v9" /><path d="M7 13h2M7 16h2" /></>,

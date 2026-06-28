@@ -12,11 +12,13 @@ import Calculator from '@/components/Calculator'
 import ProductCarousel from '@/components/ProductCarousel'
 import CompareTable from '@/components/CompareTable'
 import ProductReviews from '@/components/ProductReviews'
+import ProductQA from '@/components/ProductQA'
 import ShareButton from '@/components/ShareButton'
 import Accordion from '@/components/Accordion'
 import { useWishlist } from '@/context/WishlistContext'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
 import { getRecommendations } from '@/utils/recommendations'
+import { getVariants } from '@/utils/variants'
 import { priceFor, nextVolumeTier } from '@/utils/pricing'
 import { formatCLP } from '@/utils/format'
 
@@ -32,6 +34,7 @@ export default function ProductPage() {
   const [added, setAdded] = useState(false)
   const [view, setView] = useState(0)
   const [sheet, setSheet] = useState<DeliveryTab | null>(null)
+  const [variantSel, setVariantSel] = useState<Record<string, string>>({})
   const recentlyViewed = useRecentlyViewed(id)
 
   if (!product) {
@@ -45,6 +48,7 @@ export default function ProductPage() {
 
   const category = getCategory(product.categoryId)
   const recs = getRecommendations(product)
+  const variants = getVariants(product)
   const price = priceFor(product, qty, mode, customer)
   const nextTier = mode === 'b2b' ? nextVolumeTier(product, qty) : undefined
 
@@ -136,6 +140,27 @@ export default function ProductPage() {
             <div className="pdp__chips">
               {visibleChips.map((c) => (
                 <span key={c.label} className={`pchip pchip--${c.kind}`}>{c.label}</span>
+              ))}
+            </div>
+          )}
+
+          {/* Variantes (si el producto tiene) */}
+          {variants.length > 0 && (
+            <div className="pvars">
+              {variants.map((g) => (
+                <div className="pvar" key={g.type}>
+                  <span className="pvar__label">{g.type}: <strong>{variantSel[g.type] ?? g.options[0].label}</strong></span>
+                  <div className="pvar__opts">
+                    {g.options.map((o) => {
+                      const active = (variantSel[g.type] ?? g.options[0].label) === o.label
+                      return o.color ? (
+                        <button key={o.label} className={`pvar__sw ${active ? 'is-on' : ''}`} style={{ background: o.color }} title={o.label} aria-label={`${g.type} ${o.label}`} aria-pressed={active} onClick={() => setVariantSel((s) => ({ ...s, [g.type]: o.label }))} />
+                      ) : (
+                        <button key={o.label} className={`pvar__chip ${active ? 'is-on' : ''}`} aria-pressed={active} onClick={() => setVariantSel((s) => ({ ...s, [g.type]: o.label }))}>{o.label}</button>
+                      )
+                    })}
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -253,25 +278,11 @@ export default function ProductPage() {
             </ul>
           </Accordion>
 
-          <Accordion title={`Preguntas y respuestas (${(product.reviews % 5) + 2})`}>
-            <ul className="aboutitem__qa">
-              <li>
-                <p className="qa__q"><strong>P:</strong> ¿Sirve para uso profesional / en obra?</p>
-                <p className="qa__a"><strong>R:</strong> Sí, está pensado tanto para uso doméstico como profesional según sus especificaciones.</p>
-              </li>
-              <li>
-                <p className="qa__q"><strong>P:</strong> ¿Tiene garantía y boleta/factura?</p>
-                <p className="qa__a"><strong>R:</strong> Incluye garantía del fabricante y puedes solicitar boleta o factura en el checkout.</p>
-              </li>
-              <li>
-                <p className="qa__q"><strong>P:</strong> ¿Puedo retirarlo el mismo día?</p>
-                <p className="qa__a"><strong>R:</strong> Sí, si hay stock en tu tienda seleccionada el retiro queda disponible el mismo día.</p>
-              </li>
-            </ul>
-            <button className="link-btn aboutitem__askbtn"><Icon name="chat" /> Hacer una pregunta</button>
-          </Accordion>
         </div>
       </section>
+
+      {/* Preguntas y respuestas */}
+      <ProductQA product={product} />
 
       {/* Opiniones */}
       <ProductReviews product={product} />
