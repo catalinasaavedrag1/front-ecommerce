@@ -10,7 +10,7 @@ export type IconName =
   | 'phone' | 'pin' | 'building' | 'filter' | 'chevron' | 'plus' | 'minus' | 'close'
   | 'menu' | 'doc' | 'percent' | 'bolt' | 'check' | 'clock' | 'mail' | 'map' | 'box'
   | 'calendar' | 'lock' | 'card' | 'bank' | 'tag' | 'star' | 'sparkle' | 'users'
-  | 'wallet' | 'list' | 'headset' | 'leaf' | 'trash' | 'trend' | 'handshake' | 'medal' | 'chat' | 'home' | 'grid' | 'scan'
+  | 'wallet' | 'list' | 'headset' | 'leaf' | 'trash' | 'trend' | 'handshake' | 'medal' | 'chat' | 'home' | 'grid' | 'scan' | 'share' | 'whatsapp'
   // categorías
   | 'construccion' | 'ferreteria' | 'herramientas' | 'pinturas' | 'electricidad'
   | 'gasfiteria' | 'jardin' | 'banos-cocina' | 'pisos' | 'seguridad' | 'maderas' | 'temporada'
@@ -62,6 +62,8 @@ const paths: Record<IconName, JSX.Element> = {
   home: <><path d="M3 11 12 4l9 7" /><path d="M5 10v9h14v-9" /><path d="M10 19v-5h4v5" /></>,
   grid: <><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" /></>,
   scan: <><path d="M4 7V5a1 1 0 0 1 1-1h2M20 7V5a1 1 0 0 0-1-1h-2M4 17v2a1 1 0 0 0 1 1h2M20 17v2a1 1 0 0 0-1 1h-2" /><path d="M7 8v8M10 8v8M13 8v8M16 8v8" /></>,
+  share: <><circle cx="18" cy="5" r="2.6" /><circle cx="6" cy="12" r="2.6" /><circle cx="18" cy="19" r="2.6" /><path d="m8.3 10.8 7.4-4.3M8.3 13.2l7.4 4.3" /></>,
+  whatsapp: <><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3Z" /><path d="M8.5 8.5c1.5 4 3 5.5 7 7" /></>,
   // categorías
   construccion: <><path d="M3 21h18" /><path d="M5 21V10l4-2 4 2v11" /><path d="M13 21V13l4-2 2 1v9" /><path d="M7 13h2M7 16h2" /></>,
   ferreteria: <><path d="m14 7 3-3 3 3-3 3" /><path d="m4 20 8-8" /><circle cx="6" cy="18" r="2" /><path d="m13 11 3 3" /></>,

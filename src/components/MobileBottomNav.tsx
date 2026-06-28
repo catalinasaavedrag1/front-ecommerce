@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { useCart } from '@/context/CartContext'
 import { useApp } from '@/context/AppContext'
 import Icon, { type IconName } from './Icon'
@@ -8,6 +8,10 @@ type Tab = { to: string; label: string; icon: IconName; end?: boolean; badge?: n
 export default function MobileBottomNav() {
   const { count } = useCart()
   const { mode } = useApp()
+  const { pathname } = useLocation()
+
+  // En la ficha de producto la barra inferior se reemplaza por la barra de compra fija
+  if (/^\/producto\//.test(pathname)) return null
 
   const tabs: Tab[] = [
     { to: '/', label: 'Inicio', icon: 'home', end: true },

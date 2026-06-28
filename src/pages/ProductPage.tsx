@@ -1,16 +1,21 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { getProduct, productsByCategory, warehouses, getCategory } from '@/data/products'
+import { getProduct, warehouses, getCategory } from '@/data/products'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import PriceTag from '@/components/PriceTag'
 import Rating from '@/components/Rating'
-import ProductCard from '@/components/ProductCard'
 import ProductImage from '@/components/ProductImage'
 import BottomSheet from '@/components/BottomSheet'
 import Icon from '@/components/Icon'
 import Calculator from '@/components/Calculator'
+import ProductCarousel from '@/components/ProductCarousel'
+import CompareTable from '@/components/CompareTable'
+import ProductReviews from '@/components/ProductReviews'
+import ShareButton from '@/components/ShareButton'
 import { useWishlist } from '@/context/WishlistContext'
+import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
+import { getRecommendations } from '@/utils/recommendations'
 import { priceFor, nextVolumeTier } from '@/utils/pricing'
 import { formatCLP } from '@/utils/format'
 
@@ -26,20 +31,7 @@ export default function ProductPage() {
   const [added, setAdded] = useState(false)
   const [view, setView] = useState(0)
   const [sheet, setSheet] = useState<DeliveryTab | null>(null)
-  const [showSticky, setShowSticky] = useState(false)
-  const buyRef = useRef<HTMLDivElement>(null)
-
-  // La sticky bar solo aparece cuando la zona de compra ya salió de pantalla
-  useEffect(() => {
-    const el = buyRef.current
-    if (!el) return
-    const obs = new IntersectionObserver(
-      ([e]) => setShowSticky(!e.isIntersecting && e.boundingClientRect.top < 0),
-      { threshold: 0 },
-    )
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [id])
+  const recentlyViewed = useRecentlyViewed(id)
 
   if (!product) {
     return (
@@ -51,8 +43,7 @@ export default function ProductPage() {
   }
 
   const category = getCategory(product.categoryId)
-  const related = productsByCategory(product.categoryId).filter((p) => p.id !== product.id).slice(0, 4)
-  const complements = (product.complementaryIds ?? []).map(getProduct).filter(Boolean) as typeof related
+  const recs = getRecommendations(product)
   const price = priceFor(product, qty, mode, customer)
   const nextTier = mode === 'b2b' ? nextVolumeTier(product, qty) : undefined
 
@@ -98,14 +89,17 @@ export default function ProductPage() {
         <div className="pdp__gallery">
           <div className="pdp__stage">
             <ProductImage product={product} variant={view} className="pdp__img" />
-            <button
-              className={`fav fav--lg ${wishlist.has(product.id) ? 'is-on' : ''}`}
-              onClick={() => wishlist.toggle(product.id)}
-              aria-label={wishlist.has(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
-              aria-pressed={wishlist.has(product.id)}
-            >
-              <Icon name="heart" filled={wishlist.has(product.id)} />
-            </button>
+            <div className="pdp__stage-actions">
+              <ShareButton title={product.name} text={`Mira este producto en Mimbral: ${product.name}`} whatsappText={`Mira este producto en Mimbral: ${product.name} (${formatCLP(product.retailOffer ?? product.retailPrice)})`} />
+              <button
+                className={`fav fav--lg ${wishlist.has(product.id) ? 'is-on' : ''}`}
+                onClick={() => wishlist.toggle(product.id)}
+                aria-label={wishlist.has(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                aria-pressed={wishlist.has(product.id)}
+              >
+                <Icon name="heart" filled={wishlist.has(product.id)} />
+              </button>
+            </div>
           </div>
           <div className="pdp__thumbs">
             {[0, 1, 2].map((v) => (
@@ -183,8 +177,8 @@ export default function ProductPage() {
             <p className="pdp__tierhint">Agrega {nextTier.minQty - qty} más y baja a {formatCLP(nextTier.unitNet)} neto por unidad.</p>
           )}
 
-          {/* Zona de compra */}
-          <div className="pdp__buy" ref={buyRef}>
+          {/* Zona de compra (visible en desktop; en móvil va en la barra fija) */}
+          <div className="pdp__buy">
             <div className="qtyrow">
               <div className="qty">
                 <button onClick={() => setQty((q) => clampQty(q - 1))} aria-label="Restar">−</button>
@@ -241,24 +235,30 @@ export default function ProductPage() {
         </div>
       </section>
 
-      {complements.length > 0 && (
-        <section className="row">
-          <h2 className="section-title">Completa tu compra</h2>
-          <div className="grid">{complements.map((p) => (<ProductCard key={p.id} product={p} />))}</div>
-        </section>
-      )}
+      {/* Cambios y devoluciones */}
+      <section className="returns">
+        <h2 className="section-title">Cambios y devoluciones</h2>
+        <ul className="returns__list">
+          <li><Icon name="return" /> Tienes <strong>30 días</strong> para cambios y devoluciones desde la recepción.</li>
+          <li><Icon name="store" /> Puedes gestionar el cambio en cualquier tienda Mimbral o en línea.</li>
+          <li><Icon name="shield" /> Productos con garantía del fabricante ante fallas.</li>
+        </ul>
+      </section>
 
-      {related.length > 0 && (
-        <section className="row pdp-related">
-          <h2 className="section-title">Productos relacionados</h2>
-          <div className="grid">{related.map((p) => (<ProductCard key={p.id} product={p} />))}</div>
-        </section>
-      )}
+      {/* Opiniones */}
+      <ProductReviews product={product} />
 
-      {/* Sticky bar (solo cuando la zona de compra salió de pantalla) */}
-      {showSticky && (
-        <div className="buybar">
-          <div className="buybar__media"><ProductImage product={product} className="buybar__img" /></div>
+      {/* Módulos recomendados (lazy: solo se montan al renderizar) */}
+      <ProductCarousel title="Más opciones para elegir" products={recs.similar} viewAllTo={`/categoria/${category?.slug ?? product.categoryId}`} />
+      <CompareTable current={product} products={recs.comparison.filter((p) => p.id !== product.id)} />
+      <ProductCarousel title="Complementa tu compra" products={recs.complements} />
+      <ProductCarousel title="También compraron" products={recs.frequentlyBoughtTogether} />
+      <ProductCarousel title="Vistos recientemente" products={recentlyViewed} />
+
+      {/* Barra de compra fija (móvil): reemplaza la navegación inferior en la ficha */}
+      <div className="buybar">
+        <span className="buybar__max">Máximo {maxQty} unidades</span>
+        <div className="buybar__row">
           <div className="buybar__info">
             <span className="buybar__price">{formatCLP(price.unitGross)}</span>
             <span className="buybar__unit">por {product.unit}</span>
@@ -268,9 +268,9 @@ export default function ProductPage() {
             <span>{qty}</span>
             <button onClick={() => setQty((q) => clampQty(q + 1))} aria-label="Sumar">+</button>
           </div>
-          <button className="btn btn--primary buybar__btn" onClick={onAdd}>{added ? <><Icon name="check" /> Listo</> : 'Agregar'}</button>
+          <button className="btn btn--primary buybar__btn" onClick={onAdd}>{added ? <><Icon name="check" /> Listo</> : mode === 'b2b' ? 'Agregar' : 'Agregar al carro'}</button>
         </div>
-      )}
+      </div>
 
       {/* Bottom sheet de entrega con tabs */}
       {sheet && (
