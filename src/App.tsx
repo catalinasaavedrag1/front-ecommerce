@@ -27,7 +27,8 @@ import NotFoundPage from './pages/NotFoundPage'
 export default function App() {
   return (
     <Routes>
-      {/* Checkout fuera del Layout: experiencia guiada sin distracciones */}
+      {/* Carro y checkout fuera del Layout: foco en comprar, sin distracciones */}
+      <Route path="carro" element={<CartPage />} />
       <Route path="checkout" element={<CheckoutPage />} />
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
@@ -36,7 +37,6 @@ export default function App() {
         <Route path="categoria/:slug" element={<CategoryPage />} />
         <Route path="producto/:id" element={<ProductPage />} />
         <Route path="buscar" element={<SearchPage />} />
-        <Route path="carro" element={<CartPage />} />
         <Route path="empresas" element={<B2BPortalPage />} />
         <Route path="empresas/credito" element={<CreditPage />} />
         <Route path="cotizacion" element={<QuotePage />} />

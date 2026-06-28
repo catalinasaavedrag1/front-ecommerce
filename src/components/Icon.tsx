@@ -10,7 +10,7 @@ export type IconName =
   | 'phone' | 'pin' | 'building' | 'filter' | 'chevron' | 'plus' | 'minus' | 'close'
   | 'menu' | 'doc' | 'percent' | 'bolt' | 'check' | 'clock' | 'mail' | 'map' | 'box'
   | 'calendar' | 'lock' | 'card' | 'bank' | 'tag' | 'star' | 'sparkle' | 'users'
-  | 'wallet' | 'list' | 'headset' | 'leaf' | 'trash' | 'trend' | 'handshake' | 'medal' | 'chat' | 'home' | 'grid' | 'scan' | 'share' | 'whatsapp' | 'bell'
+  | 'wallet' | 'list' | 'headset' | 'leaf' | 'trash' | 'trend' | 'handshake' | 'medal' | 'chat' | 'home' | 'grid' | 'scan' | 'share' | 'whatsapp' | 'bell' | 'dots'
   // categorías
   | 'construccion' | 'ferreteria' | 'herramientas' | 'pinturas' | 'electricidad'
   | 'gasfiteria' | 'jardin' | 'banos-cocina' | 'pisos' | 'seguridad' | 'maderas' | 'temporada'
@@ -64,6 +64,7 @@ const paths: Record<IconName, JSX.Element> = {
   scan: <><path d="M4 7V5a1 1 0 0 1 1-1h2M20 7V5a1 1 0 0 0-1-1h-2M4 17v2a1 1 0 0 0 1 1h2M20 17v2a1 1 0 0 0-1 1h-2" /><path d="M7 8v8M10 8v8M13 8v8M16 8v8" /></>,
   share: <><circle cx="18" cy="5" r="2.6" /><circle cx="6" cy="12" r="2.6" /><circle cx="18" cy="19" r="2.6" /><path d="m8.3 10.8 7.4-4.3M8.3 13.2l7.4 4.3" /></>,
   bell: <><path d="M6 9a6 6 0 0 1 12 0c0 4 1.5 5.5 2 6H4c.5-.5 2-2 2-6Z" /><path d="M10 19a2 2 0 0 0 4 0" /></>,
+  dots: <><circle cx="12" cy="5" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="12" cy="19" r="1.4" /></>,
   whatsapp: <><path d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3Z" /><path d="M8.5 8.5c1.5 4 3 5.5 7 7" /></>,
   // categorías
   construccion: <><path d="M3 21h18" /><path d="M5 21V10l4-2 4 2v11" /><path d="M13 21V13l4-2 2 1v9" /><path d="M7 13h2M7 16h2" /></>,
@@ -88,7 +89,7 @@ const paths: Record<IconName, JSX.Element> = {
   automovil: <><path d="M3 13l2-5h14l2 5v5h-3v-2H6v2H3z" /><circle cx="7" cy="16" r="1.4" /><circle cx="17" cy="16" r="1.4" /></>,
 }
 
-const filledNames = new Set<IconName>(['heart', 'shield', 'bolt', 'star', 'pin', 'filter', 'tag', 'leaf', 'jardin', 'electricidad'])
+const filledNames = new Set<IconName>(['heart', 'shield', 'bolt', 'star', 'pin', 'filter', 'tag', 'leaf', 'jardin', 'electricidad', 'dots'])
 
 export default function Icon({ name, className, size, filled }: Props) {
   const isFilled = filled ?? filledNames.has(name)
