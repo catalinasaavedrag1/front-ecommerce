@@ -74,8 +74,11 @@ export default function ProductPage() {
   chips.push({ label: '12 cuotas sin interés', kind: 'plain' })
   const visibleChips = chips.slice(0, 4)
 
+  const variantLabel = variants.length
+    ? variants.map((g) => variantSel[g.type] ?? g.options[0].label).join(' · ')
+    : undefined
   const onAdd = () => {
-    add(product.id, qty)
+    add(product.id, qty, variantLabel)
     setAdded(true)
     setTimeout(() => setAdded(false), 1800)
   }

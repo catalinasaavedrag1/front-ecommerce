@@ -126,6 +126,7 @@ export default function CartPage() {
                       </div>
                     </div>
                     <span className="citem__brand">{l.product.brand} · {l.product.sku}</span>
+                    {l.variant && <span className="citem__variant">{l.variant}</span>}
                     {l.product.bulky && <span className="citem__tag">Voluminoso</span>}
                     {overStock && <span className="citem__alert"><Icon name="box" /> Solo quedan {l.product.stock} u.</span>}
                     <div className="citem__row2">

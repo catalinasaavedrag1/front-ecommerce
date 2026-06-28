@@ -1921,6 +1921,7 @@ input[type="checkbox"]:focus, input[type="radio"]:focus { box-shadow: 0 0 0 3px 
 .citem__menu { position: relative; flex-shrink: 0; }
 .citem__menu > button { background: none; border: none; color: var(--muted); width: 30px; height: 30px; display: grid; place-items: center; font-size: 1.1rem; }
 .citem__brand { display: block; font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+.citem__variant { display: inline-block; margin-top: 5px; font-size: 0.72rem; font-weight: 600; color: var(--navy-900); background: #eef2fb; border: 1px solid #d6e0f5; border-radius: 6px; padding: 2px 8px; }
 .citem__tag { display: inline-block; margin-top: 5px; font-size: 0.66rem; font-weight: 700; color: #9a6a12; background: #fff5e6; border: 1px solid #f3dcae; border-radius: 999px; padding: 2px 8px; }
 .citem__alert { display: flex; align-items: center; gap: 5px; color: var(--red); font-size: 0.74rem; font-weight: 600; margin-top: 5px; }
 .citem__row2 { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-top: 10px; }

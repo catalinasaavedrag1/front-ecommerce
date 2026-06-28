@@ -69,6 +69,8 @@ export interface Product {
 export interface CartLine {
   productId: string
   qty: number
+  /** Variante elegida (ej. "Negro · 1 Litro"), si el producto tiene variantes. */
+  variant?: string
 }
 
 export interface Customer {

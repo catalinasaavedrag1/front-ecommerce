@@ -10,6 +10,7 @@ export interface DetailedLine {
   unitNet: number
   lineNet: number
   lineGross: number
+  variant?: string
 }
 
 export interface CartTotals {
@@ -39,6 +40,7 @@ export function buildTotals(
       unitNet: price.unitNet,
       lineNet: price.unitNet * line.qty,
       lineGross: price.unitGross * line.qty,
+      variant: line.variant,
     })
   }
 

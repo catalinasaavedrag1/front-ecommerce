@@ -3,7 +3,7 @@ import type { CartLine } from '@/types'
 
 interface CartState {
   lines: CartLine[]
-  add: (productId: string, qty?: number) => void
+  add: (productId: string, qty?: number, variant?: string) => void
   setQty: (productId: string, qty: number) => void
   remove: (productId: string) => void
   clear: () => void
@@ -31,15 +31,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const [lastAdded, setLastAdded] = useState<CartState['lastAdded']>(null)
 
-  const add: CartState['add'] = (productId, qty = 1) => {
+  const add: CartState['add'] = (productId, qty = 1, variant) => {
     setLines((prev) => {
       const existing = prev.find((l) => l.productId === productId)
       if (existing) {
         return prev.map((l) =>
-          l.productId === productId ? { ...l, qty: l.qty + qty } : l,
+          l.productId === productId ? { ...l, qty: l.qty + qty, variant: variant ?? l.variant } : l,
         )
       }
-      return [...prev, { productId, qty }]
+      return [...prev, { productId, qty, variant }]
     })
     setLastAdded({ productId, qty, ts: Date.now() })
   }
