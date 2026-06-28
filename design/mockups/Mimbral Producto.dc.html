@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; color: #16212b; background: #f6f8fb; -webkit-font-smoothing: antialiased; }
+  @keyframes mb-toastin { from { transform: translateY(140%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes mb-pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+  ::-webkit-scrollbar { height: 6px; width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #d7dee6; border-radius: 99px; }
+</style>
+</helmet>
+
+<div style="background:#f6f8fb; min-height:100vh; font-family:'Inter',sans-serif; color:#16212b;">
+
+  <!-- HEADER -->
+  <header style="position:sticky; top:0; z-index:60; background:#fff; box-shadow:0 2px 8px rgba(11,35,58,.07);">
+    <div style="background:#173a8a; font-size:.82rem;">
+      <div style="max-width:1280px; margin:0 auto; padding:6px 22px; display:flex; gap:24px; align-items:center; color:#eaf1f8;">
+        <a href="Mimbral Home.dc.html" style="display:inline-flex; align-items:center; gap:7px; font-weight:600; color:#eaf1f8;"><span style="display:grid; transform:rotate(180deg);">{{ icChevron }}</span> Volver a la tienda</a>
+        <span style="margin-left:auto; display:inline-flex; align-items:center; gap:7px; font-weight:500;">{{ icHeadset }} Venta empresas · 600 600 0000</span>
+      </div>
+    </div>
+    <div style="max-width:1280px; margin:0 auto; padding:11px 22px; display:flex; align-items:center; gap:24px;">
+      <a href="Mimbral Home.dc.html" style="display:flex; align-items:center; gap:11px; flex-shrink:0;">
+        <span style="width:44px; height:40px; border-radius:7px; padding:4px; background:#173a8a; display:grid; place-items:center;"><svg viewBox="0 0 44 40" width="100%" height="100%"><path d="M7 31 16 9h6L13 31z" fill="#fff"></path><path d="M19 31 28 9h6l-9 22z" fill="#fff"></path><path d="M31 31 37 16v15z" fill="#e1251b"></path></svg></span>
+        <span style="display:flex; flex-direction:column; align-items:flex-start; font-family:'Sora',sans-serif; font-weight:800; font-style:italic; font-size:1.45rem; color:#173a8a; line-height:1; letter-spacing:-.02em;">Mimbral<small style="font-style:normal; font-size:.54rem; font-weight:800; letter-spacing:.18em; color:#fff; background:#e1251b; text-transform:uppercase; margin-top:3px; padding:1px 6px; border-radius:2px; font-family:'Inter',sans-serif; align-self:stretch; text-align:center;">MTS</small></span>
+      </a>
+      <div style="flex:1; display:flex; background:#fff; border:2px solid #e7ecf1; border-radius:999px; overflow:hidden; max-width:560px;">
+        <input placeholder="Busca productos, marcas y más…" style="flex:1; border:none; padding:10px 18px; font-size:.95rem; outline:none; color:#16212b; background:transparent; font-family:'Inter',sans-serif;">
+        <button style="border:none; background:transparent; padding:0 18px; color:#173a8a; display:grid; place-items:center; cursor:pointer;">{{ icSearch }}</button>
+      </div>
+      <div style="display:inline-flex; background:#f6f8fb; border:1px solid #e7ecf1; border-radius:999px; padding:3px; flex-shrink:0;">
+        <button onClick="{{ onB2c }}" style="border:none; padding:7px 15px; border-radius:999px; font-size:.8rem; font-weight:700; cursor:pointer; background:{{ b2cBg }}; color:{{ b2cColor }};">Personas</button>
+        <button onClick="{{ onB2b }}" style="border:none; padding:7px 15px; border-radius:999px; font-size:.8rem; font-weight:700; cursor:pointer; background:{{ b2bBg }}; color:{{ b2bColor }};">Empresas</button>
+      </div>
+      <a href="Mimbral Cuenta.dc.html" style="position:relative; display:flex; flex-direction:column; align-items:center; gap:3px; color:#173a8a; font-weight:600; font-size:.72rem; cursor:pointer;"><span style="font-size:1.35rem; display:grid;">{{ icCart }}</span><span>{{ cartLabel }}</span>
+        <sc-if value="{{ hasCart }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; top:-6px; right:-8px; background:#e1251b; color:#fff; border-radius:999px; font-size:.68rem; font-weight:800; min-width:18px; height:18px; display:grid; place-items:center; padding:0 4px;">{{ cartCount }}</span></sc-if>
+      </a>
+    </div>
+  </header>
+
+  <div style="max-width:1280px; margin:0 auto; padding:18px 22px 60px;">
+    <div style="font-size:.82rem; color:#5f7385; margin-bottom:16px; display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+      <a href="Mimbral Home.dc.html" style="cursor:pointer;">Inicio</a> <span>›</span> <span>Materiales de Construcción</span> <span>›</span> <span style="color:#16212b; font-weight:600;">{{ name }}</span>
+    </div>
+
+    <!-- PDP -->
+    <div style="display:grid; grid-template-columns:0.9fr 1.1fr; gap:32px; align-items:start;">
+      <!-- gallery -->
+      <div style="position:sticky; top:96px;">
+        <div style="position:relative; background:#fff; border:1px solid #e7ecf1; border-radius:16px; padding:20px; aspect-ratio:1/1;">
+          <div style="position:relative; width:100%; height:100%; border-radius:14px; display:grid; place-items:center; overflow:hidden; background:linear-gradient(140deg, {{ heroC1 }}, {{ heroC2 }});">
+            <span style="position:absolute; width:58%; aspect-ratio:1; border-radius:50%; background:rgba(255,255,255,.14); top:-16%; right:-8%;"></span>
+            <span style="width:40%; height:40%; display:grid; color:#fff; filter:drop-shadow(0 6px 12px rgba(0,0,0,.2));">{{ heroIcon }}</span>
+          </div>
+          <span style="position:absolute; top:30px; left:30px; background:#173a8a; color:#fff; font-size:.72rem; font-weight:700; padding:5px 11px; border-radius:7px;">Más vendido</span>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:12px;">
+          <sc-for list="{{ thumbs }}" as="t" hint-placeholder-count="3">
+            <span style="width:72px; height:72px; border-radius:10px; border:2px solid {{ t.border }}; display:grid; place-items:center; background:linear-gradient(140deg, {{ t.c1 }}, {{ t.c2 }}); cursor:pointer;"><span style="width:40%; height:40%; display:grid; color:#fff;">{{ heroIcon }}</span></span>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- info -->
+      <div style="display:flex; flex-direction:column; gap:18px;">
+        <div>
+          <span style="font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:#5f7385; font-weight:700;">{{ brand }}</span>
+          <h1 style="font-family:'Sora',sans-serif; font-size:1.85rem; color:#102a63; margin:5px 0 10px; line-height:1.15;">{{ name }}</h1>
+          <div style="display:flex; gap:16px; align-items:center; font-size:.85rem; color:#5f7385;">
+            <span style="display:inline-flex; align-items:center; gap:5px;"><span style="color:#e08e06; letter-spacing:1px;">★★★★★</span> 4.6 <span>(254)</span></span>
+            <span>SKU: MIM-CON-4001</span>
+            <span style="display:inline-flex; align-items:center; gap:5px; color:#0f6347; font-weight:600;"><span style="width:8px; height:8px; border-radius:50%; background:#157f5c;"></span> En stock · 1.200 sacos</span>
+          </div>
+        </div>
+
+        <!-- ===== B2B MECHANICS ===== -->
+        <sc-if value="{{ isB2b }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; flex-direction:column; gap:16px;">
+
+            <!-- campaign / period band -->
+            <div style="background:linear-gradient(120deg,#7a1d15,#e1251b); color:#fff; border-radius:14px; padding:14px 18px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+              <span style="display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:.92rem;"><span style="width:18px; height:18px; display:grid;">{{ icBolt }}</span> Precios de campaña de invierno</span>
+              <div style="display:flex; align-items:center; gap:7px; margin-left:auto;">
+                <span style="font-size:.74rem; opacity:.9;">Termina en</span>
+                <span style="display:inline-flex; gap:4px; font-family:'Sora',sans-serif; font-weight:800;">
+                  <span style="background:rgba(255,255,255,.2); border-radius:6px; padding:3px 7px; font-size:.92rem;">{{ cd.d }}d</span>
+                  <span style="background:rgba(255,255,255,.2); border-radius:6px; padding:3px 7px; font-size:.92rem;">{{ cd.h }}h</span>
+                  <span style="background:rgba(255,255,255,.2); border-radius:6px; padding:3px 7px; font-size:.92rem;">{{ cd.m }}m</span>
+                  <span style="background:rgba(255,255,255,.2); border-radius:6px; padding:3px 7px; font-size:.92rem; animation:mb-pulse 1s infinite;">{{ cd.s }}s</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- volume ladder -->
+            <div style="background:#fff; border:1px solid #e7ecf1; border-radius:16px; padding:20px; box-shadow:0 1px 2px rgba(11,35,58,.06);">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:14px;">
+                <strong style="font-family:'Sora',sans-serif; font-size:1.05rem; color:#102a63;">Mientras más compras, menos pagas</strong>
+                <span style="font-size:.78rem; color:#5f7385;">Precio por volumen · neto</span>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+                <sc-for list="{{ ladder }}" as="t" hint-placeholder-count="3">
+                  <div style="border:1.5px solid {{ t.border }}; background:{{ t.bg }}; border-radius:12px; padding:13px 14px; position:relative;">
+                    <sc-if value="{{ t.isActive }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; top:-9px; left:14px; background:#157f5c; color:#fff; font-size:.66rem; font-weight:800; padding:2px 8px; border-radius:999px;">TU PRECIO</span></sc-if>
+                    <span style="font-size:.78rem; color:{{ t.labelColor }}; font-weight:700;">{{ t.range }}</span>
+                    <div style="font-family:'Sora',sans-serif; font-size:1.3rem; font-weight:800; color:{{ t.priceColor }}; letter-spacing:-.02em; margin-top:2px;">{{ t.price }}</div>
+                    <span style="font-size:.74rem; color:{{ t.saveColor }}; font-weight:700;">{{ t.saveLabel }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <!-- progress to next -->
+              <sc-if value="{{ hasNext }}" hint-placeholder-val="{{ true }}">
+                <div style="margin-top:16px; background:#fff7e8; border:1px solid #f6e2b8; border-radius:12px; padding:13px 15px;">
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:.85rem; margin-bottom:8px;">
+                    <span style="color:#946100; font-weight:700;">{{ nextHint }}</span>
+                    <button onClick="{{ onJumpNext }}" style="background:#946100; color:#fff; border:none; border-radius:8px; padding:6px 12px; font-weight:700; font-size:.78rem; cursor:pointer; flex-shrink:0;">Agregar {{ nextDelta }} más</button>
+                  </div>
+                  <div style="height:9px; background:#fff; border:1px solid #f0dca8; border-radius:999px; overflow:hidden;"><span style="display:block; height:100%; width:{{ progressPct }}; background:#f6a821;"></span></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ atTop }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:16px; background:#e6f6ef; border:1px solid #c7e8da; border-radius:12px; padding:13px 15px; font-size:.85rem; color:#0f6347; font-weight:700; display:flex; align-items:center; gap:8px;"><span style="width:16px; height:16px; display:grid;">{{ icCheck }}</span> ¡Tienes el mejor precio por volumen!</div>
+              </sc-if>
+            </div>
+
+            <!-- buy box -->
+            <div style="background:#fff; border:1px solid #e7ecf1; border-radius:16px; padding:20px; box-shadow:0 1px 2px rgba(11,35,58,.06);">
+              <!-- pronto pago -->
+              <button onClick="{{ onTogglePP }}" style="width:100%; display:flex; align-items:center; gap:12px; background:{{ ppBg }}; border:1.5px solid {{ ppBorder }}; border-radius:12px; padding:12px 14px; cursor:pointer; text-align:left; margin-bottom:16px;">
+                <span style="width:22px; height:22px; border-radius:6px; border:2px solid {{ ppBorder }}; background:{{ ppCheckBg }}; display:grid; place-items:center; flex-shrink:0; color:#fff;"><sc-if value="{{ prontoPago }}" hint-placeholder-val="{{ false }}"><span style="width:14px; height:14px; display:grid;">{{ icCheck }}</span></sc-if></span>
+                <span style="flex:1;"><strong style="display:block; color:#102a63; font-size:.9rem;">Pago en ≤15 días · −3% adicional</strong><span style="font-size:.8rem; color:#5f7385;">Disponible con tu línea de crédito empresa.</span></span>
+                <strong style="font-family:'Sora',sans-serif; color:#0f6347; font-size:.95rem;">−{{ ppAmount }}</strong>
+              </button>
+
+              <div style="display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:16px;">
+                <div>
+                  <span style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:#5f7385; font-weight:700;">Cantidad (sacos)</span>
+                  <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+                    <div style="display:inline-flex; border:1px solid #e7ecf1; border-radius:10px; overflow:hidden;">
+                      <button onClick="{{ onDec }}" style="border:none; background:#f6f8fb; color:#173a8a; width:40px; height:44px; font-size:1.25rem; cursor:pointer;">−</button>
+                      <span style="min-width:60px; display:grid; place-items:center; font-family:'Sora',sans-serif; font-weight:800; color:#102a63; font-size:1.1rem;">{{ qty }}</span>
+                      <button onClick="{{ onInc }}" style="border:none; background:#f6f8fb; color:#173a8a; width:40px; height:44px; font-size:1.25rem; cursor:pointer;">+</button>
+                    </div>
+                    <button onClick="{{ onPlus10 }}" style="border:1px solid #e7ecf1; background:#fff; color:#173a8a; border-radius:9px; padding:0 12px; height:44px; font-weight:700; font-size:.82rem; cursor:pointer;">+10</button>
+                    <button onClick="{{ onPlus50 }}" style="border:1px solid #e7ecf1; background:#fff; color:#173a8a; border-radius:9px; padding:0 12px; height:44px; font-weight:700; font-size:.82rem; cursor:pointer;">+50</button>
+                  </div>
+                </div>
+                <div style="flex:1; min-width:160px; text-align:right;">
+                  <div style="display:flex; align-items:baseline; gap:6px; justify-content:flex-end;">
+                    <span style="font-family:'Sora',sans-serif; font-size:1.9rem; font-weight:800; color:#0f6347; letter-spacing:-.02em;">{{ unitNet }}</span>
+                    <span style="font-size:.8rem; color:#5f7385; font-weight:600;">c/u neto</span>
+                  </div>
+                  <span style="font-size:.78rem; color:#5f7385;">{{ unitGross }} con IVA</span>
+                </div>
+              </div>
+
+              <!-- totals + savings -->
+              <div style="background:#f6f8fb; border-radius:12px; padding:14px 16px; margin-bottom:16px;">
+                <div style="display:flex; justify-content:space-between; font-size:.9rem; padding:3px 0; color:#5f7385;"><span>Subtotal neto ({{ qty }} sacos)</span><span style="color:#16212b; font-weight:600;">{{ subtotalNet }}</span></div>
+                <div style="display:flex; justify-content:space-between; font-size:.9rem; padding:3px 0; color:#5f7385;"><span>IVA 19%</span><span style="color:#16212b; font-weight:600;">{{ iva }}</span></div>
+                <div style="display:flex; justify-content:space-between; border-top:1px solid #e7ecf1; margin-top:5px; padding-top:9px; font-family:'Sora',sans-serif; font-size:1.15rem; font-weight:800; color:#102a63;"><span>Total con IVA</span><span>{{ totalGross }}</span></div>
+                <div style="display:flex; align-items:center; gap:7px; margin-top:10px; background:#e6f6ef; border-radius:8px; padding:8px 11px;">
+                  <span style="width:16px; height:16px; display:grid; color:#0f6347;">{{ icPercent }}</span>
+                  <span style="font-size:.84rem; color:#0f6347; font-weight:700;">Ahorras {{ saveTotal }} ({{ savePct }}) vs. precio público</span>
+                </div>
+              </div>
+
+              <div style="display:flex; gap:10px;">
+                <button onClick="{{ onAdd }}" style="flex:1; border:none; border-radius:11px; padding:14px; font-weight:700; font-size:1rem; color:#fff; background:#157f5c; box-shadow:0 4px 12px rgba(21,127,92,.28); cursor:pointer; font-family:'Inter',sans-serif;">Agregar a la orden</button>
+                <button onClick="{{ onQuote }}" style="border:1.5px solid #157f5c; background:#fff; color:#0f6347; border-radius:11px; padding:14px 20px; font-weight:700; font-size:.95rem; cursor:pointer; display:inline-flex; align-items:center; gap:8px;"><span style="width:18px; height:18px; display:grid;">{{ icDoc }}</span> Cotizar</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ===== B2C ===== -->
+        <sc-if value="{{ isB2c }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div style="background:#fff; border:1px solid #e7ecf1; border-radius:16px; padding:20px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-family:'Sora',sans-serif; font-size:1.9rem; font-weight:800; color:#e1251b;">$6.490</span>
+                <span style="font-size:.74rem; color:#5f7385;">IVA incluido</span>
+              </div>
+              <button style="margin-top:14px; width:100%; border:none; border-radius:11px; padding:14px; font-weight:700; font-size:1rem; color:#fff; background:#e1251b; box-shadow:0 4px 12px rgba(216,38,28,.26); cursor:pointer;">Agregar</button>
+            </div>
+            <button onClick="{{ onB2b }}" style="background:linear-gradient(120deg,#0f6347,#157f5c); color:#fff; border:none; border-radius:14px; padding:18px 20px; text-align:left; cursor:pointer; display:flex; align-items:center; gap:14px;">
+              <span style="width:42px; height:42px; border-radius:12px; background:rgba(255,255,255,.18); display:grid; place-items:center;"><span style="width:22px; height:22px; display:grid;">{{ icPercent }}</span></span>
+              <span style="flex:1;"><strong style="display:block; font-family:'Sora',sans-serif; font-size:1rem;">¿Compras para tu obra o negocio?</strong><span style="font-size:.86rem; opacity:.9;">Activa precios de empresa y paga hasta −49% por volumen.</span></span>
+              <span style="display:grid; width:20px;">{{ icChevron }}</span>
+            </button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <!-- ===== LO MÁS COMPRADO CON ESTE PRODUCTO ===== -->
+    <section style="margin-top:24px; background:#fff; border:1px solid #e7ecf1; border-radius:16px; padding:24px; box-shadow:0 1px 2px rgba(11,35,58,.06);">
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+        <span style="width:48px; height:48px; border-radius:11px; display:grid; place-items:center; background:linear-gradient(140deg, {{ heroC1 }}, {{ heroC2 }}); flex-shrink:0;"><span style="width:42%; height:42%; display:grid; color:#fff;">{{ heroIcon }}</span></span>
+        <h2 style="font-family:'Sora',sans-serif; font-size:1.25rem; color:#102a63; margin:0;">Lo más comprado con este producto</h2>
+      </div>
+      <button onClick="{{ onToggleAllBundle }}" style="display:flex; align-items:center; gap:10px; background:none; border:none; cursor:pointer; margin-bottom:6px; padding:6px 0;">
+        <span style="width:22px; height:22px; border-radius:6px; border:2px solid {{ bundleAllBorder }}; background:{{ bundleAllBg }}; color:#fff; display:grid; place-items:center;"><sc-if value="{{ bundleAll }}" hint-placeholder-val="{{ false }}"><span style="width:14px; height:14px; display:grid;">{{ icCheck }}</span></sc-if></span>
+        <span style="font-size:.95rem; color:#16212b; font-weight:600;">Seleccionar todos <span style="color:#5f7385; font-weight:400;">({{ bundleProducts }} productos)</span></span>
+      </button>
+      <div style="display:grid; grid-template-columns:1fr 1fr; border-top:1px solid #eef2f6;">
+        <sc-for list="{{ bundleItems }}" as="b" hint-placeholder-count="2">
+          <div style="padding:18px; border-left:1px solid #eef2f6; display:flex; flex-direction:column; gap:14px;">
+            <div style="display:flex; gap:13px; align-items:flex-start;">
+              <button onClick="{{ b.onToggle }}" style="width:24px; height:24px; border-radius:6px; border:2px solid {{ b.checkBorder }}; background:{{ b.checkBg }}; color:#fff; display:grid; place-items:center; cursor:pointer; flex-shrink:0; margin-top:2px;"><sc-if value="{{ b.on }}" hint-placeholder-val="{{ true }}"><span style="width:15px; height:15px; display:grid;">{{ icCheck }}</span></sc-if></button>
+              <span style="width:80px; height:80px; border-radius:10px; display:grid; place-items:center; background:linear-gradient(140deg, {{ b.c1 }}, {{ b.c2 }}); flex-shrink:0;"><span style="width:42%; height:42%; display:grid; color:#fff;">{{ b.iconEl }}</span></span>
+              <div style="flex:1; min-width:0;"><span style="font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:#5f7385; font-weight:700;">{{ b.brand }}</span><div style="font-size:.9rem; color:#16212b; font-weight:600; line-height:1.3;">{{ b.name }}</div><strong style="font-family:'Sora',sans-serif; color:{{ accentText }}; font-size:1.1rem; display:block; margin-top:8px;">{{ b.price }}</strong></div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:5px;">
+              <div style="display:inline-flex; border:1px solid #e7ecf1; border-radius:10px; overflow:hidden;">
+                <button onClick="{{ b.onDec }}" style="border:none; background:#f6f8fb; color:#173a8a; width:44px; height:44px; font-size:1.3rem; cursor:pointer;">−</button>
+                <span style="min-width:50px; display:grid; place-items:center; font-weight:700; color:#102a63; font-size:1rem;">{{ b.qty }}</span>
+                <button onClick="{{ b.onInc }}" style="border:none; background:#f6f8fb; color:#173a8a; width:44px; height:44px; font-size:1.3rem; cursor:pointer;">+</button>
+              </div>
+              <span style="font-size:.78rem; color:#5f7385;">{{ b.qty }} unidad recomendada</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex; justify-content:center; margin-top:20px;">
+        <button onClick="{{ onAddBundle }}" style="border:1.5px solid {{ accent }}; background:#fff; color:{{ accentText }}; border-radius:11px; padding:13px 32px; font-weight:700; font-size:1rem; cursor:pointer; display:inline-flex; align-items:center; gap:10px;">Agregar al carro · {{ bundleTotal }} <span style="width:18px; height:18px; display:grid;">{{ icCart }}</span></button>
+      </div>
+    </section>
+
+    <!-- ===== COMPLEMENTOS / ARMA TU OBRA ===== -->
+    <sc-if value="{{ isB2b }}" hint-placeholder-val="{{ true }}">
+      <section style="margin-top:40px; background:#fff; border:1px solid #e7ecf1; border-radius:16px; padding:24px; box-shadow:0 1px 2px rgba(11,35,58,.06);">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:6px;">
+          <h2 style="font-family:'Sora',sans-serif; font-size:1.25rem; color:#102a63; margin:0;">Arma tu obra y ahorra más</h2>
+          <span style="font-size:.84rem; color:#5f7385;">Maestros que compran este producto también llevan</span>
+        </div>
+        <p style="margin:0 0 18px; font-size:.9rem; color:#5f7385;">Selecciona los complementos para tu faena. <strong style="color:#0f6347;">Llévalos juntos y obtén −10% en el kit.</strong></p>
+
+        <div style="display:grid; grid-template-columns:1.6fr 1fr; gap:20px; align-items:start;">
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <!-- main item row (fixed) -->
+            <div style="display:flex; align-items:center; gap:14px; border:1.5px solid #157f5c; background:#f4fbf8; border-radius:12px; padding:13px 15px;">
+              <span style="width:26px; height:26px; border-radius:7px; background:#157f5c; color:#fff; display:grid; place-items:center; flex-shrink:0;"><span style="width:15px; height:15px; display:grid;">{{ icCheck }}</span></span>
+              <span style="width:48px; height:48px; border-radius:10px; display:grid; place-items:center; background:linear-gradient(140deg, {{ heroC1 }}, {{ heroC2 }}); flex-shrink:0;"><span style="width:42%; height:42%; display:grid; color:#fff;">{{ heroIcon }}</span></span>
+              <div style="flex:1; min-width:0;"><span style="font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; color:#5f7385; font-weight:700;">{{ brand }} · este producto</span><div style="font-size:.9rem; color:#16212b; font-weight:600;">{{ name }}</div></div>
+              <strong style="font-family:'Sora',sans-serif; color:#102a63; white-space:nowrap;">{{ unitNet }}</strong>
+            </div>
+            <!-- complements -->
+            <sc-for list="{{ comps }}" as="c" hint-placeholder-count="4">
+              <button onClick="{{ c.onToggle }}" style="display:flex; align-items:center; gap:14px; border:1.5px solid {{ c.border }}; background:{{ c.bg }}; border-radius:12px; padding:13px 15px; cursor:pointer; text-align:left;">
+                <span style="width:26px; height:26px; border-radius:7px; border:2px solid {{ c.checkBorder }}; background:{{ c.checkBg }}; color:#fff; display:grid; place-items:center; flex-shrink:0;"><sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}"><span style="width:15px; height:15px; display:grid;">{{ icCheck }}</span></sc-if></span>
+                <span style="width:48px; height:48px; border-radius:10px; display:grid; place-items:center; background:linear-gradient(140deg, {{ c.c1 }}, {{ c.c2 }}); flex-shrink:0;"><span style="width:42%; height:42%; display:grid; color:#fff;">{{ c.iconEl }}</span></span>
+                <div style="flex:1; min-width:0;"><span style="font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; color:#5f7385; font-weight:700;">{{ c.brand }}</span><div style="font-size:.9rem; color:#16212b; font-weight:600;">{{ c.name }}</div></div>
+                <strong style="font-family:'Sora',sans-serif; color:#102a63; white-space:nowrap;">{{ c.price }}</strong>
+              </button>
+            </sc-for>
+          </div>
+
+          <!-- kit summary -->
+          <div style="background:#f6f8fb; border:1px solid #e7ecf1; border-radius:14px; padding:20px; position:sticky; top:96px;">
+            <strong style="font-family:'Sora',sans-serif; font-size:1.05rem; color:#102a63;">Tu kit</strong>
+            <div style="display:flex; justify-content:space-between; gap:10px; font-size:.9rem; padding:10px 0 3px; color:#5f7385;"><span style="white-space:nowrap;">{{ kitCount }} productos</span><span style="color:#16212b; font-weight:600; white-space:nowrap;">{{ kitSubtotal }}</span></div>
+            <sc-if value="{{ kitHasDiscount }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; justify-content:space-between; font-size:.9rem; padding:3px 0; color:#0f6347; font-weight:700;"><span>Descuento kit (−10%)</span><span>−{{ kitSaved }}</span></div>
+            </sc-if>
+            <div style="display:flex; justify-content:space-between; border-top:1px solid #e7ecf1; margin-top:6px; padding-top:10px; font-family:'Sora',sans-serif; font-size:1.2rem; font-weight:800; color:#102a63;"><span>Total neto</span><span>{{ kitTotal }}</span></div>
+            <sc-if value="{{ kitHasDiscount }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:10px; background:#e6f6ef; border-radius:8px; padding:8px 11px; font-size:.82rem; color:#0f6347; font-weight:700; text-align:center;">Ahorras {{ kitSaved }} armando el kit</div>
+            </sc-if>
+            <sc-if value="{{ kitNeedMore }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top:10px; background:#fff7e8; border:1px solid #f6e2b8; border-radius:8px; padding:8px 11px; font-size:.8rem; color:#946100; font-weight:700; text-align:center;">Agrega 1 complemento más para activar el −10%</div>
+            </sc-if>
+            <button onClick="{{ onAddKit }}" style="margin-top:14px; width:100%; border:none; border-radius:11px; padding:13px; font-weight:700; font-size:.95rem; color:#fff; background:#157f5c; box-shadow:0 4px 12px rgba(21,127,92,.28); cursor:pointer;">Agregar kit a la orden</button>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- DESCRIPTION + SPECS -->
+    <section style="margin-top:24px; background:#fff; border:1px solid #e7ecf1; border-radius:16px; padding:24px; box-shadow:0 1px 2px rgba(11,35,58,.06);">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:32px;">
+        <div>
+          <h2 style="font-family:'Sora',sans-serif; font-size:1.2rem; color:#102a63; margin:0 0 10px;">Descripción</h2>
+          <p style="margin:0; color:#5f7385; font-size:.92rem; line-height:1.65;">{{ description }}</p>
+        </div>
+        <div>
+          <h2 style="font-family:'Sora',sans-serif; font-size:1.2rem; color:#102a63; margin:0 0 10px;">Especificaciones</h2>
+          <div style="border:1px solid #eef2f6; border-radius:12px; overflow:hidden;">
+            <sc-for list="{{ specs }}" as="s" hint-placeholder-count="6">
+              <div style="display:flex; justify-content:space-between; gap:12px; padding:11px 14px; border-bottom:1px solid #eef2f6; font-size:.88rem;"><span style="color:#5f7385;">{{ s.k }}</span><strong style="color:#102a63;">{{ s.v }}</strong></div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPARISON -->
+    <section style="margin-top:24px; background:#fff; border:1px solid #e7ecf1; border-radius:16px; padding:24px; box-shadow:0 1px 2px rgba(11,35,58,.06);">
+      <h2 style="font-family:'Sora',sans-serif; font-size:1.2rem; color:#102a63; margin:0 0 4px;">Compara con productos similares</h2>
+      <p style="margin:0 0 16px; font-size:.88rem; color:#5f7385;">Elige el cemento que mejor calza con tu obra.</p>
+      <div style="overflow-x:auto;">
+        <div style="min-width:580px;">
+          <div style="display:grid; grid-template-columns:128px 1fr 1fr 1fr; align-items:end;">
+            <div></div>
+            <sc-for list="{{ compareCols }}" as="c" hint-placeholder-count="3">
+              <div style="text-align:center; padding:14px 10px 12px; background:{{ c.headBg }}; border-radius:12px 12px 0 0; position:relative;">
+                <sc-if value="{{ c.isCurrent }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; top:8px; left:50%; transform:translateX(-50%); background:{{ accent }}; color:#fff; font-size:.62rem; font-weight:800; padding:2px 8px; border-radius:999px; white-space:nowrap;">ESTE PRODUCTO</span></sc-if>
+                <span style="width:44px; height:44px; border-radius:10px; display:grid; place-items:center; margin:14px auto 8px; background:linear-gradient(140deg, {{ c.c1 }}, {{ c.c2 }});"><span style="width:42%; height:42%; display:grid; color:#fff;">{{ c.iconEl }}</span></span>
+                <strong style="display:block; font-size:.84rem; color:#102a63; line-height:1.2;">{{ c.name }}</strong>
+                <span style="font-size:.74rem; color:#5f7385;">{{ c.brand }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <sc-for list="{{ compareRows }}" as="r" hint-placeholder-count="6">
+            <div style="display:grid; grid-template-columns:128px 1fr 1fr 1fr; border-top:1px solid #eef2f6;">
+              <div style="padding:11px 12px; font-size:.8rem; color:#5f7385; font-weight:700; text-transform:uppercase; letter-spacing:.03em;">{{ r.label }}</div>
+              <sc-for list="{{ r.values }}" as="v" hint-placeholder-count="3">
+                <div style="padding:11px 10px; text-align:center; font-size:.86rem; color:#16212b; font-weight:600;">{{ v }}</div>
+              </sc-for>
+            </div>
+          </sc-for>
+          <div style="display:grid; grid-template-columns:128px 1fr 1fr 1fr; margin-top:12px;">
+            <div></div>
+            <sc-for list="{{ compareCols }}" as="c" hint-placeholder-count="3">
+              <div style="padding:0 8px;"><button onClick="{{ c.onAdd }}" style="width:100%; border:1.5px solid {{ accent }}; background:#fff; color:{{ accentText }}; border-radius:9px; padding:9px; font-weight:700; font-size:.82rem; cursor:pointer;">Agregar</button></div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ALSO BOUGHT CAROUSEL -->
+    <section style="margin-top:24px;">
+      <h2 style="font-family:'Sora',sans-serif; font-size:1.2rem; color:#102a63; margin:0 0 14px;">Quienes compraron esto también compraron</h2>
+      <div style="display:flex; gap:16px; overflow-x:auto; padding:2px 2px 10px; scroll-snap-type:x proximity;">
+        <sc-for list="{{ alsoBought }}" as="p" hint-placeholder-count="5">
+          <div style="flex:0 0 204px; scroll-snap-align:start; background:#fff; border:1px solid #e7ecf1; border-radius:14px; overflow:hidden; display:flex; flex-direction:column;">
+            <div style="aspect-ratio:4/3; display:grid; place-items:center; background:linear-gradient(140deg, {{ p.c1 }}, {{ p.c2 }});"><span style="width:34%; height:34%; display:grid; color:#fff;">{{ p.iconEl }}</span></div>
+            <div style="padding:13px; display:flex; flex-direction:column; gap:6px; flex:1;">
+              <span style="font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:#5f7385; font-weight:700;">{{ p.brand }}</span>
+              <span style="font-size:.84rem; color:#16212b; font-weight:600; line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.4em;">{{ p.name }}</span>
+              <span style="font-size:.76rem; color:#e08e06;">★ <span style="color:#5f7385;">{{ p.rating }}</span></span>
+              <strong style="font-family:'Sora',sans-serif; color:{{ accentText }}; font-size:1rem;">{{ p.price }}</strong>
+              <button onClick="{{ p.onAdd }}" style="margin-top:auto; width:100%; border:1.5px solid {{ accent }}; background:#fff; color:{{ accentText }}; border-radius:9px; padding:8px; font-weight:700; font-size:.82rem; cursor:pointer;">+ Agregar</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- DELIVERY & RETURNS -->
+    <section style="margin-top:24px; display:grid; grid-template-columns:repeat(3,1fr); gap:16px;">
+      <sc-for list="{{ deliveryCards }}" as="d" hint-placeholder-count="3">
+        <div style="background:#fff; border:1px solid #e7ecf1; border-radius:14px; padding:18px; display:flex; gap:13px;">
+          <span style="width:42px; height:42px; border-radius:12px; background:#eef3fb; color:#173a8a; display:grid; place-items:center; flex-shrink:0;"><span style="width:22px; height:22px; display:grid;">{{ d.iconEl }}</span></span>
+          <div><strong style="display:block; color:#102a63; font-size:.92rem; margin-bottom:2px;">{{ d.title }}</strong><span style="font-size:.82rem; color:#5f7385; line-height:1.45;">{{ d.text }}</span></div>
+        </div>
+      </sc-for>
+    </section>
+
+    <!-- RATINGS & REVIEWS -->
+    <section style="margin-top:24px; background:#fff; border:1px solid #e7ecf1; border-radius:16px; padding:24px; box-shadow:0 1px 2px rgba(11,35,58,.06);">
+      <h2 style="font-family:'Sora',sans-serif; font-size:1.2rem; color:#102a63; margin:0 0 18px;">Calificaciones y opiniones</h2>
+      <div style="display:grid; grid-template-columns:240px 1fr; gap:32px; align-items:start;">
+        <div style="text-align:center;">
+          <div style="font-family:'Sora',sans-serif; font-size:3rem; font-weight:800; color:#102a63; line-height:1;">{{ ratingAvg }}</div>
+          <div style="color:#e08e06; letter-spacing:2px; font-size:1.1rem; margin:6px 0;">★★★★★</div>
+          <div style="font-size:.82rem; color:#5f7385;">{{ ratingCount }}</div>
+          <div style="margin-top:16px; display:flex; flex-direction:column; gap:7px;">
+            <sc-for list="{{ ratingBars }}" as="b" hint-placeholder-count="5">
+              <div style="display:flex; align-items:center; gap:9px; font-size:.76rem; color:#5f7385;"><span style="width:26px; text-align:left;">{{ b.label }}</span><span style="flex:1; height:7px; background:#eef2f6; border-radius:999px; overflow:hidden;"><span style="display:block; height:100%; width:{{ b.pct }}; background:#f6a821;"></span></span><span style="width:32px; text-align:right;">{{ b.pct }}</span></div>
+            </sc-for>
+          </div>
+          <button style="margin-top:16px; width:100%; border:1.5px solid {{ accent }}; background:#fff; color:{{ accentText }}; border-radius:9px; padding:10px; font-weight:700; font-size:.84rem; cursor:pointer;">Escribir una opinión</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <sc-for list="{{ reviews }}" as="r" hint-placeholder-count="3">
+            <div style="border:1px solid #eef2f6; border-radius:12px; padding:16px;">
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom:7px; flex-wrap:wrap;"><strong style="color:#102a63; font-size:.9rem;">{{ r.author }}</strong><span style="color:#e08e06; font-size:.82rem; letter-spacing:1px;">{{ r.stars }}</span><span style="font-size:.74rem; color:#5f7385; margin-left:auto;">{{ r.date }}</span></div>
+              <p style="margin:0 0 8px; font-size:.88rem; color:#16212b; line-height:1.5;">{{ r.text }}</p>
+              <span style="font-size:.72rem; color:#0f6347; font-weight:700; display:inline-flex; align-items:center; gap:5px;"><span style="width:13px; height:13px; display:grid;">{{ icCheck }}</span> {{ r.tag }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- Q&A -->
+    <section style="margin-top:24px; background:#fff; border:1px solid #e7ecf1; border-radius:16px; padding:24px; box-shadow:0 1px 2px rgba(11,35,58,.06);">
+      <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+        <h2 style="font-family:'Sora',sans-serif; font-size:1.2rem; color:#102a63; margin:0;">Preguntas y respuestas</h2>
+        <button style="border:1.5px solid {{ accent }}; background:#fff; color:{{ accentText }}; border-radius:9px; padding:9px 16px; font-weight:700; font-size:.84rem; cursor:pointer;">Hacer una pregunta</button>
+      </div>
+      <div style="display:flex; flex-direction:column;">
+        <sc-for list="{{ qa }}" as="item" hint-placeholder-count="3">
+          <div style="border-top:1px solid #eef2f6; padding:15px 0;">
+            <div style="display:flex; gap:9px;"><span style="font-family:'Sora',sans-serif; font-weight:800; color:#173a8a;">P:</span><strong style="color:#102a63; font-size:.92rem;">{{ item.q }}</strong></div>
+            <div style="display:flex; gap:9px; margin-top:7px;"><span style="font-family:'Sora',sans-serif; font-weight:800; color:#0f6347;">R:</span><span style="color:#5f7385; font-size:.88rem; line-height:1.5;">{{ item.a }}</span></div>
+            <div style="font-size:.74rem; color:#9aa8b6; margin-top:7px; margin-left:23px;">{{ item.who }} · {{ item.date }} · a {{ item.votes }} personas les sirvió</div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </div>
+
+  <!-- TOAST -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; right:22px; bottom:22px; z-index:100; display:flex; align-items:center; gap:12px; background:#fff; border:1px solid #e7ecf1; border-left:4px solid #157f5c; border-radius:10px; box-shadow:0 16px 40px rgba(11,35,58,.14); padding:12px 16px; width:340px; animation:mb-toastin .3s cubic-bezier(.2,.9,.3,1);">
+      <span style="width:26px; height:26px; border-radius:50%; background:#157f5c; color:#fff; display:grid; place-items:center; font-size:.9rem; flex-shrink:0;">{{ icCheck }}</span>
+      <span style="font-size:.86rem; color:#16212b; font-weight:600;">{{ toast }}</span>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { mode: 'b2b', qty: 50, prontoPago: false, comp: { 'p-003': true, 'p-002': true }, cart: 0, toast: null, now: Date.now(), bundleSel: { 0: true, 1: true }, bundleQty: { 0: 1, 1: 1 } };
+
+  paths = {
+    search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/>',
+    cart: '<path d="M3 4h2l2.4 12.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L21 8H6"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/>',
+    chevron: '<path d="m9 6 6 6-6 6"/>',
+    check: '<path d="m4 12 5 5L20 6"/>',
+    doc: '<path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/><path d="M9 13h6M9 17h6"/>',
+    percent: '<path d="m6 18 12-12"/><circle cx="7.5" cy="7.5" r="1.6"/><circle cx="16.5" cy="16.5" r="1.6"/>',
+    bolt: '<path d="M13 2 4 14h6l-1 8 9-12h-6z"/>',
+    truck: '<path d="M2 6h11v9H2z"/><path d="M13 9h4l3 3v3h-7z"/><circle cx="6" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/>',
+    store: '<path d="M4 9h16v10H4z"/><path d="M3 9l1.5-5h15L21 9"/><path d="M9 19v-5h6v5"/>',
+    return: '<path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/>',
+    headset: '<path d="M5 13a7 7 0 0 1 14 0"/><path d="M3 14a2 2 0 0 1 2-2h1v6H5a2 2 0 0 1-2-2zM21 14a2 2 0 0 0-2-2h-1v6h1a2 2 0 0 0 2-2z"/><path d="M19 18a4 4 0 0 1-4 3h-2"/>',
+    construccion: '<path d="M3 21h18"/><path d="M5 21V10l4-2 4 2v11"/><path d="M13 21V13l4-2 2 1v9"/><path d="M7 13h2M7 16h2"/>',
+    herramientas: '<path d="M14 7a3 3 0 0 0 4 4l3 3-3 3-3-3a3 3 0 0 0-4-4z"/><path d="m11 11-7 7 2 2 7-7"/>',
+    ferreteria: '<path d="m14 7 3-3 3 3-3 3"/><path d="m4 20 8-8"/><circle cx="6" cy="18" r="2"/><path d="m13 11 3 3"/>',
+  };
+  ic(name, opt) {
+    opt = opt || {};
+    return React.createElement('svg', { viewBox: '0 0 24 24', width: opt.size || '1em', height: opt.size || '1em', fill: opt.filled ? 'currentColor' : 'none', stroke: 'currentColor', strokeWidth: opt.filled ? 0 : 1.8, strokeLinecap: 'round', strokeLinejoin: 'round', style: Object.assign({ display: 'block', flexShrink: 0 }, opt.style || {}), dangerouslySetInnerHTML: { __html: this.paths[name] || '' } });
+  }
+
+  hero = { id: 'p-001', brand: 'Andescem', name: 'Cemento Especial 25kg', cat: 'construccion', unit: 'saco', publicGross: 6490 };
+  tiers = [{ min: 1, net: 3990 }, { min: 50, net: 3650 }, { min: 500, net: 3290 }];
+  compDefs = [
+    { id: 'p-003', name: 'Arena Gruesa Ensacada 25kg', brand: 'Áridos Maipo', cat: 'construccion', net: 1690 },
+    { id: 'p-002', name: 'Fierro Estriado 8mm x 6m', brand: 'AceroChile', cat: 'construccion', net: 2890 },
+    { id: 'p-013', name: 'Guantes de Seguridad Nitrilo', brand: 'SafeGrip', cat: 'ferreteria', net: 1500 },
+    { id: 'p-010', name: 'Carretilla Buggy 90L', brand: 'Toolmax', cat: 'herramientas', net: 24900 },
+  ];
+  campaignEnd = new Date('2026-06-30T23:59:59').getTime();
+
+  componentDidMount() {
+    try { const m = localStorage.getItem('mimbral_mode'); if (m === 'b2c' || m === 'b2b') this.setState({ mode: m }); } catch (e) {}
+    this._timer = setInterval(() => this.setState({ now: Date.now() }), 1000);
+  }
+  componentWillUnmount() { clearInterval(this._timer); if (this._t) clearTimeout(this._t); }
+
+  fmt(v) { return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(Math.round(v)); }
+  hue(id) { let h = 0; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 360; return h; }
+  tile(id) { const h = this.hue(id); return { c1: `hsl(${h} 50% 47%)`, c2: `hsl(${(h + 24) % 360} 55% 33%)` }; }
+
+  setMode(m) { try { localStorage.setItem('mimbral_mode', m); } catch (e) {} this.setState({ mode: m }); }
+  setQty(q) { this.setState({ qty: Math.max(1, Math.min(99999, q)) }); }
+  notify(msg) { this.setState((s) => ({ cart: s.cart + 1, toast: msg })); if (this._t) clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: null }), 2600); }
+  toggleComp(id) { this.setState((s) => { const c = Object.assign({}, s.comp); if (c[id]) delete c[id]; else c[id] = true; return { comp: c }; }); }
+  toggleBundle(i) { this.setState((s) => { const b = Object.assign({}, s.bundleSel); if (b[i]) delete b[i]; else b[i] = true; return { bundleSel: b }; }); }
+  setBundleQty(i, q) { q = Math.max(1, Math.min(999, q)); this.setState((s) => ({ bundleQty: Object.assign({}, s.bundleQty, { [i]: q }) })); }
+  toggleAllBundle(n) { this.setState((s) => { const all = Object.keys(s.bundleSel).length >= n; const b = {}; if (!all) for (let i = 0; i < n; i++) b[i] = true; return { bundleSel: b }; }); }
+
+  activeTier(q) { let a = this.tiers[0]; for (const t of this.tiers) if (q >= t.min) a = t; return a; }
+
+  buildExtras(isB2b) {
+    const price = (net, retail) => this.fmt(isB2b ? net : retail) + (isB2b ? ' neto' : '');
+    const description = 'Saco de cemento especial de 25 kg para albañilería, estucos y estructuras de hormigón. Fraguado uniforme, alta trabajabilidad y excelente rendimiento en obra gruesa. Cumple la norma chilena NCh148. Ideal para radieres, sobrecimientos, pegado de ladrillos y morteros de relleno.';
+    const specs = [['Peso', '25 kg'], ['Tipo', 'Especial'], ['Resistencia', '25 MPa'], ['Norma', 'NCh148'], ['Uso', 'Estructural / albañilería'], ['Rinde', '~ 40 sacos por m³'], ['Origen', 'Andescem · Chile']].map((s) => ({ k: s[0], v: s[1] }));
+    const cmp = [
+      { name: 'Cemento Especial 25kg', brand: 'Andescem', cat: 'construccion', net: 3990, retail: 6490, current: true, vals: ['25 kg', 'Especial', '25 MPa', 'NCh148', '4.6 ★ (254)'] },
+      { name: 'Cemento Alta Resistencia 25kg', brand: 'Melón', cat: 'construccion', net: 4290, retail: 6990, current: false, vals: ['25 kg', 'Alta resist.', '30 MPa', 'NCh148', '4.7 ★ (180)'] },
+      { name: 'Cemento Puzolánico 42.5kg', brand: 'Bío Bío', cat: 'construccion', net: 5890, retail: 8990, current: false, vals: ['42.5 kg', 'Puzolánico', '25 MPa', 'NCh148', '4.5 ★ (96)'] },
+    ];
+    const compareCols = cmp.map((c) => { const t = this.tile(c.name); return { name: c.name, brand: c.brand, price: price(c.net, c.retail), isCurrent: c.current, c1: t.c1, c2: t.c2, iconEl: this.ic(c.cat, { size: '100%' }), headBg: c.current ? (isB2b ? '#e6f6ef' : '#fdecea') : '#f6f8fb', onAdd: () => this.notify(c.current ? 'Producto agregado' : c.name + ' agregado') }; });
+    const labels = ['Precio', 'Formato', 'Tipo', 'Resistencia', 'Norma', 'Evaluación'];
+    const compareRows = labels.map((label, ri) => ({ label, values: cmp.map((c) => (ri === 0 ? price(c.net, c.retail) : c.vals[ri - 1])) }));
+    const also = [
+      { name: 'Arena Gruesa Ensacada 25kg', brand: 'Áridos Maipo', cat: 'construccion', net: 1490, retail: 2990, r: '4.3' },
+      { name: 'Fierro Estriado 8mm x 6m', brand: 'AceroChile', cat: 'construccion', net: 2890, retail: 4290, r: '4.5' },
+      { name: 'Malla Acma C92 2.6x5m', brand: 'AceroChile', cat: 'construccion', net: 26900, retail: 39990, r: '4.6' },
+      { name: 'Mezcladora de Hormigón 120L', brand: 'Bauker', cat: 'herramientas', net: 189000, retail: 259990, r: '4.4' },
+      { name: 'Guantes de Seguridad Nitrilo', brand: 'SafeGrip', cat: 'ferreteria', net: 1500, retail: 2990, r: '4.4' },
+    ];
+    const alsoBought = also.map((a, i) => { const t = this.tile(a.name + i); return { name: a.name, brand: a.brand, price: price(a.net, a.retail), rating: a.r, c1: t.c1, c2: t.c2, iconEl: this.ic(a.cat, { size: '100%' }), onAdd: () => this.notify(a.name + ' agregado') }; });
+    const ratingBars = [{ s: 5, p: 70 }, { s: 4, p: 20 }, { s: 3, p: 6 }, { s: 2, p: 2 }, { s: 1, p: 2 }].map((b) => ({ label: b.s + '★', pct: b.p + '%' }));
+    const reviews = [
+      { author: 'Constructora Vega', date: '12 jun 2026', stars: '★★★★★', text: 'Excelente cemento para radier, fragua parejo y rinde lo que indica. Compramos 500 sacos para la obra y sin problemas.', tag: 'Compra verificada' },
+      { author: 'Maestro Luis A.', date: '02 jun 2026', stars: '★★★★★', text: 'Muy buena calidad y el despacho a faena llegó puntual. Lo recomiendo para estructura.', tag: 'Compra verificada' },
+      { author: 'Ferretería El Sol', date: '21 may 2026', stars: '★★★★☆', text: 'Buen producto, aunque algunos sacos venían un poco compactados. Igual cumple bien.', tag: 'Compra verificada' },
+    ];
+    const qa = [
+      { q: '¿Sirve para estuco exterior?', a: 'Sí, es apto para estucos y morteros de relleno tanto en exterior como interior.', who: 'Equipo Mimbral', date: 'jun 2026', votes: 12 },
+      { q: '¿Cuántos sacos rinden por metro cúbico de hormigón?', a: 'Aproximadamente 40 sacos por m³ según la dosificación que uses.', who: 'Andescem', date: 'may 2026', votes: 8 },
+      { q: '¿Tienen despacho a regiones?', a: 'Sí, despachamos a todo Chile. El plazo depende de la comuna de destino.', who: 'Equipo Mimbral', date: 'may 2026', votes: 5 },
+    ];
+    const bDefs = [
+      { name: 'Arena Gruesa Ensacada 25kg', brand: 'Áridos Maipo', cat: 'construccion', net: 1490, retail: 2990 },
+      { name: 'Aditivo Impermeabilizante 1kg', brand: 'Sika', cat: 'ferreteria', net: 3500, retail: 5990 },
+    ];
+    const bundleItems = bDefs.map((d, i) => {
+      const t = this.tile(d.name + 'b'); const on = !!this.state.bundleSel[i]; const qn = this.state.bundleQty[i] || 1;
+      return { name: d.name, brand: d.brand, price: price(d.net, d.retail), c1: t.c1, c2: t.c2, iconEl: this.ic(d.cat, { size: '100%' }), on, qty: qn, checkBg: on ? '#157f5c' : '#fff', checkBorder: on ? '#157f5c' : '#cfd8e0', onToggle: () => this.toggleBundle(i), onInc: () => this.setBundleQty(i, qn + 1), onDec: () => this.setBundleQty(i, qn - 1) };
+    });
+    const bundleCount = bDefs.filter((d, i) => this.state.bundleSel[i]).length;
+    const bundleAll = bundleCount === bDefs.length;
+    const bundleTotalV = bDefs.reduce((s, d, i) => s + (this.state.bundleSel[i] ? (isB2b ? d.net : d.retail) * (this.state.bundleQty[i] || 1) : 0), 0);
+    const di = (n) => this.ic(n, { size: '100%' });
+    const deliveryCards = [
+      { iconEl: di('truck'), title: 'Despacho a domicilio / faena', text: 'Desde CD Maipú · llega en 1–3 días hábiles. Gratis en compras sobre $49.990.' },
+      { iconEl: di('store'), title: 'Retiro en tienda', text: 'Listo en 2 horas en Mimbral Santiago Centro. Consulta stock por sucursal.' },
+      { iconEl: di('return'), title: 'Devoluciones en 30 días', text: 'Cambios y devoluciones gratis dentro de 30 días presentando boleta o factura.' },
+    ];
+    return { description, specs, compareCols, compareRows, alsoBought, ratingAvg: '4.6', ratingCount: '254 evaluaciones', ratingBars, reviews, qa, deliveryCards, bundleItems, bundleCount, bundleAll, bundleTotal: this.fmt(bundleTotalV), bundleProducts: bDefs.length, onToggleAllBundle: () => this.toggleAllBundle(bDefs.length), onAddBundle: () => this.notify(bundleCount + ' productos agregados al carro') };
+  }
+
+  renderVals() {
+    const isB2b = this.state.mode === 'b2b';
+    const extras = this.buildExtras(isB2b);
+    const q = this.state.qty;
+    const base = this.tiers[0].net;
+    const active = this.activeTier(q);
+    const ai = this.tiers.indexOf(active);
+    const next = this.tiers[ai + 1] || null;
+    const pp = this.state.prontoPago;
+    const effUnit = active.net * (pp ? 0.97 : 1);
+    const ppAmount = active.net - active.net * 0.97;
+    const subtotalNet = effUnit * q;
+    const heroTile = this.tile(this.hero.id);
+
+    // ladder
+    const ladder = this.tiers.map((t, i) => {
+      const isActive = i === ai, done = i < ai;
+      const pct = Math.round((1 - t.net / base) * 100);
+      return {
+        range: t.min === 1 ? '1 – 49 sacos' : (t.min === 50 ? '50 – 499 sacos' : '500+ sacos'),
+        price: this.fmt(t.net),
+        saveLabel: pct > 0 ? ('−' + pct + '% vs. base') : 'Precio base',
+        isActive,
+        border: isActive ? '#157f5c' : (done ? '#c7e8da' : '#e7ecf1'),
+        bg: isActive ? '#e6f6ef' : '#fff',
+        labelColor: isActive ? '#0f6347' : '#5f7385',
+        priceColor: isActive ? '#0f6347' : '#102a63',
+        saveColor: isActive ? '#0f6347' : (pct > 0 ? '#946100' : '#9aa8b6'),
+      };
+    });
+
+    // progress to next tier
+    let hasNext = false, atTop = false, nextHint = '', nextDelta = 0, progressPct = '0%';
+    if (next) {
+      hasNext = true;
+      nextDelta = next.min - q;
+      const span = next.min - active.min;
+      progressPct = Math.max(0, Math.min(100, Math.round(((q - active.min) / span) * 100))) + '%';
+      const nextPct = Math.round((1 - next.net / base) * 100);
+      const saveMore = (active.net - next.net) * next.min;
+      nextHint = 'Agrega ' + nextDelta + ' sacos y baja a ' + this.fmt(next.net) + ' c/u (−' + nextPct + '%)';
+    } else { atTop = true; }
+
+    // savings vs public
+    const effGross = effUnit * 1.19;
+    const saveUnit = this.hero.publicGross - effGross;
+    const saveTotalV = saveUnit * q;
+    const savePct = Math.round((saveUnit / this.hero.publicGross) * 100) + '%';
+
+    // complements / kit
+    const selected = this.compDefs.filter((c) => this.state.comp[c.id]);
+    const kitItemsNet = selected.reduce((s, c) => s + c.net, 0) + active.net; // include main unit price once
+    const kitDiscountRate = selected.length >= 1 && (selected.length + 1) >= 2 ? 0.10 : 0;
+    const kitCount = selected.length + 1;
+    const kitDiscount = selected.length >= 1 ? 0.10 : 0;
+    const kitSubtotalV = kitItemsNet;
+    const kitSavedV = Math.round(kitItemsNet * kitDiscount);
+    const kitTotalV = kitItemsNet - kitSavedV;
+
+    const comps = this.compDefs.map((c) => {
+      const on = !!this.state.comp[c.id]; const t = this.tile(c.id);
+      return {
+        name: c.name, brand: c.brand, price: this.fmt(c.net), c1: t.c1, c2: t.c2, iconEl: this.ic(c.cat, { size: '100%' }),
+        on, border: on ? '#157f5c' : '#e7ecf1', bg: on ? '#f4fbf8' : '#fff',
+        checkBorder: on ? '#157f5c' : '#cfd8e0', checkBg: on ? '#157f5c' : '#fff',
+        onToggle: () => this.toggleComp(c.id),
+      };
+    });
+
+    const remain = Math.max(0, this.campaignEnd - this.state.now);
+    const cd = { d: Math.floor(remain / 86400000), h: Math.floor((remain % 86400000) / 3600000), m: Math.floor((remain % 3600000) / 60000), s: Math.floor((remain % 60000) / 1000) };
+
+    return {
+      isB2b, isB2c: !isB2b,
+      mode: this.state.mode, cartLabel: isB2b ? 'Mi orden' : 'Carro', cartCount: this.state.cart, hasCart: this.state.cart > 0,
+      b2cBg: !isB2b ? '#173a8a' : 'transparent', b2cColor: !isB2b ? '#fff' : '#5f7385',
+      b2bBg: isB2b ? '#157f5c' : 'transparent', b2bColor: isB2b ? '#fff' : '#5f7385',
+      onB2c: () => this.setMode('b2c'), onB2b: () => this.setMode('b2b'),
+      brand: this.hero.brand, name: this.hero.name,
+      heroC1: heroTile.c1, heroC2: heroTile.c2, heroIcon: this.ic(this.hero.cat, { size: '100%' }),
+      thumbs: [{ active: true }, {}, {}].map((x, i) => ({ border: i === 0 ? '#173a8a' : '#e7ecf1', c1: heroTile.c1, c2: heroTile.c2 })),
+      qty: q, unitNet: this.fmt(effUnit), unitGross: this.fmt(effGross),
+      ladder, hasNext, atTop, nextHint, nextDelta, progressPct,
+      onJumpNext: () => next && this.setQty(next.min),
+      prontoPago: pp, onTogglePP: () => this.setState((s) => ({ prontoPago: !s.prontoPago })),
+      ppAmount: this.fmt(ppAmount), ppBg: pp ? '#e6f6ef' : '#f6f8fb', ppBorder: pp ? '#157f5c' : '#e7ecf1', ppCheckBg: pp ? '#157f5c' : '#fff',
+      onDec: () => this.setQty(q - 1), onInc: () => this.setQty(q + 1), onPlus10: () => this.setQty(q + 10), onPlus50: () => this.setQty(q + 50),
+      subtotalNet: this.fmt(subtotalNet), iva: this.fmt(subtotalNet * 0.19), totalGross: this.fmt(subtotalNet * 1.19),
+      saveTotal: this.fmt(saveTotalV), savePct,
+      onAdd: () => this.notify('Agregado a tu orden: ' + q + ' sacos'),
+      onQuote: () => this.notify('Cotización creada · ' + q + ' sacos'),
+      comps, kitCount,
+      kitSubtotal: this.fmt(kitSubtotalV), kitSaved: this.fmt(kitSavedV), kitTotal: this.fmt(kitTotalV),
+      kitHasDiscount: kitDiscount > 0, kitNeedMore: selected.length === 0,
+      onAddKit: () => this.notify('Kit agregado · ' + kitCount + ' productos'),
+      cd,
+      icSearch: this.ic('search'), icCart: this.ic('cart'), icChevron: this.ic('chevron'), icCheck: this.ic('check'),
+      icDoc: this.ic('doc'), icPercent: this.ic('percent'), icBolt: this.ic('bolt'), icHeadset: this.ic('headset'),
+      accent: isB2b ? '#157f5c' : '#e1251b', accentText: isB2b ? '#0f6347' : '#b81d15',
+      description: extras.description, specs: extras.specs, compareCols: extras.compareCols, compareRows: extras.compareRows, alsoBought: extras.alsoBought,
+      ratingAvg: extras.ratingAvg, ratingCount: extras.ratingCount, ratingBars: extras.ratingBars, reviews: extras.reviews, qa: extras.qa, deliveryCards: extras.deliveryCards,
+      bundleItems: extras.bundleItems, bundleCount: extras.bundleCount, bundleAll: extras.bundleAll, bundleTotal: extras.bundleTotal, bundleProducts: extras.bundleProducts, onToggleAllBundle: extras.onToggleAllBundle, onAddBundle: extras.onAddBundle,
+      bundleAllBg: extras.bundleAll ? '#157f5c' : '#fff', bundleAllBorder: extras.bundleAll ? '#157f5c' : '#cfd8e0',
+      toast: this.state.toast,
+    };
+  }
+}
+</script>
+</body>
+</html>
