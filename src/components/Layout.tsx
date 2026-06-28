@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Header from './Header'
 import Footer from './Footer'
+import PatioConstructorBanner from './PatioConstructorBanner'
 import Toast from './Toast'
 import Icon from './Icon'
 import MobileBottomNav from './MobileBottomNav'
@@ -31,6 +32,7 @@ export default function Layout() {
       <main className="main" id="main">
         <Outlet />
       </main>
+      <PatioConstructorBanner />
       <Footer />
       <Toast />
       {!hideChat && (
