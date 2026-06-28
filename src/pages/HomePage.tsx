@@ -96,7 +96,7 @@ export default function HomePage() {
             <div>
               <span className="banner__kick">Maestros y DIY</span>
               <h3>Herramientas eléctricas</h3>
-              <span className="banner__link">Ver ofertas →</span>
+              <span className="banner__link">Ver herramientas →</span>
             </div>
           </Link>
           <Link to="/empresas" className="banner banner--b2b">

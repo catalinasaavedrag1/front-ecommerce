@@ -26,6 +26,14 @@ export default function CartPage() {
   const [headerMenu, setHeaderMenu] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
   const [summaryOpen, setSummaryOpen] = useState(false)
+  const [undo, setUndo] = useState<{ id: string; qty: number; variant?: string; name: string } | null>(null)
+
+  const removeWithUndo = (line: { id: string; qty: number; variant?: string; name: string }) => {
+    remove(line.id)
+    setMenuFor(null)
+    setUndo(line)
+    window.setTimeout(() => setUndo((u) => (u && u.id === line.id ? null : u)), 6000)
+  }
 
   // Selección efectiva: si nunca se tocó, todos seleccionados
   const isSel = (id: string) => selected.has(id)
@@ -36,6 +44,11 @@ export default function CartPage() {
   const selectedLines = lines.filter((l) => isSel(l.productId))
   const totals = useMemo(() => buildTotals(selectedLines, mode, customer), [selectedLines, mode, customer])
   const missingForFree = Math.max(0, FREE_SHIP - totals.gross)
+
+  const goToCheckout = () => {
+    try { sessionStorage.setItem('mimbral.checkout.sel', JSON.stringify(selectedLines.map((l) => l.productId))) } catch { /* noop */ }
+    navigate('/checkout')
+  }
 
   if (!lines.length) {
     return (
@@ -51,6 +64,7 @@ export default function CartPage() {
   }
 
   const detail = buildTotals(lines, mode, customer) // todos, para etiquetas globales
+  const hasOverStock = detail.lines.some((l) => isSel(l.product.id) && l.qty > l.product.stock)
 
   return (
     <CartShell
@@ -118,8 +132,8 @@ export default function CartPage() {
                             <div className="cart2-menu__back" onClick={() => setMenuFor(null)} />
                             <div className="cart2-menu__list" role="menu">
                               <button onClick={() => { setMenuFor(null); navigate(`/producto/${l.product.id}`) }}><Icon name="search" /> Ver producto</button>
-                              <button onClick={() => { wishlist.toggle(l.product.id); remove(l.product.id); setMenuFor(null) }}><Icon name="heart" /> Guardar para después</button>
-                              <button onClick={() => { remove(l.product.id); setMenuFor(null) }}><Icon name="trash" /> Eliminar</button>
+                              <button onClick={() => { if (!wishlist.has(l.product.id)) wishlist.toggle(l.product.id); removeWithUndo({ id: l.product.id, qty: l.qty, variant: l.variant, name: l.product.name }) }}><Icon name="heart" /> Guardar para después</button>
+                              <button onClick={() => removeWithUndo({ id: l.product.id, qty: l.qty, variant: l.variant, name: l.product.name })}><Icon name="trash" /> Eliminar</button>
                             </div>
                           </>
                         )}
@@ -161,6 +175,14 @@ export default function CartPage() {
 
       <div className="cart2-spacer" />
 
+      {/* Deshacer eliminación */}
+      {undo && (
+        <div className="cart2-undo" role="status">
+          <span><Icon name="trash" /> Eliminaste <strong>{undo.name}</strong></span>
+          <button onClick={() => { add(undo.id, undo.qty, undo.variant); setUndo(null) }}>Deshacer</button>
+        </div>
+      )}
+
       {/* Resumen fijo inferior */}
       <div className={`cart2-summary ${summaryOpen ? 'is-open' : ''}`}>
         <button className="cart2-summary__expand" onClick={() => setSummaryOpen((v) => !v)} aria-expanded={summaryOpen}>
@@ -176,13 +198,14 @@ export default function CartPage() {
         )}
         <div className="cart2-summary__bar">
           <div className="cart2-summary__total">
-            <small>Total ({selectedLines.reduce((s, l) => s + l.qty, 0)} productos)</small>
+            <small>Total ({selectedLines.reduce((s, l) => s + l.qty, 0)} {selectedLines.reduce((s, l) => s + l.qty, 0) === 1 ? 'ítem' : 'ítems'}) <span className="cart2-summary__hint">sin despacho</span></small>
             <strong>{formatCLP(totals.gross)}</strong>
           </div>
-          <button className="btn btn--primary cart2-summary__cta" disabled={!selectedLines.length} onClick={() => navigate('/checkout')}>
+          <button className="btn btn--primary cart2-summary__cta" disabled={!selectedLines.length || hasOverStock} onClick={goToCheckout}>
             Continuar al pago
           </button>
         </div>
+        {hasOverStock && <p className="cart2-summary__warn"><Icon name="box" /> Ajusta las cantidades que superan el stock para continuar.</p>}
       </div>
 
       {/* Confirmar vaciar */}
@@ -208,7 +231,7 @@ function CartShell({ title, menu, children }: { title: string; menu?: ReactNode;
   return (
     <div className="cart2">
       <header className="cart2-hd">
-        <button className="cart2-hd__back" onClick={() => navigate(-1)} aria-label="Volver"><Icon name="chevron" className="ic--flip" /></button>
+        <button className="cart2-hd__back" onClick={() => { if (window.history.length > 1) navigate(-1); else navigate('/') }} aria-label="Volver"><Icon name="chevron" className="ic--flip" /></button>
         <span className="cart2-hd__title">{title}</span>
         {menu ?? <span className="cart2-hd__spacer" />}
       </header>

@@ -8,6 +8,7 @@ import ProductImage from './ProductImage'
 import Rating from './Rating'
 import Icon from './Icon'
 import { availabilityFor, badgesFor, keySpec } from '@/utils/catalog'
+import { getVariants } from '@/utils/variants'
 
 export default function ProductCard({ product }: { product: Product }) {
   const { mode } = useApp()
@@ -19,6 +20,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const badges = badgesFor(product, { mode })
   const avail = availabilityFor(product)
+  const hasVariants = getVariants(product).length > 0
 
   return (
     <article className="card">
@@ -53,13 +55,18 @@ export default function ProductCard({ product }: { product: Product }) {
 
         <div className="card__avail">
           <span className={`dot dot--${avail.delivery ? 'ok' : 'no'}`} aria-hidden />
+          <span className="sr-only">{avail.delivery ? 'Despacho disponible' : 'Sin despacho a domicilio'}</span>
           {avail.pickupToday && <span className="card__av"><Icon name="store" /> Retiro hoy</span>}
           {avail.fast && <span className="card__av"><Icon name="truck" /> Despacho rápido</span>}
           {!avail.pickupToday && !avail.fast && <span className="card__av">{avail.label}</span>}
         </div>
 
         <div className="card__actions">
-          {inCart === 0 ? (
+          {hasVariants ? (
+            <button className="btn btn--primary card__add" onClick={() => navigate(`/producto/${product.id}`)}>
+              Elegir opciones
+            </button>
+          ) : inCart === 0 ? (
             <button className="btn btn--primary card__add" onClick={() => add(product.id, 1)}>
               {mode === 'b2b' ? 'Agregar a la orden' : 'Agregar'}
             </button>

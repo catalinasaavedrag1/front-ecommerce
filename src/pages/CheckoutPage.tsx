@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useMemo, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
@@ -87,14 +87,28 @@ type Sel = { method: 'retiro' | 'domicilio'; storeId: string; dateIso: string }
 
 export default function CheckoutPage() {
   const { mode, customer } = useApp()
-  const { lines, clear } = useCart()
-  const totals = buildTotals(lines, mode, customer)
+  const { lines, clear, remove } = useCart()
+  // Respeta exactamente los productos seleccionados en el carro (si los hay).
+  const checkoutLines = useMemo(() => {
+    try {
+      const raw = sessionStorage.getItem('mimbral.checkout.sel')
+      if (raw) {
+        const ids = JSON.parse(raw) as string[]
+        const sub = lines.filter((l) => ids.includes(l.productId))
+        if (sub.length) return sub
+      }
+    } catch { /* noop */ }
+    return lines
+  }, [lines])
+  const totals = buildTotals(checkoutLines, mode, customer)
   const hasBulky = totals.lines.some((l) => l.product.bulky)
+  const FREE_SHIP = 49990
 
   const dates = genDates(10)
   const groups = buildGroups(totals.lines)
   const dateObj = (iso: string) => dates.find((d) => d.iso === iso)?.date ?? dates[0].date
-  const groupCost = (g: Group, s: Sel) => (s.method === 'retiro' ? 0 : g.bulky ? 24990 : 4990)
+  const groupCost = (g: Group, s: Sel) =>
+    s.method === 'retiro' ? 0 : g.bulky ? 24990 : totals.gross >= FREE_SHIP ? 0 : 4990
 
   const [buyer, setBuyer] = useState<'persona' | 'empresa'>(mode === 'b2b' ? 'empresa' : 'persona')
   const [data, setData] = useState({ name: customer?.name?.split(' ')[0] ?? '', lastname: '', email: customer?.email ?? '', phone: '' })
@@ -104,6 +118,7 @@ export default function CheckoutPage() {
     return init
   })
   const selFor = (id: string): Sel => groupSel[id] ?? { method: 'domicilio', storeId: PICKUP[0].id, dateIso: dates[0].iso }
+  const onKeyActivate = (fn: () => void) => (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn() } }
   const setSel = (id: string, patch: Partial<Sel>) => setGroupSel((p) => ({ ...p, [id]: { ...selFor(id), ...patch } }))
 
   const [region, setRegion] = useState('')
@@ -193,8 +208,14 @@ export default function CheckoutPage() {
   const placeOrder = () => {
     if (processing) return
     setProcessing(true)
-    const n = `MIM-${Math.floor(100000 + (totals.gross % 900000))}`
-    setTimeout(() => { setPlaced(n); clear() }, 1100)
+    const rand = Math.floor(Number(String(Date.now()).slice(-6)))
+    const n = `MIM-${100000 + (rand % 900000)}`
+    setTimeout(() => {
+      setPlaced(n)
+      if (checkoutLines.length === lines.length) clear()
+      else checkoutLines.forEach((l) => remove(l.productId))
+      try { sessionStorage.removeItem('mimbral.checkout.sel') } catch { /* noop */ }
+    }, 1100)
   }
 
   // ---------- Confirmación ----------
@@ -276,10 +297,10 @@ export default function CheckoutPage() {
             </div>
             {!customer && <p className="ckhelp ckhelp--inline">¿Ya tienes cuenta? <Link to="/ingresar">Inicia sesión</Link> · o continúa como invitado.</p>}
             <div className="formgrid">
-              <label>Nombre<input value={data.name} onChange={(e) => setData({ ...data, name: e.target.value })} placeholder="Tu nombre" /></label>
-              <label>Apellido<input value={data.lastname} onChange={(e) => setData({ ...data, lastname: e.target.value })} placeholder="Tu apellido" /></label>
-              <label>Correo<input type="email" value={data.email} onChange={(e) => setData({ ...data, email: e.target.value })} placeholder="correo@ejemplo.cl" /><small>Usaremos este correo para el comprobante y seguimiento.</small></label>
-              <label>Teléfono<input value={data.phone} onChange={(e) => setData({ ...data, phone: e.target.value })} placeholder="+56 9 1234 5678" /><small>Para contactarte si hay algún problema con la entrega.</small></label>
+              <label>Nombre<input autoComplete="given-name" value={data.name} onChange={(e) => setData({ ...data, name: e.target.value })} placeholder="Tu nombre" /></label>
+              <label>Apellido<input autoComplete="family-name" value={data.lastname} onChange={(e) => setData({ ...data, lastname: e.target.value })} placeholder="Tu apellido" /></label>
+              <label>Correo<input type="email" inputMode="email" autoComplete="email" value={data.email} onChange={(e) => setData({ ...data, email: e.target.value })} placeholder="correo@ejemplo.cl" /><small>Usaremos este correo para el comprobante y seguimiento.</small></label>
+              <label>Teléfono<input type="tel" inputMode="tel" autoComplete="tel" value={data.phone} onChange={(e) => setData({ ...data, phone: e.target.value })} placeholder="+56 9 1234 5678" /><small>Para contactarte si hay algún problema con la entrega.</small></label>
             </div>
             <button className="btn btn--primary ckstep__next" disabled={!data.name || !data.email.includes('@') || !data.phone} onClick={() => complete('datos')}>Continuar a entrega</button>
           </Step>
@@ -314,7 +335,7 @@ export default function CheckoutPage() {
                       {PICKUP.slice(0, 2).map((st) => {
                         const active = s.method === 'retiro' && s.storeId === st.id
                         return (
-                          <div key={st.id} role="button" tabIndex={0} className={`dl-opt ${active ? 'is-active' : ''}`} onClick={() => setSel(g.id, { method: 'retiro', storeId: st.id })}>
+                          <div key={st.id} role="radio" aria-checked={active} tabIndex={0} className={`dl-opt ${active ? 'is-active' : ''}`} onClick={() => setSel(g.id, { method: 'retiro', storeId: st.id })} onKeyDown={onKeyActivate(() => setSel(g.id, { method: 'retiro', storeId: st.id }))}>
                             <span className="dl-radio" aria-hidden />
                             <span className="dl-opt__info">
                               <strong className="dl-opt__when">Retira mañana, {chipLabel(dates[0].date).split(' ')[1]}</strong>
@@ -332,7 +353,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="dl-method">
                       <div className="dl-method__title"><Icon name="truck" /> Envío a domicilio</div>
-                      <div role="button" tabIndex={0} className={`dl-opt ${s.method === 'domicilio' ? 'is-active' : ''}`} onClick={() => setSel(g.id, { method: 'domicilio' })}>
+                      <div role="radio" aria-checked={s.method === 'domicilio'} tabIndex={0} className={`dl-opt ${s.method === 'domicilio' ? 'is-active' : ''}`} onClick={() => setSel(g.id, { method: 'domicilio' })} onKeyDown={onKeyActivate(() => setSel(g.id, { method: 'domicilio' }))}>
                         <span className="dl-radio" aria-hidden />
                         <span className="dl-opt__info">
                           <strong className="dl-opt__when">Llega el {longLabel(dateObj(s.dateIso))}</strong>
@@ -382,11 +403,11 @@ export default function CheckoutPage() {
                     <div className="ckok"><Icon name="check" /> Despacho disponible · {eta}</div>
                     <div className="formgrid">
                       <label className="formgrid__full">Calle<input value={addr.street} onChange={(e) => setAddr({ ...addr, street: e.target.value })} placeholder="Nombre de la calle" /></label>
-                      <label>Número<input value={addr.number} onChange={(e) => setAddr({ ...addr, number: e.target.value })} placeholder="1234" /></label>
+                      <label>Número<input inputMode="numeric" autoComplete="off" value={addr.number} onChange={(e) => setAddr({ ...addr, number: e.target.value })} placeholder="1234" /></label>
                       <label>Depto/casa/oficina (opcional)<input value={addr.extra} onChange={(e) => setAddr({ ...addr, extra: e.target.value })} placeholder="Depto 32" /></label>
                       <label className="formgrid__full">Referencia (opcional)<input value={addr.ref} onChange={(e) => setAddr({ ...addr, ref: e.target.value })} placeholder="Cerca de…" /></label>
                       <label>Quién recibe<input value={addr.receiver} onChange={(e) => setAddr({ ...addr, receiver: e.target.value })} placeholder="Nombre" /></label>
-                      <label>Teléfono de contacto<input value={addr.phone} onChange={(e) => setAddr({ ...addr, phone: e.target.value })} placeholder="+56 9 …" /></label>
+                      <label>Teléfono de contacto<input type="tel" inputMode="tel" autoComplete="tel" value={addr.phone} onChange={(e) => setAddr({ ...addr, phone: e.target.value })} placeholder="+56 9 …" /></label>
                     </div>
                   </>
                 )}
@@ -403,7 +424,7 @@ export default function CheckoutPage() {
             <h3 className="paysec__title">Tarjetas guardadas</h3>
             <div className="savedcards">
               {cards.map((c) => (
-                <div key={c.id} role="button" tabIndex={0} className={`savedcard ${usingCard && payCard === c.id ? 'is-active' : ''}`} onClick={() => { setPayCard(c.id); setPayment('tarjeta') }}>
+                <div key={c.id} role="radio" aria-checked={usingCard && payCard === c.id} tabIndex={0} className={`savedcard ${usingCard && payCard === c.id ? 'is-active' : ''}`} onClick={() => { setPayCard(c.id); setPayment('tarjeta') }} onKeyDown={onKeyActivate(() => { setPayCard(c.id); setPayment('tarjeta') })}>
                   <span className={`cardbrand cardbrand--${c.loyalty ? 'mim' : 'visa'}`}>{c.brand}</span>
                   <span className="savedcard__label">{c.kind} <span className="cardmask">**** {c.last4}</span></span>
                   {c.fav && <Icon name="heart" filled className="savedcard__fav" />}

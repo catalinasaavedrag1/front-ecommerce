@@ -212,9 +212,9 @@ export default function ProductPage() {
           <div className="pdp__buy">
             <div className="qtyrow">
               <div className="qty">
-                <button onClick={() => setQty((q) => clampQty(q - 1))} aria-label="Restar">−</button>
-                <input type="number" min={1} max={maxQty} value={qty} onChange={(e) => setQty(clampQty(Number(e.target.value) || 1))} />
-                <button onClick={() => setQty((q) => clampQty(q + 1))} aria-label="Sumar">+</button>
+                <button onClick={() => setQty((q) => clampQty(q - 1))} disabled={qty <= 1} aria-label="Restar">−</button>
+                <input type="number" inputMode="numeric" min={1} max={maxQty} value={qty} onChange={(e) => setQty(clampQty(Number(e.target.value) || 1))} aria-label="Cantidad" />
+                <button onClick={() => setQty((q) => clampQty(q + 1))} disabled={qty >= maxQty} aria-label="Sumar">+</button>
               </div>
               <button className="btn btn--primary btn--lg pdp__add" onClick={onAdd}>
                 {added ? <><Icon name="check" /> Agregado</> : mode === 'b2b' ? 'Agregar a la orden' : 'Agregar al carro'}
@@ -253,7 +253,7 @@ export default function ProductPage() {
             </ul>
           </Accordion>
 
-          <Accordion title="Especificaciones">
+          <Accordion title="Especificaciones" defaultOpen>
             <table className="aboutitem__specs">
               <tbody>
                 {Object.entries(product.specs).map(([k, v]) => (<tr key={k}><th>{k}</th><td>{v}</td></tr>))}
@@ -299,6 +299,7 @@ export default function ProductPage() {
 
       {/* Barra de compra fija (móvil): reemplaza la navegación inferior en la ficha */}
       <div className="buybar">
+        <span className="sr-only" aria-live="polite">{added ? 'Producto agregado al carro' : ''}</span>
         <span className="buybar__max">Máximo {maxQty} unidades</span>
         <div className="buybar__row">
           <div className="buybar__info">
@@ -306,9 +307,9 @@ export default function ProductPage() {
             <span className="buybar__unit">por {product.unit}</span>
           </div>
           <div className="buybar__qty">
-            <button onClick={() => setQty((q) => clampQty(q - 1))} aria-label="Restar">−</button>
+            <button onClick={() => setQty((q) => clampQty(q - 1))} disabled={qty <= 1} aria-label="Restar">−</button>
             <span>{qty}</span>
-            <button onClick={() => setQty((q) => clampQty(q + 1))} aria-label="Sumar">+</button>
+            <button onClick={() => setQty((q) => clampQty(q + 1))} disabled={qty >= maxQty} aria-label="Sumar">+</button>
           </div>
           <button className="btn btn--primary buybar__btn" onClick={onAdd}>{added ? <><Icon name="check" /> Listo</> : mode === 'b2b' ? 'Agregar' : 'Agregar al carro'}</button>
         </div>

@@ -1,12 +1,14 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import type { Product } from '@/types'
 import { useCart } from '@/context/CartContext'
+import { getVariants } from '@/utils/variants'
 import ProductImage from './ProductImage'
 import { formatCLP } from '@/utils/format'
 
 /** "Compara tu producto": producto actual + similares con tabla de atributos. */
 export default function CompareTable({ current, products }: { current: Product; products: Product[] }) {
   const { add } = useCart()
+  const navigate = useNavigate()
   const all = [current, ...products.filter((p) => p.id !== current.id)].slice(0, 4)
   if (all.length < 2) return null
 
@@ -33,7 +35,11 @@ export default function CompareTable({ current, products }: { current: Product; 
                   <span className="compare__brand">{p.brand}</span>
                   <Link to={`/producto/${p.id}`} className="compare__name">{p.name}</Link>
                   <span className="compare__price">{formatCLP(priceOf(p))}</span>
-                  <button className="btn btn--primary btn--xs compare__add" onClick={() => add(p.id, 1)}>Agregar</button>
+                  {getVariants(p).length || p.stock <= 0 ? (
+                    <button className="btn btn--primary btn--xs compare__add" disabled={p.stock <= 0} onClick={() => navigate(`/producto/${p.id}`)}>{p.stock <= 0 ? 'Sin stock' : 'Elegir'}</button>
+                  ) : (
+                    <button className="btn btn--primary btn--xs compare__add" onClick={() => add(p.id, 1)}>Agregar</button>
+                  )}
                 </th>
               ))}
             </tr>

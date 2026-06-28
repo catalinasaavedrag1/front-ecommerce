@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { categories } from '@/data/products'
 import { categoryTree } from '@/data/menu'
@@ -24,6 +24,15 @@ export default function Header() {
 
   const closeMenu = () => { setMenuOpen(false); setMobCat(null); setMobSub(null) }
   const closeMega = () => setMega(false)
+  const goBack = () => { if (window.history.length > 1) navigate(-1); else navigate('/') }
+
+  // Cierra el mega-menú con Escape (accesibilidad de teclado).
+  useEffect(() => {
+    if (!mega) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMega(false) }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [mega])
 
   const activeCat = categories.find((c) => c.id === megaCat) ?? categories[0]
   const mobCategory = categories.find((c) => c.id === mobCat)
@@ -33,7 +42,7 @@ export default function Header() {
     <header className={`header ${isProduct ? 'header--product' : ''}`}>
       {isProduct && (
         <div className="pheader">
-          <button className="pheader__back" onClick={() => navigate(-1)} aria-label="Volver">
+          <button className="pheader__back" onClick={goBack} aria-label="Volver">
             <Icon name="chevron" className="ic--flip" />
           </button>
           <Link to="/" className="pheader__logo" aria-label="Mimbral inicio">

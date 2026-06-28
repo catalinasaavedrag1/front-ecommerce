@@ -17,18 +17,28 @@ export interface Slide {
 
 export default function HeroCarousel({ slides }: { slides: Slide[] }) {
   const [i, setI] = useState(0)
+  const [paused, setPaused] = useState(false)
   const n = slides.length
 
   useEffect(() => {
-    if (n <= 1) return
+    if (n <= 1 || paused) return
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reduce) return
     const t = setInterval(() => setI((v) => (v + 1) % n), 5500)
     return () => clearInterval(t)
-  }, [n])
+  }, [n, paused])
 
   const go = (d: number) => setI((v) => (v + d + n) % n)
 
   return (
-    <section className="carousel" aria-roledescription="carrusel">
+    <section
+      className="carousel"
+      aria-roledescription="carrusel"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
+    >
       <div className="carousel__track" style={{ transform: `translateX(-${i * 100}%)` }}>
         {slides.map((s) => {
           const product = s.productId ? getProduct(s.productId) : undefined

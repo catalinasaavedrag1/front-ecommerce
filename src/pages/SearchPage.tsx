@@ -42,6 +42,18 @@ export default function SearchPage() {
             <ProductCard key={p.id} product={p} />
           ))}
         </div>
+      ) : !q ? (
+        <div className="noresults">
+          <h2>¿Qué estás buscando?</h2>
+          <p>Escribe el nombre de un producto, una marca o un código. O explora por categoría:</p>
+          <div className="noresults__cats">
+            {related.map((c) => (
+              <Link key={c.id} to={`/categoria/${c.slug}`} className="noresults__cat">
+                <CategoryIcon id={c.id} /> {c.name}
+              </Link>
+            ))}
+          </div>
+        </div>
       ) : (
         <div className="noresults">
           <h2>No encontramos productos para “{q}”.</h2>

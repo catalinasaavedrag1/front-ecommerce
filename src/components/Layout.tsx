@@ -20,6 +20,7 @@ export default function Layout() {
 
   return (
     <div className={`app app--${mode}`}>
+      <a href="#main" className="skip-link">Saltar al contenido</a>
       <Header />
       {mode === 'b2b' && (
         <div className="modebanner">
@@ -27,7 +28,7 @@ export default function Layout() {
           descuentos por volumen y cotización en línea.
         </div>
       )}
-      <main className="main">
+      <main className="main" id="main">
         <Outlet />
       </main>
       <Footer />

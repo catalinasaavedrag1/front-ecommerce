@@ -18,15 +18,25 @@ export default function CategoryPage() {
   const [pickup, setPickup] = useState(false)
   const [delivery, setDelivery] = useState(false)
   const [brands, setBrands] = useState<string[]>([])
+  const [subcat, setSubcat] = useState<string | null>(null)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [view, setView] = useState<'grid' | 'list'>('grid')
-  const loading = useBriefLoading([slug, sort, onlyOffers, pickup, delivery, brands.join(',')])
+  const loading = useBriefLoading([slug, sort, onlyOffers, pickup, delivery, brands.join(','), subcat ?? ''])
 
   const all = category ? productsByCategory(category.id) : []
   const brandList = useMemo(() => Array.from(new Set(all.map((p) => p.brand))).sort(), [all])
 
   const items = useMemo(() => {
     let list = all
+    if (subcat) {
+      const terms = subcat.toLowerCase().split(/\s+/).filter((t) => t.length > 2)
+      list = list.filter((p) => {
+        const hay = `${p.name} ${p.brand} ${Object.values(p.specs).join(' ')}`.toLowerCase()
+        return terms.some((t) => hay.includes(t))
+      })
+      // Si el match es demasiado estrecho, no dejamos la grilla vacía.
+      if (!list.length) list = all
+    }
     if (onlyOffers) list = list.filter((p) => p.retailOffer)
     if (brands.length) list = list.filter((p) => brands.includes(p.brand))
     if (pickup) list = list.filter((p) => availabilityFor(p).pickupToday)
@@ -40,13 +50,13 @@ export default function CategoryPage() {
       case 'disponibilidad': return [...list].sort((a, b) => b.stock - a.stock)
       default: return list
     }
-  }, [all, sort, onlyOffers, brands, pickup, delivery])
+  }, [all, sort, onlyOffers, brands, pickup, delivery, subcat])
 
   const toggleBrand = (b: string) =>
     setBrands((prev) => (prev.includes(b) ? prev.filter((x) => x !== b) : [...prev, b]))
 
-  const clearFilters = () => { setOnlyOffers(false); setPickup(false); setDelivery(false); setBrands([]) }
-  const activeCount = (onlyOffers ? 1 : 0) + (pickup ? 1 : 0) + (delivery ? 1 : 0) + brands.length
+  const clearFilters = () => { setOnlyOffers(false); setPickup(false); setDelivery(false); setBrands([]); setSubcat(null) }
+  const activeCount = (onlyOffers ? 1 : 0) + (pickup ? 1 : 0) + (delivery ? 1 : 0) + brands.length + (subcat ? 1 : 0)
 
   if (!category) {
     return (
@@ -104,7 +114,7 @@ export default function CategoryPage() {
           {category.subcats.map((s, i) => {
             const rep = all[i % Math.max(1, all.length)]
             return (
-              <button key={s} className="subtile" onClick={() => setFiltersOpen(false)}>
+              <button key={s} className={`subtile ${subcat === s ? 'is-active' : ''}`} aria-pressed={subcat === s} onClick={() => setSubcat(subcat === s ? null : s)}>
                 <span className="subtile__img">
                   {rep ? <ProductImage product={rep} variant={i + 1} /> : <span aria-hidden>{category.icon}</span>}
                 </span>
@@ -119,9 +129,9 @@ export default function CategoryPage() {
         <button className="cat-toolbar__filter" onClick={() => setFiltersOpen(true)}>
           <Icon name="filter" /> Filtros{activeCount ? <span className="cat-toolbar__count">{activeCount}</span> : null}
         </button>
-        <span className="cat-toolbar__results">{items.length} productos</span>
+        <span className="cat-toolbar__results" aria-live="polite">{items.length} productos</span>
         <div className="viewtoggle" role="group" aria-label="Vista">
-          <button className={view === 'grid' ? 'is-active' : ''} onClick={() => setView('grid')} aria-label="Vista grilla"><Icon name="filter" /></button>
+          <button className={view === 'grid' ? 'is-active' : ''} onClick={() => setView('grid')} aria-label="Vista grilla"><Icon name="grid" /></button>
           <button className={view === 'list' ? 'is-active' : ''} onClick={() => setView('list')} aria-label="Vista lista"><Icon name="list" /></button>
         </div>
         <label className="cat-toolbar__sort">
@@ -139,6 +149,7 @@ export default function CategoryPage() {
 
       {activeCount > 0 && (
         <div className="active-filters">
+          {subcat && <button className="afchip" onClick={() => setSubcat(null)}>{subcat} <Icon name="close" /></button>}
           {onlyOffers && <button className="afchip" onClick={() => setOnlyOffers(false)}>Ofertas <Icon name="close" /></button>}
           {pickup && <button className="afchip" onClick={() => setPickup(false)}>Retiro hoy <Icon name="close" /></button>}
           {delivery && <button className="afchip" onClick={() => setDelivery(false)}>Despacho <Icon name="close" /></button>}

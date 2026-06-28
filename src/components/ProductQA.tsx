@@ -19,6 +19,7 @@ export default function ProductQA({ product }: { product: Product }) {
   const [showForm, setShowForm] = useState(false)
   const [draft, setDraft] = useState('')
   const [mine, setMine] = useState<QA[]>([])
+  const [voted, setVoted] = useState<Record<string, boolean>>({})
 
   const seed = product.id.charCodeAt(product.id.length - 1)
   const n = (seed % 3) + 3
@@ -70,7 +71,14 @@ export default function ProductQA({ product }: { product: Product }) {
                 <span className="qacard__by">Respondido por <strong>{x.ans}</strong></span>
               </div>
             </div>
-            <button className="qacard__useful" aria-label="Marcar como útil"><Icon name="thumb" /> Útil ({x.useful})</button>
+            <button
+              className={`qacard__useful ${voted[x.q] ? 'is-voted' : ''}`}
+              aria-pressed={!!voted[x.q]}
+              aria-label={voted[x.q] ? 'Quitar voto de útil' : 'Marcar como útil'}
+              onClick={() => setVoted((v) => ({ ...v, [x.q]: !v[x.q] }))}
+            >
+              <Icon name="thumb" /> Útil ({x.useful + (voted[x.q] ? 1 : 0)})
+            </button>
           </li>
         ))}
         {!filtered.length && <li className="qa__empty">No encontramos preguntas para “{query}”. ¡Haz la primera!</li>}

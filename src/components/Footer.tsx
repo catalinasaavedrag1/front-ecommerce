@@ -49,7 +49,7 @@ export default function Footer() {
           <ul>
             <li><Link to="/ayuda">Ayuda y preguntas frecuentes</Link></li>
             <li><Link to="/seguimiento">Seguimiento de pedido</Link></li>
-            <li><a href="#cambios">Cambios y devoluciones</a></li>
+            <li><Link to="/ayuda">Cambios y devoluciones</Link></li>
             <li><Link to="/tiendas">Nuestras tiendas</Link></li>
           </ul>
         </Acc>
@@ -58,15 +58,15 @@ export default function Footer() {
             <li><Link to="/empresas">Portal Empresas</Link></li>
             <li><Link to="/cotizacion">Solicitar cotización</Link></li>
             <li><Link to="/empresas/credito">Línea de crédito Mimbral</Link></li>
-            <li><a href="#licitaciones">Licitaciones y grandes obras</a></li>
+            <li><Link to="/cotizacion">Licitaciones y grandes obras</Link></li>
           </ul>
         </Acc>
         <Acc title="Mimbral">
           <ul>
             <li><Link to="/nosotros">Quiénes somos</Link></li>
-            <li><a href="#trabaja">Trabaja con nosotros</a></li>
-            <li><a href="#sustentabilidad">Sustentabilidad</a></li>
-            <li><a href="#prensa">Sala de prensa</a></li>
+            <li><Link to="/nosotros">Trabaja con nosotros</Link></li>
+            <li><Link to="/nosotros">Sustentabilidad</Link></li>
+            <li><Link to="/nosotros">Sala de prensa</Link></li>
           </ul>
         </Acc>
         <Acc title="Medios de pago">
@@ -78,10 +78,10 @@ export default function Footer() {
 
       <div className="footer__social">
         <span>Síguenos</span>
-        <a href="#instagram" aria-label="Instagram"><Icon name="sparkle" /></a>
-        <a href="#facebook" aria-label="Facebook"><Icon name="users" /></a>
-        <a href="#youtube" aria-label="YouTube"><Icon name="bolt" /></a>
-        <a href="#whatsapp" aria-label="WhatsApp"><Icon name="whatsapp" /></a>
+        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><Icon name="sparkle" /></a>
+        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><Icon name="users" /></a>
+        <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><Icon name="bolt" /></a>
+        <a href="https://wa.me/56600600000" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><Icon name="whatsapp" /></a>
       </div>
 
       <div className="footer__legal">
