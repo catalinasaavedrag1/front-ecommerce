@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { categories } from '@/data/products'
 import { categoryTree } from '@/data/menu'
 import { useApp } from '@/context/AppContext'
@@ -12,6 +12,9 @@ export default function Header() {
   const { mode, customer, logout } = useApp()
   const { count } = useCart()
   const wishlist = useWishlist()
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const isProduct = /^\/producto\//.test(pathname)
   const [menuOpen, setMenuOpen] = useState(false)
   const [mega, setMega] = useState(false)
   const [megaCat, setMegaCat] = useState(categories[0].id)
@@ -27,7 +30,28 @@ export default function Header() {
   const mobSubcats = mobCat ? categoryTree[mobCat] ?? [] : []
 
   return (
-    <header className="header">
+    <header className={`header ${isProduct ? 'header--product' : ''}`}>
+      {isProduct && (
+        <div className="pheader">
+          <button className="pheader__back" onClick={() => navigate(-1)} aria-label="Volver">
+            <Icon name="chevron" className="ic--flip" />
+          </button>
+          <Link to="/" className="pheader__logo" aria-label="Mimbral inicio">
+            <span className="pheader__mark" aria-hidden>
+              <svg viewBox="0 0 44 40" width="100%" height="100%"><path d="M7 31 16 9h6L13 31z" fill="#fff" /><path d="M19 31 28 9h6l-9 22z" fill="#fff" /><path d="M31 31 37 16v15z" fill="#e1251b" /></svg>
+            </span>
+            <span className="pheader__name">Mimbral</span>
+          </Link>
+          <div className="pheader__actions">
+            <Link to="/buscar" aria-label="Buscar"><Icon name="search" /></Link>
+            <Link to="/seguimiento" aria-label="Notificaciones" className="pheader__bell"><Icon name="bell" /></Link>
+            <Link to="/carro" className="pheader__cart" aria-label="Carro">
+              <Icon name="cart" />
+              {count > 0 && <span className="pheader__badge">{count > 99 ? '99+' : count}</span>}
+            </Link>
+          </div>
+        </div>
+      )}
       <div className="header__top">
         <div className="header__top-inner">
           <Link to="/tiendas"><Icon name="clock" /> Horarios y Tiendas</Link>

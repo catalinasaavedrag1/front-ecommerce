@@ -89,17 +89,6 @@ export default function ProductPage() {
         <div className="pdp__gallery">
           <div className="pdp__stage">
             <ProductImage product={product} variant={view} className="pdp__img" />
-            <div className="pdp__stage-actions">
-              <ShareButton title={product.name} text={`Mira este producto en Mimbral: ${product.name}`} whatsappText={`Mira este producto en Mimbral: ${product.name} (${formatCLP(product.retailOffer ?? product.retailPrice)})`} />
-              <button
-                className={`fav fav--lg ${wishlist.has(product.id) ? 'is-on' : ''}`}
-                onClick={() => wishlist.toggle(product.id)}
-                aria-label={wishlist.has(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
-                aria-pressed={wishlist.has(product.id)}
-              >
-                <Icon name="heart" filled={wishlist.has(product.id)} />
-              </button>
-            </div>
           </div>
           <div className="pdp__thumbs">
             {[0, 1, 2].map((v) => (
@@ -125,8 +114,21 @@ export default function ProductPage() {
           </div>
 
           <div className="pdp__priceblock">
-            <PriceTag product={product} qty={qty} />
-            <span className="pdp__unit">Por {product.unit}</span>
+            <div className="pdp__price-col">
+              <PriceTag product={product} qty={qty} />
+              <span className="pdp__unit">Por {product.unit}</span>
+            </div>
+            <div className="pdp__iconrow">
+              <ShareButton title={product.name} text={`Mira este producto en Mimbral: ${product.name}`} whatsappText={`Mira este producto en Mimbral: ${product.name} (${formatCLP(product.retailOffer ?? product.retailPrice)})`} />
+              <button
+                className={`pdp__iconbtn ${wishlist.has(product.id) ? 'is-on' : ''}`}
+                onClick={() => wishlist.toggle(product.id)}
+                aria-label={wishlist.has(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                aria-pressed={wishlist.has(product.id)}
+              >
+                <Icon name="heart" filled={wishlist.has(product.id)} />
+              </button>
+            </div>
           </div>
 
           {visibleChips.length > 0 && (
