@@ -1,6 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from './Icon'
+import tiendaImg from '@/assets/mimbral-tienda.jpeg'
 
 function Acc({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -22,6 +23,15 @@ export default function Footer() {
 
   return (
     <footer className="footer">
+      {/* Tienda Mimbral */}
+      <Link to="/tiendas" className="footer__store">
+        <img src={tiendaImg} alt="Tienda Mimbral MTS · Patio Constructor" loading="lazy" />
+        <span className="footer__store-cap">
+          <strong>Visita nuestro Patio Constructor</strong>
+          <span>Materiales, maderas, cemento, fierro, plomería y pinturas · <span className="footer__store-link">Ver tiendas</span></span>
+        </span>
+      </Link>
+
       {/* Barra de ayuda superior */}
       <div className="footer__help">
         <div className="footer__help-item"><Icon name="headset" /><div><strong>¿Necesitas ayuda?</strong><span>Lun a Dom · <Link to="/ayuda">Centro de ayuda</Link></span></div></div>
