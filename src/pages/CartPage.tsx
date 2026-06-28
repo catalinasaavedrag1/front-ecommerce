@@ -5,6 +5,7 @@ import { useCart } from '@/context/CartContext'
 import { useWishlist } from '@/context/WishlistContext'
 import { buildTotals } from '@/utils/cart'
 import { formatCLP } from '@/utils/format'
+import { getRecommendations } from '@/utils/recommendations'
 import ProductImage from '@/components/ProductImage'
 import QuantityStepper from '@/components/QuantityStepper'
 import Icon from '@/components/Icon'
@@ -13,13 +14,15 @@ const FREE_SHIP = 49990
 
 export default function CartPage() {
   const { mode, customer } = useApp()
-  const { lines, setQty, remove, clear } = useCart()
+  const { lines, setQty, remove, clear, add } = useCart()
   const wishlist = useWishlist()
   const navigate = useNavigate()
 
   const [selected, setSelected] = useState<Set<string>>(() => new Set(lines.map((l) => l.productId)))
   const [groupOpen, setGroupOpen] = useState(true)
   const [menuFor, setMenuFor] = useState<string | null>(null)
+  const [altFor, setAltFor] = useState<string | null>(null)
+  const swap = (oldId: string, newId: string, qty: number) => { remove(oldId); add(newId, qty); setAltFor(null) }
   const [headerMenu, setHeaderMenu] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
   const [summaryOpen, setSummaryOpen] = useState(false)
@@ -132,6 +135,21 @@ export default function CartPage() {
                         <span className="citem__max">Máx {maxStock} u.</span>
                       </div>
                     </div>
+                    <button className={`citem__alt-btn ${overStock ? 'is-alert' : ''}`} onClick={() => setAltFor(altFor === l.product.id ? null : l.product.id)} aria-expanded={altFor === l.product.id}>
+                      <Icon name="return" /> Encontrar alternativa
+                    </button>
+                    {altFor === l.product.id && (
+                      <div className="citem__alts">
+                        {getRecommendations(l.product).similar.filter((a) => a.stock > 0).slice(0, 6).map((a) => (
+                          <div className="altcard" key={a.id}>
+                            <Link to={`/producto/${a.id}`} className="altcard__media"><ProductImage product={a} /></Link>
+                            <span className="altcard__name">{a.name}</span>
+                            <span className="altcard__price">{formatCLP(a.retailOffer ?? a.retailPrice)}</span>
+                            <button className="btn btn--ghost btn--xs" onClick={() => swap(l.product.id, a.id, Math.min(l.qty, a.stock))}>Cambiar</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </li>
               )

@@ -251,7 +251,14 @@ export default function CheckoutPage() {
 
   return (
     <CheckoutShell>
-      <div className="ckprogress">Paso {stepIndex(open)} de {ORDER.length} · <strong>{stepTitle(open)}</strong></div>
+      <div className="ckprogress">
+        <div className="ckprogress__bar" aria-hidden>
+          {ORDER.map((s, i) => (
+            <span key={s} className={`ckprogress__seg ${done.has(s) || i < stepIndex(open) - 1 ? 'is-done' : ''} ${i === stepIndex(open) - 1 ? 'is-current' : ''}`} />
+          ))}
+        </div>
+        <span className="ckprogress__label">Paso {stepIndex(open)} de {ORDER.length} · <strong>{stepTitle(open)}</strong></span>
+      </div>
 
       <div className="cklayout">
         <div className="cksteps">
