@@ -30,7 +30,16 @@ const perks: { icon: IconName; title: string; text: string }[] = [
   { icon: 'truck', title: 'Despacho a faena', text: 'Entrega programada en obra a todo Chile.' },
 ]
 
-const brands = ['Bauker', 'Toolmax', 'Colormax', 'Lumen', 'Andescem', 'Hidroflex', 'AgroVida', 'Maderba']
+const brands: { name: string; category: string; color: string }[] = [
+  { name: 'Bauker', category: 'Herramientas', color: '#e1251b' },
+  { name: 'Toolmax', category: 'Herramientas', color: '#173a8a' },
+  { name: 'Colormax', category: 'Pinturas', color: '#d98a00' },
+  { name: 'Lumen', category: 'Iluminación', color: '#1f6fb2' },
+  { name: 'Andescem', category: 'Construcción', color: '#0f6347' },
+  { name: 'Hidroflex', category: 'Gasfitería', color: '#0f8a9c' },
+  { name: 'AgroVida', category: 'Jardín', color: '#2e7d32' },
+  { name: 'Maderba', category: 'Maderas', color: '#7a4a1d' },
+]
 
 const quickTasks: Record<'b2c' | 'b2b', { title: string; text: string; to: string; icon: IconName }[]> = {
   b2c: [
@@ -185,10 +194,19 @@ export default function HomePage() {
       </section>
 
       <section className="brandstrip">
-        <span className="brandstrip__label">Marcas que trabajamos</span>
-        <div className="brandstrip__items">
+        <div className="row__head">
+          <span className="brandstrip__label">Marcas que trabajamos</span>
+          <Link to="/categorias" className="row__more">Ver todas las marcas →</Link>
+        </div>
+        <div className="brandgrid">
           {brands.map((b) => (
-            <span key={b} className="brandstrip__brand">{b}</span>
+            <Link key={b.name} to="/categorias" className="brandcard">
+              <span className="brandcard__logo" style={{ background: b.color }}>{b.name[0]}</span>
+              <span className="brandcard__body">
+                <strong>{b.name}</strong>
+                <span>{b.category}</span>
+              </span>
+            </Link>
           ))}
         </div>
       </section>

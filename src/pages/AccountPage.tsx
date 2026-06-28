@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
-import { frequentLists, frequentProductIds, sampleOrders } from '@/data/account'
+import { frequentLists, frequentProductIds, sampleOrders, upcomingInvoice } from '@/data/account'
 import { getProduct } from '@/data/products'
 import { formatCLP, formatRut } from '@/utils/format'
 import PageHero from '@/components/PageHero'
@@ -35,6 +35,10 @@ export default function AccountPage() {
   const isB2B = customer.type === 'b2b'
   const reorder = frequentProductIds.map(getProduct).filter(Boolean)
 
+  const due = new Date(upcomingInvoice.dueDate)
+  const daysToDue = Math.ceil((due.getTime() - Date.now()) / 86_400_000)
+  const dueLabel = due.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' }).replace('.', '').replace('-', ' ')
+
   return (
     <div>
       <PageHero
@@ -60,6 +64,22 @@ export default function AccountPage() {
             </div>
           </div>
         </section>
+
+        {isB2B && daysToDue >= 0 && daysToDue <= 10 && (
+          <section className="invoice-alert" role="status">
+            <div className="invoice-alert__body">
+              <span className="invoice-alert__icon"><Icon name="wallet" /></span>
+              <div>
+                <strong>Tienes una factura por vencer en {daysToDue} {daysToDue === 1 ? 'día' : 'días'}</strong>
+                <span>{upcomingInvoice.id} por {formatCLP(upcomingInvoice.amount)} · vence el {dueLabel}.</span>
+              </div>
+            </div>
+            <div className="invoice-alert__actions">
+              <Link to="/empresas/credito" className="btn btn--primary">Pagar ahora</Link>
+              <Link to="/empresas/credito" className="btn btn--ghost">Ver crédito</Link>
+            </div>
+          </section>
+        )}
 
         {isB2B && customer.creditLine && (
           <section className="account-dash">

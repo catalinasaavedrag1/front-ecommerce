@@ -308,11 +308,17 @@ h1, h2, h3, h4 {
 .row__more:hover { color: var(--orange); }
 .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 
-.brandstrip { margin-top: 52px; padding: 26px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); text-align: center; }
+.brandstrip { margin-top: 52px; padding: 22px 26px 26px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
 .brandstrip__label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 700; }
-.brandstrip__items { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 34px; margin-top: 16px; }
-.brandstrip__brand { font-family: var(--display); font-weight: 700; font-size: 1.15rem; color: #9fb0bf; transition: color 0.15s; }
-.brandstrip__brand:hover { color: var(--navy); }
+.brandgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+.brandcard { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: #fff; transition: border-color 0.15s, box-shadow 0.15s; }
+.brandcard:hover { border-color: #cfdae4; box-shadow: 0 6px 16px rgba(11, 35, 58, 0.08); }
+.brandcard__logo { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; border-radius: 9px; color: #fff; font-family: var(--display); font-weight: 800; font-size: 1.1rem; }
+.brandcard__body { display: flex; flex-direction: column; line-height: 1.2; }
+.brandcard__body strong { font-size: 0.95rem; color: var(--navy); }
+.brandcard__body span { font-size: 0.78rem; color: var(--muted); }
+@media (max-width: 900px) { .brandgrid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .brandgrid { grid-template-columns: 1fr; } }
 
 /* ---------- Product card ---------- */
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s; }
@@ -409,6 +415,24 @@ h1, h2, h3, h4 {
 .tiers thead th { background: var(--bg); font-size: 0.74rem; text-transform: uppercase; color: var(--muted); }
 .tiers tr.is-active { background: #e6f6ef; font-weight: 700; color: var(--b2b-700); }
 .pdp__tierhint { background: #fff7e8; border: 1px solid #f6e2b8; color: #946100; padding: 10px 13px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 14px; }
+
+/* Banner de campaña con cuenta regresiva */
+.pdp__campaign { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 14px; margin: 4px 0 16px; padding: 10px 14px; border-radius: 10px; background: var(--red); color: #fff; font-size: 0.85rem; }
+.pdp__campaign--b2b { background: var(--b2b); }
+.pdp__campaign-label { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; }
+.pdp__campaign-timer { display: inline-flex; align-items: center; gap: 5px; }
+.pdp__campaign-timer strong { display: inline-block; min-width: 30px; padding: 2px 5px; border-radius: 6px; background: rgba(255, 255, 255, 0.2); text-align: center; font-variant-numeric: tabular-nums; }
+
+/* Desglose B2B: neto / IVA / total + ahorro */
+.pdp__b2bsum { margin-bottom: 14px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.pdp__b2bsum-early { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px dashed var(--line); font-size: 0.85rem; color: var(--navy); }
+.pdp__b2bsum-early span { display: inline-flex; align-items: center; gap: 7px; }
+.pdp__b2bsum-early em { font-style: normal; color: var(--b2b-700); font-weight: 700; }
+.pdp__b2bsum-early strong { color: var(--b2b-700); }
+.pdp__b2bsum-row { display: flex; justify-content: space-between; gap: 10px; font-size: 0.88rem; color: var(--muted); margin-bottom: 6px; }
+.pdp__b2bsum-total { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid var(--line); color: var(--navy-900); font-size: 1rem; }
+.pdp__b2bsum-total strong { font-family: var(--display); font-size: 1.2rem; color: var(--b2b-700); }
+.pdp__b2bsum-save { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; padding: 7px 11px; border-radius: 8px; background: #e6f6ef; color: var(--b2b-700); font-size: 0.84rem; font-weight: 600; }
 .qtyrow { display: flex; gap: 12px; margin-bottom: 14px; }
 .qty { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .qty button { background: var(--bg); border: none; width: 44px; font-size: 1.2rem; color: var(--navy); }
@@ -491,6 +515,15 @@ input[type="checkbox"]:focus, input[type="radio"]:focus { box-shadow: 0 0 0 3px 
 .b2bhero h1 { color: #fff; font-size: 2.2rem; }
 .b2bhero p { color: #dbf0e8; margin-bottom: 20px; }
 .b2bhero__art { font-size: 8rem; text-align: center; }
+.invoice-alert { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; padding: 16px 20px; background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--b2b); border-radius: var(--radius); box-shadow: var(--shadow-xs); }
+.invoice-alert__body { display: flex; align-items: center; gap: 14px; }
+.invoice-alert__body > div { display: flex; flex-direction: column; }
+.invoice-alert__body strong { color: var(--navy-900); }
+.invoice-alert__body span { color: var(--muted); font-size: 0.88rem; }
+.invoice-alert__icon { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 10px; background: rgba(15, 99, 71, 0.1); color: var(--b2b); }
+.invoice-alert__actions { display: flex; gap: 10px; flex-shrink: 0; }
+@media (max-width: 560px) { .invoice-alert__actions { width: 100%; } .invoice-alert__actions .btn { flex: 1; } }
+
 .account-dash { margin-bottom: 42px; }
 .dashgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .dashcard { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; gap: 4px; box-shadow: var(--shadow-xs); }

@@ -21,3 +21,17 @@ export const sampleOrders: OrderRecord[] = [
 
 /** Productos comprados con frecuencia (para "Volver a comprar"). */
 export const frequentProductIds = ['p-001', 'p-011', 'p-016', 'p-022', 'p-013']
+
+export interface UpcomingInvoice {
+  id: string
+  amount: number
+  /** Fecha de vencimiento (ISO). */
+  dueDate: string
+}
+
+/** Próxima factura por vencer (B2B), para recordatorio de pago en la cuenta. */
+export const upcomingInvoice: UpcomingInvoice = {
+  id: 'F-87740',
+  amount: 389900,
+  dueDate: '2026-07-02',
+}
