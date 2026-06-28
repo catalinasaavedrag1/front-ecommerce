@@ -3,6 +3,14 @@ import { useApp } from '@/context/AppContext'
 import { formatCLP, formatRut } from '@/utils/format'
 import Icon, { type IconName } from '@/components/Icon'
 
+const b2bTools: { icon: IconName; title: string; text: string; to: string }[] = [
+  { icon: 'list', title: 'Compra por listas', text: 'Repite pedidos recurrentes por sucursal, obra o cuadrilla.', to: '/listas' },
+  { icon: 'doc', title: 'Cotización formal', text: 'Envía una solicitud con datos de facturación y despacho.', to: '/cotizacion' },
+  { icon: 'wallet', title: 'Crédito empresa', text: 'Conoce requisitos, cupo y alternativas de pago.', to: '/empresas/credito' },
+]
+
+const steps = ['Ingresa o crea tu cuenta empresa', 'Cotiza, compra o carga listas frecuentes', 'Programa despacho a faena y controla facturación']
+
 const features: { icon: IconName; title: string; text: string }[] = [
   { icon: 'percent', title: 'Descuentos por volumen', text: 'Tramos de precio que mejoran automáticamente según la cantidad.' },
   { icon: 'wallet', title: 'Línea de crédito', text: 'Compra con facturación y paga a 30, 60 o 90 días.' },
@@ -85,6 +93,34 @@ export default function B2BPortalPage() {
           </div>
         </section>
       ) : null}
+
+      <section className="b2b-tools" aria-labelledby="b2b-tools-title">
+        <div className="row__head">
+          <div>
+            <h2 className="section-title" id="b2b-tools-title">Empieza por la tarea que necesitas</h2>
+            <p className="section-subtitle">Menos explicación, más caminos claros para comprar como empresa.</p>
+          </div>
+        </div>
+        <div className="b2b-tools__grid">
+          {b2bTools.map((tool) => (
+            <Link key={tool.title} to={tool.to} className="b2b-tool">
+              <span className="b2b-tool__icon"><Icon name={tool.icon} /></span>
+              <strong>{tool.title}</strong>
+              <span>{tool.text}</span>
+              <em>Ir ahora →</em>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="b2b-steps" aria-label="Cómo funciona Mimbral Empresas">
+        {steps.map((step, index) => (
+          <div className="b2b-step" key={step}>
+            <span>{index + 1}</span>
+            <strong>{step}</strong>
+          </div>
+        ))}
+      </section>
 
       <section className="features">
         <h2 className="section-title">Beneficios para empresas</h2>

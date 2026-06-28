@@ -32,6 +32,19 @@ const perks: { icon: IconName; title: string; text: string }[] = [
 
 const brands = ['Bauker', 'Toolmax', 'Colormax', 'Lumen', 'Andescem', 'Hidroflex', 'AgroVida', 'Maderba']
 
+const quickTasks: Record<'b2c' | 'b2b', { title: string; text: string; to: string; icon: IconName }[]> = {
+  b2c: [
+    { title: 'Buscar ofertas cercanas', text: 'Filtra productos con retiro o despacho rápido.', to: '/ofertas', icon: 'percent' },
+    { title: 'Seguir mi pedido', text: 'Revisa el estado sin llamar a soporte.', to: '/seguimiento', icon: 'truck' },
+    { title: 'Guardar favoritos', text: 'Arma tu lista antes de comprar.', to: '/favoritos', icon: 'heart' },
+  ],
+  b2b: [
+    { title: 'Cotizar una obra', text: 'Crea una cotización formal para aprobar.', to: '/cotizacion', icon: 'doc' },
+    { title: 'Recomprar frecuentes', text: 'Agrega listas completas al carro en segundos.', to: '/listas', icon: 'list' },
+    { title: 'Revisar crédito', text: 'Consulta cupo, facturas y condiciones.', to: '/empresas/credito', icon: 'wallet' },
+  ],
+}
+
 const projects: { label: string; to: string; icon: IconName }[] = [
   { label: 'Quiero pintar', to: '/categoria/pinturas', icon: 'pinturas' },
   { label: 'Renovar mi baño', to: '/categoria/bano', icon: 'bano' },
@@ -61,6 +74,27 @@ export default function HomePage() {
             </div>
           </div>
         ))}
+      </section>
+
+      <section className="quickstart" aria-labelledby="quickstart-title">
+        <div className="row__head">
+          <div>
+            <h2 className="section-title" id="quickstart-title">¿Qué necesitas hacer hoy?</h2>
+            <p className="section-subtitle">Accesos rápidos pensados para {mode === 'b2b' ? 'compras de empresa' : 'compras de hogar'}.</p>
+          </div>
+        </div>
+        <div className="quickstart__grid">
+          {quickTasks[mode].map((task) => (
+            <Link key={task.title} to={task.to} className="quickstart__card">
+              <span className="quickstart__icon"><Icon name={task.icon} /></span>
+              <span className="quickstart__copy">
+                <strong>{task.title}</strong>
+                <span>{task.text}</span>
+              </span>
+              <Icon name="chevron" className="quickstart__chev" />
+            </Link>
+          ))}
+        </div>
       </section>
 
       <section className="catgrid">

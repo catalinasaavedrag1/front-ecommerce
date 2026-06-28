@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { categories, getCategory, productsByCategory } from '@/data/products'
 import { availabilityFor } from '@/utils/catalog'
 import ProductCard from '@/components/ProductCard'
+import ProductImage from '@/components/ProductImage'
 import Icon, { CategoryIcon } from '@/components/Icon'
 import { ProductGridSkeleton } from '@/components/Skeleton'
 import { useBriefLoading } from '@/hooks/useBriefLoading'
@@ -24,6 +25,14 @@ export default function CategoryPage() {
 
   const all = category ? productsByCategory(category.id) : []
   const brandList = useMemo(() => Array.from(new Set(all.map((p) => p.brand))).sort(), [all])
+  const subcatTiles = useMemo(() => (category?.subcats ?? []).map((name) => {
+    const terms = name.toLowerCase().split(/\s+/).filter((t) => t.length > 2)
+    const product = all.find((p) => {
+      const hay = `${p.name} ${p.brand} ${Object.values(p.specs).join(' ')}`.toLowerCase()
+      return terms.some((t) => hay.includes(t))
+    }) ?? all[0]
+    return { name, product }
+  }), [all, category])
 
   const items = useMemo(() => {
     let list = all
@@ -114,25 +123,33 @@ export default function CategoryPage() {
   return (
     <div className="container catpage">
       <nav className="breadcrumb breadcrumb--cat" aria-label="Ruta de navegación">
-        <Link to="/">Inicio</Link> <span aria-hidden>/</span> <span className="breadcrumb__current">{category.name}</span>
+        <Link to="/">Inicio</Link> <span aria-hidden>/</span> <span>{category.name}</span> <span aria-hidden>/</span> <strong>{subcat ?? 'Todo'}</strong>
       </nav>
 
-      <header className="cathead">
-        <h1 className="cathead__title"><CategoryIcon id={category.id} className="cathead__icon" /> {category.name}</h1>
-        {category.blurb && <p className="cathead__desc">{category.blurb}</p>}
-      </header>
-
-      {category.subcats?.length ? (
-        <div className="subchips" role="navigation" aria-label="Subcategorías">
-          <button className={`subchip ${!subcat ? 'is-active' : ''}`} aria-pressed={!subcat} onClick={() => setSubcat(null)}>Todas</button>
-          {category.subcats.map((s) => (
-            <button key={s} className={`subchip ${subcat === s ? 'is-active' : ''}`} aria-pressed={subcat === s} onClick={() => setSubcat(subcat === s ? null : s)}>{s}</button>
+      {subcatTiles.length ? (
+        <section className="subrail" aria-label="Subcategorías destacadas">
+          {subcatTiles.map(({ name, product }) => (
+            <button key={name} className={`subtile ${subcat === name ? 'is-active' : ''}`} aria-pressed={subcat === name} onClick={() => setSubcat(subcat === name ? null : name)}>
+              <span className="subtile__media">
+                {product ? <ProductImage product={product} className="subtile__img" /> : <CategoryIcon id={category.id} />}
+              </span>
+              <span>{name}</span>
+            </button>
           ))}
-        </div>
+          <button className={`subtile subtile--all ${!subcat ? 'is-active' : ''}`} aria-pressed={!subcat} onClick={() => setSubcat(null)}>
+            <span className="subtile__media"><CategoryIcon id={category.id} /></span>
+            <span>Ver todo</span>
+          </button>
+        </section>
       ) : null}
 
       <div className="cat-layout">
         <aside className="filters filters--desk">
+          <div className="filters__summary">
+            <span>{category.name}</span>
+            <strong>{subcat ?? 'Todo el catálogo'}</strong>
+            <small>{items.length} resultados</small>
+          </div>
           <div className="filters__top">
             <h3>Filtrar</h3>
             {activeCount > 0 && <button className="link-btn" onClick={clearFilters}>Limpiar</button>}
@@ -141,6 +158,14 @@ export default function CategoryPage() {
         </aside>
 
         <section className="cat-main">
+          <header className="cathead">
+            <div>
+              <span className="cathead__eyebrow">{category.name}</span>
+              <h1 className="cathead__title">{subcat ?? category.name}</h1>
+            </div>
+            {category.blurb && <p className="cathead__desc">{category.blurb}</p>}
+          </header>
+
           <div className="toolbar">
             <div className="toolbar__left">
               <button className="toolbar__filter" onClick={() => setFiltersOpen(true)}>
