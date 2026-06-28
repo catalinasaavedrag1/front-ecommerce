@@ -2321,3 +2321,39 @@ input[type="checkbox"]:focus, input[type="radio"]:focus { box-shadow: 0 0 0 3px 
 }
 .quote-intent { margin: -10px 0 18px; background: #e6f6ef; border: 1px solid #c7e8da; color: var(--b2b-700); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; font-weight: 700; }
 .quote-intent strong { color: var(--b2b-700); }
+
+/* ---------- Patio Constructor ilustrado Mimbral ---------- */
+.pcbanner--illustrated {
+  background: linear-gradient(120deg, #102a63 0%, #173a8a 48%, #eef5ff 48%, #fff 100%);
+  border: 1px solid var(--line);
+}
+.pcbanner--illustrated .pcbanner__content {
+  position: relative;
+  z-index: 2;
+  max-width: 510px;
+}
+.pcbanner__art {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 58%;
+  height: 100%;
+  min-width: 520px;
+}
+.pcbanner__store,
+.pcbanner__materials,
+.pcbanner__truck,
+.pcbanner__person {
+  filter: drop-shadow(0 10px 16px rgba(16,42,99,0.14));
+}
+@media (max-width: 720px) {
+  .pcbanner--illustrated {
+    background: linear-gradient(120deg, #102a63 0%, #173a8a 64%, #eef5ff 64%, #fff 100%);
+  }
+  .pcbanner__art {
+    right: -130px;
+    width: 70%;
+    min-width: 440px;
+    opacity: 0.85;
+  }
+}
