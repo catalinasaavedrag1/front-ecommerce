@@ -13,6 +13,7 @@ import ProductCarousel from '@/components/ProductCarousel'
 import CompareTable from '@/components/CompareTable'
 import ProductReviews from '@/components/ProductReviews'
 import ShareButton from '@/components/ShareButton'
+import Accordion from '@/components/Accordion'
 import { useWishlist } from '@/context/WishlistContext'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
 import { getRecommendations } from '@/utils/recommendations'
@@ -211,40 +212,65 @@ export default function ProductPage() {
         </div>
       </div>
 
-      <section className="pdp-cols">
-        <div className="specs">
-          <h2 className="section-title">Especificaciones</h2>
-          <table>
-            <tbody>
-              {Object.entries(product.specs).map(([k, v]) => (<tr key={k}><th>{k}</th><td>{v}</td></tr>))}
-              <tr><th>Marca</th><td>{product.brand}</td></tr>
-              <tr><th>Unidad de venta</th><td>{product.unit}</td></tr>
-              <tr><th>SKU</th><td>{product.sku}</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div className="pdp__desc-box">
-          <h2 className="section-title">Descripción</h2>
-          <p>{product.description}</p>
-          {mode === 'b2b' && (
-            <div className="stockbox stockbox--inline">
-              <h3>Stock por bodega</h3>
-              <ul>
-                {warehouses.map((w) => (<li key={w}><span>{w}</span><strong>{product.stockByWarehouse[w] ?? 0} u.</strong></li>))}
-              </ul>
-            </div>
-          )}
-        </div>
-      </section>
+      {/* Sobre este producto: secciones colapsables (estilo Target) */}
+      <section className="aboutitem">
+        <h2 className="section-title">Sobre este producto</h2>
+        <div className="aboutitem__card">
+          <Accordion title="Detalles" defaultOpen>
+            <p className="aboutitem__desc">{product.description}</p>
+            <ul className="aboutitem__bullets">
+              <li>Marca {product.brand}</li>
+              <li>Unidad de venta: {product.unit}</li>
+              {Object.entries(product.specs).slice(0, 3).map(([k, v]) => (<li key={k}>{k}: {v}</li>))}
+            </ul>
+          </Accordion>
 
-      {/* Cambios y devoluciones */}
-      <section className="returns">
-        <h2 className="section-title">Cambios y devoluciones</h2>
-        <ul className="returns__list">
-          <li><Icon name="return" /> Tienes <strong>30 días</strong> para cambios y devoluciones desde la recepción.</li>
-          <li><Icon name="store" /> Puedes gestionar el cambio en cualquier tienda Mimbral o en línea.</li>
-          <li><Icon name="shield" /> Productos con garantía del fabricante ante fallas.</li>
-        </ul>
+          <Accordion title="Especificaciones">
+            <table className="aboutitem__specs">
+              <tbody>
+                {Object.entries(product.specs).map(([k, v]) => (<tr key={k}><th>{k}</th><td>{v}</td></tr>))}
+                <tr><th>Marca</th><td>{product.brand}</td></tr>
+                <tr><th>Unidad de venta</th><td>{product.unit}</td></tr>
+                <tr><th>SKU</th><td>{product.sku}</td></tr>
+              </tbody>
+            </table>
+            {mode === 'b2b' && (
+              <div className="stockbox stockbox--inline">
+                <h3>Stock por bodega</h3>
+                <ul>
+                  {warehouses.map((w) => (<li key={w}><span>{w}</span><strong>{product.stockByWarehouse[w] ?? 0} u.</strong></li>))}
+                </ul>
+              </div>
+            )}
+          </Accordion>
+
+          <Accordion title="Despacho y devoluciones">
+            <ul className="returns__list">
+              <li><Icon name="truck" /> Despacho a domicilio en 24-72 hrs hábiles y retiro gratis en tienda.</li>
+              <li><Icon name="return" /> Tienes <strong>30 días</strong> para cambios y devoluciones desde la recepción.</li>
+              <li><Icon name="store" /> Gestiona el cambio en cualquier tienda Mimbral o en línea.</li>
+              <li><Icon name="shield" /> Productos con garantía del fabricante ante fallas.</li>
+            </ul>
+          </Accordion>
+
+          <Accordion title={`Preguntas y respuestas (${(product.reviews % 5) + 2})`}>
+            <ul className="aboutitem__qa">
+              <li>
+                <p className="qa__q"><strong>P:</strong> ¿Sirve para uso profesional / en obra?</p>
+                <p className="qa__a"><strong>R:</strong> Sí, está pensado tanto para uso doméstico como profesional según sus especificaciones.</p>
+              </li>
+              <li>
+                <p className="qa__q"><strong>P:</strong> ¿Tiene garantía y boleta/factura?</p>
+                <p className="qa__a"><strong>R:</strong> Incluye garantía del fabricante y puedes solicitar boleta o factura en el checkout.</p>
+              </li>
+              <li>
+                <p className="qa__q"><strong>P:</strong> ¿Puedo retirarlo el mismo día?</p>
+                <p className="qa__a"><strong>R:</strong> Sí, si hay stock en tu tienda seleccionada el retiro queda disponible el mismo día.</p>
+              </li>
+            </ul>
+            <button className="link-btn aboutitem__askbtn"><Icon name="chat" /> Hacer una pregunta</button>
+          </Accordion>
+        </div>
       </section>
 
       {/* Opiniones */}
