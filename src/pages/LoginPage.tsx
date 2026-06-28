@@ -90,14 +90,23 @@ export default function LoginPage() {
           </button>
         </form>
 
+        <div className="auth__help">
+          <span>{tab === 'b2b' ? 'Usa RUT empresa + email corporativo. Activaremos precios netos al ingresar.' : 'Puedes comprar más rápido guardando tus datos y favoritos.'}</span>
+          <button type="button" className="link-btn">¿Olvidaste tu contraseña?</button>
+        </div>
+
         <div className="auth__demo">
           <span>Cuentas de demostración:</span>
-          <button className="link-btn" onClick={() => quick(demoB2C)}>
-            Persona (Camila)
-          </button>
-          <button className="link-btn" onClick={() => quick(demoB2B)}>
-            Empresa (Constructora Andes)
-          </button>
+          <div className="auth__demo-grid">
+            <button className="auth__demo-card" onClick={() => quick(demoB2C)}>
+              <strong>Persona</strong>
+              <span>Pedidos, favoritos y recompra</span>
+            </button>
+            <button className="auth__demo-card" onClick={() => quick(demoB2B)}>
+              <strong>Empresa</strong>
+              <span>Crédito, listas y cotizaciones</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -43,6 +43,24 @@ export default function AccountPage() {
         subtitle={isB2B ? customer.company : customer.email}
       />
       <div className="container">
+        <section className="account-overview" aria-label="Resumen de cuenta">
+          <div className="account-welcome">
+            <span className="account-welcome__icon"><Icon name={isB2B ? 'building' : 'user'} /></span>
+            <div>
+              <h2>{isB2B ? 'Panel de compra empresa' : 'Tu espacio personal'}</h2>
+              <p>{isB2B ? 'Revisa crédito, cotizaciones y listas para abastecer tu operación sin perder tiempo.' : 'Encuentra rápido tus pedidos, favoritos y productos para volver a comprar.'}</p>
+            </div>
+          </div>
+          <div className="account-next">
+            <strong>Siguiente mejor acción</strong>
+            <span>{isB2B ? 'Carga una lista frecuente o solicita una cotización para aprobación interna.' : 'Revisa el estado de tu último pedido o continúa con tus favoritos.'}</span>
+            <div className="account-next__actions">
+              <Link to={isB2B ? '/listas' : '/mis-pedidos'} className="btn btn--primary">{isB2B ? 'Ver listas' : 'Ver pedidos'}</Link>
+              <Link to={isB2B ? '/cotizacion' : '/favoritos'} className="btn btn--ghost">{isB2B ? 'Cotizar' : 'Favoritos'}</Link>
+            </div>
+          </div>
+        </section>
+
         {isB2B && customer.creditLine && (
           <section className="account-dash">
             <div className="dashgrid">
