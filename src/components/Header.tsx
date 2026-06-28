@@ -6,7 +6,7 @@ import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import { useWishlist } from '@/context/WishlistContext'
 import SearchBar from './SearchBar'
-import Icon, { CategoryIcon } from './Icon'
+import Icon, { CategoryIcon, type IconName } from './Icon'
 
 export default function Header() {
   const { mode, customer, logout } = useApp()
@@ -35,6 +35,17 @@ export default function Header() {
   }, [mega])
 
   const activeCat = categories.find((c) => c.id === megaCat) ?? categories[0]
+  const assistanceItems: { icon: IconName; text: string; to: string }[] = mode === 'b2b'
+    ? [
+      { icon: 'doc', text: 'Cotización formal', to: '/cotizacion' },
+      { icon: 'list', text: 'Recomprar listas', to: '/listas' },
+      { icon: 'wallet', text: customer ? 'Ver crédito empresa' : 'Activar precios empresa', to: customer ? '/empresas/credito' : '/ingresar' },
+    ]
+    : [
+      { icon: 'truck', text: 'Despacho y retiro', to: '/tiendas' },
+      { icon: 'return', text: 'Cambios fáciles', to: '/ayuda' },
+      { icon: 'heart', text: 'Favoritos y recompra', to: customer ? '/favoritos' : '/ingresar' },
+    ]
   const mobCategory = categories.find((c) => c.id === mobCat)
   const mobSubcats = mobCat ? categoryTree[mobCat] ?? [] : []
 
@@ -120,6 +131,17 @@ export default function Header() {
             <span className="header__icon-label">{mode === 'b2b' ? 'Mi orden' : 'Carro'}</span>
             {count > 0 && <span className="header__badge header__badge--cart">{count}</span>}
           </Link>
+        </div>
+      </div>
+
+      <div className="assistbar" aria-label="Accesos rápidos de compra">
+        <div className="assistbar__inner">
+          <span className="assistbar__mode">{mode === 'b2b' ? 'Modo empresa' : 'Compra hogar'}</span>
+          {assistanceItems.map((item) => (
+            <Link key={item.text} to={item.to} className="assistbar__item">
+              <Icon name={item.icon} /> {item.text}
+            </Link>
+          ))}
         </div>
       </div>
 

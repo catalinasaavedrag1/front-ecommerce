@@ -2302,3 +2302,22 @@ input[type="checkbox"]:focus, input[type="radio"]:focus { box-shadow: 0 0 0 3px 
   .cat-main .cathead { display: none; }
   .cat-main .toolbar { border-radius: 12px; padding: 12px; }
 }
+
+/* ---------- Asistencia transversal de compra B2C/B2B ---------- */
+.assistbar { background: #fff; border-top: 1px solid var(--line-2); border-bottom: 1px solid var(--line); }
+.assistbar__inner { max-width: var(--maxw); margin: 0 auto; padding: 8px 22px; display: flex; align-items: center; gap: 10px; overflow-x: auto; scrollbar-width: none; }
+.assistbar__inner::-webkit-scrollbar { display: none; }
+.assistbar__mode { flex: 0 0 auto; background: #eef3fb; color: var(--navy); border: 1px solid #d8e4f5; border-radius: 999px; padding: 5px 10px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+.app--b2b .assistbar__mode { background: #e6f6ef; color: var(--b2b-700); border-color: #c7e8da; }
+.assistbar__item { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; color: var(--ink); font-size: 0.82rem; font-weight: 700; padding: 5px 9px; border-radius: 999px; }
+.assistbar__item:hover { background: var(--bg); color: var(--navy); }
+.app--b2b .assistbar__item:hover { color: var(--b2b-700); }
+.assistbar__item .ic { color: var(--navy); }
+.app--b2b .assistbar__item .ic { color: var(--b2b-700); }
+.ac__quote { width: 100%; margin: 8px 0 10px; border: 1px solid #c7e8da; background: #e6f6ef; color: var(--b2b-700); border-radius: 10px; padding: 10px 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 800; }
+.ac__quote:hover { background: #d8f0e6; }
+@media (max-width: 760px) {
+  .assistbar { display: none; }
+}
+.quote-intent { margin: -10px 0 18px; background: #e6f6ef; border: 1px solid #c7e8da; color: var(--b2b-700); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.quote-intent strong { color: var(--b2b-700); }

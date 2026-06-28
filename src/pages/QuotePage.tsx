@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import { buildTotals } from '@/utils/cart'
@@ -8,6 +8,8 @@ import Icon from '@/components/Icon'
 
 export default function QuotePage() {
   const { customer } = useApp()
+  const [params] = useSearchParams()
+  const requestedProduct = params.get('producto')?.trim() ?? ''
   const { lines } = useCart()
   // Las cotizaciones siempre usan precios de empresa (neto)
   const totals = buildTotals(lines, 'b2b', customer)
@@ -34,6 +36,12 @@ export default function QuotePage() {
         Arma tu lista de productos y solicita una cotización formal con precios de
         empresa. Sin compromiso de compra.
       </p>
+      {requestedProduct && (
+        <div className="quote-intent" role="note">
+          <Icon name="doc" />
+          <span>Incluiremos tu solicitud por <strong>{requestedProduct}</strong> aunque aún no esté en el catálogo.</span>
+        </div>
+      )}
 
       <div className="cartlayout">
         <div>
@@ -63,7 +71,7 @@ export default function QuotePage() {
             </table>
           ) : (
             <div className="panel empty">
-              <p>No tienes productos en tu lista.</p>
+              <p>{requestedProduct ? `No tienes productos agregados, pero puedes enviar una solicitud por ${requestedProduct}.` : 'No tienes productos en tu lista.'}</p>
               <Link to="/" className="btn btn--primary">Agregar productos</Link>
             </div>
           )}
@@ -92,7 +100,7 @@ export default function QuotePage() {
             </label>
             <label>
               Comentarios
-              <textarea rows={3} placeholder="Plazo de entrega, dirección de faena, etc." />
+              <textarea rows={3} defaultValue={requestedProduct ? `Necesito cotizar: ${requestedProduct}` : undefined} placeholder="Plazo de entrega, dirección de faena, etc." />
             </label>
 
             <dl>
@@ -110,7 +118,7 @@ export default function QuotePage() {
               </div>
             </dl>
 
-            <button type="submit" className="btn btn--primary btn--block" disabled={!lines.length}>
+            <button type="submit" className="btn btn--primary btn--block" disabled={!lines.length && !requestedProduct}>
               Enviar solicitud
             </button>
           </form>

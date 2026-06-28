@@ -7,7 +7,10 @@ import { formatCLP } from '@/utils/format'
 import { priceFor } from '@/utils/pricing'
 import { useApp } from '@/context/AppContext'
 
-const POPULAR = ['Cemento', 'Taladro', 'Pintura blanca', 'Cerámica', 'Manguera', 'Foco LED']
+const POPULAR: Record<'b2c' | 'b2b', string[]> = {
+  b2c: ['Cemento', 'Taladro', 'Pintura blanca', 'Cerámica', 'Manguera', 'Foco LED'],
+  b2b: ['Cemento por pallet', 'Fierro 8mm', 'OSB estructural', 'Cable 2.5mm', 'Cotizar grifería', 'Despacho a obra'],
+}
 const RECENT_KEY = 'mimbral.recent'
 const brands = Array.from(new Set(products.map((p) => p.brand)))
 
@@ -72,7 +75,7 @@ export default function SearchBar() {
       <form className="search" onSubmit={submit} role="search">
         <input
           type="search"
-          placeholder="Buscar cemento, pinturas, herramientas…"
+          placeholder={mode === 'b2b' ? 'Busca por SKU, lista, obra o producto mayorista…' : 'Buscar cemento, pinturas, herramientas…'}
           value={q}
           onChange={(e) => { setQ(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
@@ -98,7 +101,7 @@ export default function SearchBar() {
               <div className="ac__sec">
                 <div className="ac__head"><span>Búsquedas populares</span></div>
                 <div className="ac__chips">
-                  {POPULAR.map((p) => (
+                  {POPULAR[mode].map((p) => (
                     <button key={p} className="ac__chip" onClick={() => commit(p)}>{p}</button>
                   ))}
                 </div>
@@ -149,6 +152,11 @@ export default function SearchBar() {
           {term && sugg?.empty && (
             <div className="ac__empty">
               <p>Sin coincidencias para "<strong>{q}</strong>".</p>
+              {mode === 'b2b' && (
+                <button className="ac__quote" onClick={() => { setOpen(false); navigate(`/cotizacion?producto=${encodeURIComponent(q)}`) }}>
+                  <Icon name="doc" /> Solicitar cotización con este texto
+                </button>
+              )}
               <div className="ac__chips">
                 {categories.slice(0, 6).map((c) => (
                   <button key={c.id} className="ac__chip" onClick={() => { setOpen(false); navigate(`/categoria/${c.slug}`) }}>{c.name}</button>
