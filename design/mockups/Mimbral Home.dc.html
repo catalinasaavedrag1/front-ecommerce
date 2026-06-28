@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; color: #16212b; background: #f6f8fb; -webkit-font-smoothing: antialiased; }
+  @keyframes mb-toastin { from { transform: translateY(140%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes mb-slidein { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  ::-webkit-scrollbar { height: 6px; width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #d7dee6; border-radius: 99px; }
+</style>
+</helmet>
+
+<div style="background:#f6f8fb; min-height:100vh; font-family:'Inter',sans-serif; color:#16212b;">
+
+  <!-- ===== HEADER ===== -->
+  <header style="position:sticky; top:0; z-index:60; background:#fff; box-shadow:0 2px 8px rgba(11,35,58,.07);">
+    <!-- top utility bar -->
+    <div style="background:#173a8a; font-size:.82rem;">
+      <div style="max-width:1280px; margin:0 auto; padding:6px 22px; display:flex; justify-content:center; gap:30px; align-items:center; color:#eaf1f8;">
+        <span style="display:inline-flex; align-items:center; gap:7px; font-weight:500;">{{ icClock }} Horarios y Tiendas</span>
+        <span style="display:inline-flex; align-items:center; gap:7px; font-weight:500;">{{ icHeadset }} Venta empresas</span>
+        <span style="display:inline-flex; align-items:center; gap:7px; font-weight:500;">{{ icTruck }} Sigue tu pedido</span>
+        <span style="margin-left:auto; display:inline-flex; align-items:center; gap:7px; font-weight:500;">{{ icPhone }} 600 600 0000</span>
+      </div>
+    </div>
+
+    <!-- main bar -->
+    <div style="max-width:1280px; margin:0 auto; padding:11px 22px; display:flex; align-items:center; gap:24px;">
+      <!-- brand -->
+      <div style="display:flex; align-items:center; gap:11px; flex-shrink:0;">
+        <span style="width:44px; height:40px; border-radius:7px; padding:4px; background:#173a8a; display:grid; place-items:center; box-shadow:0 1px 2px rgba(11,35,58,.06);">
+          <svg viewBox="0 0 44 40" width="100%" height="100%"><path d="M7 31 16 9h6L13 31z" fill="#fff"></path><path d="M19 31 28 9h6l-9 22z" fill="#fff"></path><path d="M31 31 37 16v15z" fill="#e1251b"></path></svg>
+        </span>
+        <span style="display:flex; flex-direction:column; align-items:flex-start; font-family:'Sora',sans-serif; font-weight:800; font-style:italic; font-size:1.45rem; color:#173a8a; line-height:1; letter-spacing:-.02em;">
+          Mimbral
+          <small style="font-style:normal; font-size:.54rem; font-weight:800; letter-spacing:.18em; color:#fff; background:#e1251b; text-transform:uppercase; margin-top:3px; padding:1px 6px; border-radius:2px; font-family:'Inter',sans-serif; align-self:stretch; text-align:center;">MTS</small>
+        </span>
+      </div>
+
+      <!-- search -->
+      <div style="flex:1; display:flex; background:#fff; border:2px solid #e7ecf1; border-radius:999px; overflow:hidden; max-width:680px;">
+        <input placeholder="Busca productos, marcas y más…" style="flex:1; border:none; padding:10px 18px; font-size:.95rem; outline:none; color:#16212b; background:transparent; font-family:'Inter',sans-serif;">
+        <button style="border:none; background:transparent; padding:0 18px; color:#173a8a; display:grid; place-items:center; cursor:pointer;">{{ icSearch }}</button>
+      </div>
+
+      <!-- mode switch -->
+      <div style="display:inline-flex; background:#f6f8fb; border:1px solid #e7ecf1; border-radius:999px; padding:3px; flex-shrink:0;">
+        <button onClick="{{ onB2c }}" style="border:none; padding:7px 15px; border-radius:999px; font-size:.8rem; font-weight:700; cursor:pointer; background:{{ b2cBg }}; color:{{ b2cColor }};">Personas</button>
+        <button onClick="{{ onB2b }}" style="border:none; padding:7px 15px; border-radius:999px; font-size:.8rem; font-weight:700; cursor:pointer; background:{{ b2bBg }}; color:{{ b2bColor }};">Empresas</button>
+      </div>
+
+      <!-- actions -->
+      <div style="display:flex; align-items:center; gap:20px; flex-shrink:0;">
+        <a href="Mimbral Cuenta.dc.html" style="position:relative; display:flex; flex-direction:column; align-items:center; gap:3px; color:#173a8a; font-weight:600; font-size:.72rem; cursor:pointer;">
+          <span style="font-size:1.35rem; display:grid;">{{ icUser }}</span>
+          <span>Mi cuenta</span>
+        </a>
+        <a style="position:relative; display:flex; flex-direction:column; align-items:center; gap:3px; color:#173a8a; font-weight:600; font-size:.72rem; cursor:pointer;">
+          <span style="font-size:1.35rem; display:grid; color:#e1251b;">{{ icHeart }}</span>
+          <span>Favoritos</span>
+          <sc-if value="{{ hasFavs }}" hint-placeholder-val="{{ false }}">
+            <span style="position:absolute; top:-6px; right:-8px; background:#173a8a; color:#fff; border-radius:999px; font-size:.68rem; font-weight:800; min-width:18px; height:18px; display:grid; place-items:center; padding:0 4px;">{{ favCount }}</span>
+          </sc-if>
+        </a>
+        <a style="position:relative; display:flex; flex-direction:column; align-items:center; gap:3px; color:#173a8a; font-weight:600; font-size:.72rem; cursor:pointer;">
+          <span style="font-size:1.35rem; display:grid;">{{ icCart }}</span>
+          <span>{{ cartLabel }}</span>
+          <sc-if value="{{ hasCart }}" hint-placeholder-val="{{ false }}">
+            <span style="position:absolute; top:-6px; right:-8px; background:#e1251b; color:#fff; border-radius:999px; font-size:.68rem; font-weight:800; min-width:18px; height:18px; display:grid; place-items:center; padding:0 4px;">{{ cartCount }}</span>
+          </sc-if>
+        </a>
+      </div>
+    </div>
+
+    <!-- assist bar -->
+    <div style="background:#fff; border-top:1px solid #eef2f6; border-bottom:1px solid #e7ecf1;">
+      <div style="max-width:1280px; margin:0 auto; padding:8px 22px; display:flex; align-items:center; gap:10px; overflow-x:auto;">
+        <span style="flex:0 0 auto; border-radius:999px; padding:5px 10px; font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; background:{{ assistModeBg }}; color:{{ assistModeColor }}; border:1px solid {{ assistModeBorder }};">{{ assistModeLabel }}</span>
+        <sc-for list="{{ assistItems }}" as="a" hint-placeholder-count="3">
+          <a style="flex:0 0 auto; display:inline-flex; align-items:center; gap:7px; color:#16212b; font-size:.82rem; font-weight:700; padding:5px 9px; border-radius:999px; cursor:pointer;"><span style="color:{{ a.color }}; display:grid;">{{ a.iconEl }}</span> {{ a.text }}</a>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- category nav -->
+    <nav style="background:#1f4aa8;">
+      <ul style="max-width:1280px; margin:0 auto; padding:0 18px; display:flex; list-style:none; gap:2px; align-items:center; overflow-x:auto;">
+        <li><button style="background:#102a63; color:#fff; border:none; padding:12px 18px; font-weight:700; font-size:.86rem; display:inline-flex; align-items:center; gap:8px; cursor:pointer; white-space:nowrap;">{{ icMenu }} Categorías</button></li>
+        <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="9">
+          <li><a style="display:block; padding:9px 14px; color:{{ n.color }}; font-size:.85rem; font-weight:600; white-space:nowrap; border-bottom:3px solid transparent; cursor:pointer;">{{ n.label }}</a></li>
+        </sc-for>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- ===== HOME ===== -->
+  <div style="max-width:1280px; margin:0 auto; padding:20px 22px 48px;">
+
+    <!-- B2B account / credit bar -->
+    <sc-if value="{{ isB2b }}" hint-placeholder-val="{{ false }}">
+      <section style="background:linear-gradient(120deg,#0f6347,#157f5c); border-radius:16px; padding:18px 22px; margin-bottom:18px; display:flex; align-items:center; gap:22px 28px; flex-wrap:wrap; color:#fff; box-shadow:0 8px 24px rgba(11,35,58,.09);">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span style="width:46px; height:46px; border-radius:12px; background:rgba(255,255,255,.16); display:grid; place-items:center;"><span style="width:24px; height:24px; display:grid;">{{ icBuilding }}</span></span>
+          <div><span style="font-size:.74rem; opacity:.85; font-weight:600;">Cuenta empresa</span><strong style="display:block; font-family:'Sora',sans-serif; font-size:1.05rem;">Constructora Andes</strong></div>
+        </div>
+        <div style="flex:1; min-width:240px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; font-size:.78rem; margin-bottom:6px;"><span style="opacity:.9;">Cupo de crédito disponible</span><span><strong style="font-family:'Sora',sans-serif; font-size:1.05rem;">{{ credit.avail }}</strong> <span style="opacity:.8;">de {{ credit.total }}</span></span></div>
+          <div style="height:9px; background:rgba(255,255,255,.22); border-radius:999px; overflow:hidden;"><span style="display:block; height:100%; width:{{ credit.pct }}; background:#fff;"></span></div>
+        </div>
+        <div style="display:flex; gap:22px; flex-wrap:wrap;">
+          <div><span style="font-size:.72rem; opacity:.85; display:block;">Descuento corporativo</span><strong style="font-family:'Sora',sans-serif; font-size:1.05rem;">−8%</strong></div>
+          <div><span style="font-size:.72rem; opacity:.85; display:block;">Condiciones de pago</span><strong style="font-family:'Sora',sans-serif; font-size:1.05rem;">30 / 60 / 90 días</strong></div>
+        </div>
+        <a href="Mimbral Cuenta.dc.html" style="background:#fff; color:#0f6347; border:none; border-radius:10px; padding:11px 18px; font-weight:700; font-size:.88rem; cursor:pointer; font-family:'Inter',sans-serif; display:inline-flex; align-items:center;">Ver estado de cuenta</a>
+      </section>
+    </sc-if>
+
+    <!-- HERO carousel -->
+    <section style="position:relative; border-radius:16px; overflow:hidden; box-shadow:0 8px 24px rgba(11,35,58,.09);">
+      <div style="{{ trackStyle }}">
+        <sc-for list="{{ heroSlides }}" as="s" hint-placeholder-count="3">
+          <div style="flex:0 0 100%; display:grid; grid-template-columns:1.1fr .9fr; align-items:center; gap:20px; padding:34px 48px; color:#fff; min-height:262px; background:{{ s.bg }};">
+            <div>
+              <span style="display:inline-block; background:rgba(255,255,255,.18); padding:5px 13px; border-radius:999px; font-size:.76rem; font-weight:700; letter-spacing:.03em; margin-bottom:14px;">{{ s.eyebrow }}</span>
+              <h2 style="color:#fff; font-family:'Sora',sans-serif; font-size:2rem; max-width:18ch; margin:0 0 12px; line-height:1.15; letter-spacing:-.01em;">{{ s.title }}</h2>
+              <sc-if value="{{ s.hasPrice }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:18px;">
+                  <span style="font-family:'Sora',sans-serif; font-size:2rem; font-weight:800; color:#fff;">{{ s.priceNow }}</span>
+                  <span style="text-decoration:line-through; opacity:.7; font-size:1.1rem;">{{ s.priceWas }}</span>
+                </div>
+              </sc-if>
+              <button onClick="{{ s.onCta }}" style="display:inline-flex; align-items:center; gap:8px; border:none; border-radius:10px; padding:14px 26px; font-size:1.02rem; font-weight:700; background:#e1251b; color:#fff; box-shadow:0 6px 16px rgba(0,0,0,.2); cursor:pointer; font-family:'Inter',sans-serif;">{{ s.ctaLabel }}</button>
+              <span style="display:block; margin-top:14px; font-size:.8rem; opacity:.85;">Webpay · 12 cuotas sin interés</span>
+            </div>
+            <div style="position:relative; display:grid; place-items:center; align-self:stretch;">
+              <sc-if value="{{ s.hasPrice }}" hint-placeholder-val="{{ true }}">
+                <div style="position:relative; width:100%; max-width:300px; aspect-ratio:4/3; border-radius:16px; overflow:hidden; display:grid; place-items:center; background:linear-gradient(140deg, {{ s.c1 }}, {{ s.c2 }}); filter:drop-shadow(0 14px 28px rgba(0,0,0,.28));">
+                  <span style="width:38%; height:38%; color:#fff; display:grid;">{{ s.iconEl }}</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ s.hasDiscount }}" hint-placeholder-val="{{ true }}">
+                <span style="position:absolute; top:8px; left:8px; width:78px; height:78px; border-radius:50%; background:#e1251b; color:#fff; display:grid; place-items:center; align-content:center; box-shadow:0 8px 24px rgba(11,35,58,.09);"><strong style="font-family:'Sora',sans-serif; font-size:1.5rem; line-height:1;">{{ s.discount }}%</strong><span style="font-size:.56rem; font-weight:700; letter-spacing:.05em;">DE DCTO.</span></span>
+              </sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <button onClick="{{ onPrev }}" style="position:absolute; top:50%; left:14px; transform:translateY(-50%); width:42px; height:42px; border-radius:50%; background:rgba(255,255,255,.85); border:none; color:#173a8a; font-size:1.6rem; line-height:1; display:grid; place-items:center; box-shadow:0 2px 8px rgba(11,35,58,.07); cursor:pointer;">‹</button>
+      <button onClick="{{ onNext }}" style="position:absolute; top:50%; right:14px; transform:translateY(-50%); width:42px; height:42px; border-radius:50%; background:rgba(255,255,255,.85); border:none; color:#173a8a; font-size:1.6rem; line-height:1; display:grid; place-items:center; box-shadow:0 2px 8px rgba(11,35,58,.07); cursor:pointer;">›</button>
+      <div style="position:absolute; bottom:14px; left:50%; transform:translateX(-50%); display:flex; gap:8px;">
+        <sc-for list="{{ heroDots }}" as="d" hint-placeholder-count="3">
+          <button onClick="{{ d.onClick }}" style="width:{{ d.w }}; height:9px; border-radius:999px; border:none; background:{{ d.bg }}; padding:0; cursor:pointer;"></button>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- TRUST BAR -->
+    <section style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:18px; background:#fff; border:1px solid #e7ecf1; border-radius:16px; padding:18px 22px; box-shadow:0 1px 2px rgba(11,35,58,.06);">
+      <sc-for list="{{ trust }}" as="t" hint-placeholder-count="4">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span style="font-size:1.6rem; color:#173a8a; display:grid;">{{ t.iconEl }}</span>
+          <div>
+            <strong style="display:block; font-size:.9rem; color:#102a63;">{{ t.title }}</strong>
+            <span style="font-size:.8rem; color:#5f7385;">{{ t.text }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </section>
+
+    <!-- QUICKSTART -->
+    <section style="margin-top:30px;">
+      <div style="margin-bottom:14px;">
+        <h2 style="font-family:'Sora',sans-serif; font-size:1.3rem; color:#102a63; margin:0; letter-spacing:-.01em;">¿Qué necesitas hacer hoy?</h2>
+        <p style="margin:6px 0 0; color:#5f7385; font-size:.92rem;">Accesos rápidos pensados para {{ quickSubtitle }}.</p>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px;">
+        <sc-for list="{{ quickTasks }}" as="q" hint-placeholder-count="3">
+          <a style="display:flex; align-items:center; gap:14px; background:#fff; border:1px solid #e7ecf1; border-radius:16px; padding:18px; box-shadow:0 1px 2px rgba(11,35,58,.06); cursor:pointer;">
+            <span style="width:48px; height:48px; border-radius:14px; display:grid; place-items:center; flex-shrink:0; color:{{ q.iconColor }}; background:{{ q.iconBg }}; font-size:1.35rem;">{{ q.iconEl }}</span>
+            <span style="display:flex; flex-direction:column; min-width:0; flex:1;">
+              <strong style="color:#102a63; font-size:.98rem;">{{ q.title }}</strong>
+              <span style="color:#5f7385; font-size:.84rem;">{{ q.text }}</span>
+            </span>
+            <span style="color:#5f7385; display:grid;">{{ icChevron }}</span>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- CATEGORY GRID -->
+    <section style="margin-top:30px;">
+      <div style="margin-bottom:14px;"><h2 style="font-family:'Sora',sans-serif; font-size:1.3rem; color:#102a63; margin:0; letter-spacing:-.01em;">Explora por categoría</h2></div>
+      <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:16px;">
+        <sc-for list="{{ categories }}" as="c" hint-placeholder-count="14">
+          <a style="background:#fff; border:1px solid #e7ecf1; border-radius:16px; padding:18px 10px; text-align:center; font-size:.82rem; font-weight:700; color:#102a63; display:flex; flex-direction:column; align-items:center; gap:12px; cursor:pointer;">
+            <span style="width:56px; height:56px; border-radius:50%; background:#eef3fb; color:#173a8a; display:grid; place-items:center;"><span style="width:30px; height:30px; display:grid;">{{ c.iconEl }}</span></span>
+            <span style="line-height:1.2;">{{ c.name }}</span>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section style="margin-top:32px;">
+      <div style="margin-bottom:14px;"><h2 style="font-family:'Sora',sans-serif; font-size:1.3rem; color:#102a63; margin:0; letter-spacing:-.01em;">Compra por proyecto</h2></div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px;">
+        <sc-for list="{{ projects }}" as="p" hint-placeholder-count="6">
+          <a style="display:flex; align-items:center; gap:14px; background:#fff; border:1px solid #e7ecf1; border-radius:16px; padding:18px 20px; cursor:pointer;">
+            <span style="width:46px; height:46px; border-radius:11px; background:#eef3fb; color:#173a8a; display:grid; place-items:center; font-size:1.5rem; flex-shrink:0;"><span style="width:26px; height:26px; display:grid;">{{ p.iconEl }}</span></span>
+            <span style="font-weight:700; color:#102a63; flex:1;">{{ p.label }}</span>
+            <span style="color:#5f7385; display:grid;">{{ icChevron }}</span>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- BANNERS (b2c) / PERKS (b2b) -->
+    <sc-if value="{{ isB2c }}" hint-placeholder-val="{{ true }}">
+      <section style="display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:28px;">
+        <a style="border-radius:16px; padding:34px; min-height:180px; display:flex; align-items:flex-end; color:#fff; overflow:hidden; box-shadow:0 2px 8px rgba(11,35,58,.07); background:linear-gradient(120deg,#123a56,#1f6aa0); cursor:pointer;">
+          <div><span style="font-size:.82rem; font-weight:600; opacity:.9;">Maestros y DIY</span><h3 style="color:#fff; font-family:'Sora',sans-serif; font-size:1.5rem; margin:4px 0 10px;">Herramientas eléctricas</h3><span style="font-weight:700; color:#f6a821;">Ver herramientas →</span></div>
+        </a>
+        <a onClick="{{ onGoB2b }}" style="border-radius:16px; padding:34px; min-height:180px; display:flex; align-items:flex-end; color:#fff; overflow:hidden; box-shadow:0 2px 8px rgba(11,35,58,.07); background:linear-gradient(120deg,#0f6347,#21a877); cursor:pointer;">
+          <div><span style="font-size:.82rem; font-weight:600; opacity:.9;">¿Compras al por mayor?</span><h3 style="color:#fff; font-family:'Sora',sans-serif; font-size:1.5rem; margin:4px 0 10px;">Precios para empresas</h3><span style="font-weight:700; color:#f6a821;">Conocer beneficios →</span></div>
+        </a>
+      </section>
+    </sc-if>
+    <sc-if value="{{ isB2b }}" hint-placeholder-val="{{ false }}">
+      <section style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:28px;">
+        <sc-for list="{{ perks }}" as="p" hint-placeholder-count="4">
+          <div style="background:#fff; border:1px solid #e7ecf1; border-left:4px solid #157f5c; border-radius:10px; padding:18px; display:flex; flex-direction:column; gap:5px;">
+            <span style="font-size:1.5rem; color:#157f5c; display:grid; width:26px;">{{ p.iconEl }}</span>
+            <strong style="color:#102a63;">{{ p.title }}</strong>
+            <span style="font-size:.85rem; color:#5f7385;">{{ p.text }}</span>
+          </div>
+        </sc-for>
+      </section>
+    </sc-if>
+
+    <!-- OFFERS ROW -->
+    <section style="margin-top:34px;">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:18px;">
+        <h2 style="font-family:'Sora',sans-serif; font-size:1.3rem; color:#102a63; margin:0; letter-spacing:-.01em;">Ofertas</h2>
+        <a style="color:#1f4aa8; font-weight:700; font-size:.9rem; cursor:pointer;">Ver todas →</a>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px;">
+        <sc-for list="{{ offerCards }}" as="p" hint-placeholder-count="4">
+          <dc-import name="Mimbral Card" card="{{ p }}" hint-size="100%,420px"></dc-import>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- FEATURED ROW -->
+    <section style="margin-top:34px;">
+      <div style="margin-bottom:18px;"><h2 style="font-family:'Sora',sans-serif; font-size:1.3rem; color:#102a63; margin:0; letter-spacing:-.01em;">{{ featuredTitle }}</h2></div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px;">
+        <sc-for list="{{ featuredCards }}" as="p" hint-placeholder-count="8">
+          <dc-import name="Mimbral Card" card="{{ p }}" hint-size="100%,420px"></dc-import>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- BRAND STRIP -->
+    <section style="margin-top:52px; padding:28px; background:#fff; border:1px solid #e7ecf1; border-radius:16px;">
+      <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px;">
+        <span style="font-size:.78rem; text-transform:uppercase; letter-spacing:.1em; color:#5f7385; font-weight:700;">Marcas que trabajamos</span>
+        <a style="color:#1f4aa8; font-weight:700; font-size:.86rem; cursor:pointer;">Ver todas las marcas →</a>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px;">
+        <sc-for list="{{ brands }}" as="b" hint-placeholder-count="8">
+          <a style="display:flex; align-items:center; gap:13px; background:#fff; border:1px solid #e7ecf1; border-radius:12px; padding:15px 16px; cursor:pointer; transition:transform .14s ease, box-shadow .14s ease, border-color .14s ease;" style-hover="transform:translateY(-3px); box-shadow:0 8px 24px rgba(11,35,58,.09); border-color:#d4dde6;">
+            <span style="width:38px; height:38px; border-radius:10px; background:{{ b.mono }}; color:#fff; display:grid; place-items:center; font-family:'Sora',sans-serif; font-weight:800; font-size:1.15rem; flex-shrink:0;">{{ b.initial }}</span>
+            <span style="display:flex; flex-direction:column; min-width:0;">
+              <strong style="font-family:'Sora',sans-serif; font-weight:800; font-size:1.05rem; color:#102a63; letter-spacing:-.01em; line-height:1.1;">{{ b.name }}</strong>
+              <span style="font-size:.74rem; color:#5f7385; font-weight:600;">{{ b.tag }}</span>
+            </span>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer style="background:#fff; border-top:1px solid #e7ecf1; margin-top:48px;">
+    <div style="max-width:1280px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr); border-bottom:1px solid #e7ecf1;">
+      <sc-for list="{{ footerStrip }}" as="f" hint-placeholder-count="4">
+        <div style="display:flex; align-items:center; gap:12px; padding:14px 20px; min-height:72px; border-left:1px solid #e7ecf1;">
+          <span style="width:38px; height:38px; border-radius:10px; background:#eef3fb; color:#173a8a; display:grid; place-items:center; flex-shrink:0;"><span style="width:20px; height:20px; display:grid;">{{ f.iconEl }}</span></span>
+          <span><strong style="display:block; color:#102a63; font-size:.92rem; line-height:1.2;">{{ f.title }}</strong><span style="font-size:.78rem; color:#5f7385;">{{ f.text }}</span></span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="max-width:1280px; margin:0 auto; padding:22px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="width:40px; height:36px; display:grid; place-items:center; background:#173a8a; border-radius:6px;"><svg viewBox="0 0 44 40" width="26" height="24"><path d="M7 31 16 9h6L13 31z" fill="#fff"></path><path d="M19 31 28 9h6l-9 22z" fill="#fff"></path><path d="M31 31 37 16v15z" fill="#e1251b"></path></svg></span>
+        <span><strong style="display:block; font-family:'Sora',sans-serif; font-weight:800; font-size:1.1rem; color:#102a63; line-height:1.1;">Mimbral</strong><span style="font-size:.78rem; color:#5f7385;">Construcción y mejoramiento del hogar</span></span>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:7px;">
+        <span style="font-size:.68rem; font-weight:700; color:#102a63; background:#fff; border:1px solid #e7ecf1; border-radius:6px; padding:5px 9px;">WEBPAY</span>
+        <span style="font-size:.68rem; font-weight:700; color:#102a63; background:#fff; border:1px solid #e7ecf1; border-radius:6px; padding:5px 9px;">VISA</span>
+        <span style="font-size:.68rem; font-weight:700; color:#102a63; background:#fff; border:1px solid #e7ecf1; border-radius:6px; padding:5px 9px;">MASTERCARD</span>
+        <span style="font-size:.68rem; font-weight:700; color:#102a63; background:#fff; border:1px solid #e7ecf1; border-radius:6px; padding:5px 9px;">TRANSFERENCIA</span>
+      </div>
+    </div>
+    <div style="background:#f5f8fc; border-top:1px solid #e7ecf1;">
+      <div style="max-width:1280px; margin:0 auto; padding:14px 22px; display:flex; align-items:center; justify-content:space-between; gap:8px 22px; flex-wrap:wrap; font-size:.76rem; color:#5f7385;">
+        <span>© 2026 Mimbral. Demostración. Precios y catálogo de referencia.</span>
+        <span style="display:flex; gap:18px;"><a style="cursor:pointer;">Términos</a><a style="cursor:pointer;">Privacidad</a><a style="cursor:pointer;">Despacho</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- TOAST -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; right:22px; bottom:22px; z-index:100; display:flex; align-items:center; gap:12px; background:#fff; border:1px solid #e7ecf1; border-left:4px solid #157f5c; border-radius:10px; box-shadow:0 16px 40px rgba(11,35,58,.14); padding:12px 14px; width:340px; max-width:calc(100vw - 44px); animation:mb-toastin .3s cubic-bezier(.2,.9,.3,1);">
+      <span style="width:26px; height:26px; border-radius:50%; background:#157f5c; color:#fff; display:grid; place-items:center; font-size:.9rem; flex-shrink:0;">{{ icCheck }}</span>
+      <span style="display:flex; flex-direction:column; min-width:0; flex:1;"><strong style="font-size:.82rem;">Agregado {{ cartLabelLower }}</strong><span style="font-size:.8rem; color:#5f7385; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ toast }}</span></span>
+    </div>
+  </sc-if>
+
+  <!-- CROSS-SELL DRAWER -->
+  <sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCloseDrawer }}" style="position:fixed; inset:0; background:rgba(14,37,71,.5); z-index:95; display:flex; justify-content:flex-end;">
+      <div onClick="{{ stop }}" style="width:min(94vw,430px); height:100%; background:#fff; display:flex; flex-direction:column; box-shadow:-16px 0 40px rgba(11,35,58,.18); animation:mb-slidein .26s cubic-bezier(.2,.9,.3,1);">
+        <div style="display:flex; align-items:center; gap:11px; padding:16px 18px; border-bottom:1px solid #e7ecf1;">
+          <span style="width:26px; height:26px; border-radius:50%; background:#157f5c; color:#fff; display:grid; place-items:center;"><span style="width:15px; height:15px; display:grid;">{{ drawer.icCheck }}</span></span>
+          <strong style="font-family:'Sora',sans-serif; color:#102a63; flex:1; font-size:1rem;">{{ drawer.addedLabel }}</strong>
+          <button onClick="{{ onCloseDrawer }}" style="background:#f6f8fb; border:none; width:32px; height:32px; border-radius:50%; font-size:1rem; color:#16212b; cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:16px 18px;">
+          <div style="display:flex; align-items:center; gap:12px; background:#f6f8fb; border-radius:12px; padding:12px;">
+            <span style="width:48px; height:48px; border-radius:10px; display:grid; place-items:center; background:linear-gradient(140deg, {{ drawer.mc1 }}, {{ drawer.mc2 }}); flex-shrink:0;"><span style="width:42%; height:42%; display:grid; color:#fff;">{{ drawer.mainIcon }}</span></span>
+            <div style="flex:1; min-width:0;"><span style="font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; color:#5f7385; font-weight:700;">{{ drawer.mainBrand }}</span><div style="font-size:.88rem; color:#16212b; font-weight:600; line-height:1.25;">{{ drawer.mainName }}</div></div>
+          </div>
+          <h3 style="font-family:'Sora',sans-serif; font-size:1.05rem; color:#102a63; margin:20px 0 4px;">{{ drawer.title }}</h3>
+          <p style="margin:0 0 14px; font-size:.84rem; color:#5f7385;">Otros maestros completaron su compra con estos.</p>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <sc-for list="{{ drawer.comps }}" as="c" hint-placeholder-count="3">
+              <div style="display:flex; align-items:center; gap:12px; border:1px solid #e7ecf1; border-radius:12px; padding:11px 12px;">
+                <span style="width:46px; height:46px; border-radius:9px; display:grid; place-items:center; background:linear-gradient(140deg, {{ c.c1 }}, {{ c.c2 }}); flex-shrink:0;"><span style="width:42%; height:42%; display:grid; color:#fff;">{{ c.iconEl }}</span></span>
+                <div style="flex:1; min-width:0;"><span style="font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:#5f7385; font-weight:700;">{{ c.brand }}</span><div style="font-size:.84rem; color:#16212b; font-weight:600; line-height:1.2;">{{ c.name }}</div><strong style="font-family:'Sora',sans-serif; color:{{ drawerPriceColor }}; font-size:.9rem;">{{ c.price }}</strong></div>
+                <button onClick="{{ c.onAdd }}" style="border:1.5px solid {{ accent }}; background:#fff; color:{{ accentText }}; border-radius:9px; padding:8px 12px; font-weight:700; font-size:.82rem; cursor:pointer; white-space:nowrap;">+ Agregar</button>
+              </div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ drawer.isB2b }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:14px; background:#e6f6ef; border:1px solid #c7e8da; border-radius:12px; padding:13px 15px;">
+              <div style="font-size:.86rem; color:#0f6347; font-weight:700;">Llévalos juntos y ahorra {{ drawer.kitSaved }} (−10%)</div>
+              <button onClick="{{ drawer.onAddAll }}" style="margin-top:10px; width:100%; border:none; border-radius:10px; padding:11px; font-weight:700; font-size:.88rem; color:#fff; background:#157f5c; box-shadow:0 4px 12px rgba(21,127,92,.28); cursor:pointer;">Agregar todo el kit · {{ drawer.kitTotal }}</button>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display:flex; gap:10px; padding:14px 18px; border-top:1px solid #e7ecf1;">
+          <button onClick="{{ onCloseDrawer }}" style="flex:1; background:#fff; border:1.5px solid #e7ecf1; color:#173a8a; border-radius:10px; padding:12px; font-weight:700; font-size:.9rem; cursor:pointer;">Seguir comprando</button>
+          <a href="Mimbral Checkout.dc.html" style="flex:1; text-align:center; border:none; border-radius:10px; padding:12px; font-weight:700; font-size:.9rem; color:#fff; background:{{ accent }}; box-shadow:{{ accentShadow }};">Ir a pagar</a>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { mode: 'b2c', heroIndex: 0, cart: {}, favs: {}, toast: null, qtySel: {}, addDrawer: null };
+
+  paths = {
+    search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    cart: '<path d="M3 4h2l2.4 12.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L21 8H6"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/>',
+    heart: '<path d="M12 20s-7-4.5-9.3-9A4.7 4.7 0 0 1 12 6a4.7 4.7 0 0 1 9.3 5C19 15.5 12 20 12 20Z"/>',
+    truck: '<path d="M2 6h11v9H2z"/><path d="M13 9h4l3 3v3h-7z"/><circle cx="6" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/>',
+    store: '<path d="M4 9h16v10H4z"/><path d="M3 9l1.5-5h15L21 9"/><path d="M9 19v-5h6v5"/>',
+    lock: '<path d="M6 11h12v9H6z"/><path d="M9 11V8a3 3 0 0 1 6 0v3"/>',
+    return: '<path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/>',
+    percent: '<path d="m6 18 12-12"/><circle cx="7.5" cy="7.5" r="1.6"/><circle cx="16.5" cy="16.5" r="1.6"/>',
+    wallet: '<path d="M3 7h16v12H3z"/><path d="M3 7V5h13"/><circle cx="16" cy="13" r="1.4"/>',
+    doc: '<path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/><path d="M9 13h6M9 17h6"/>',
+    list: '<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+    chevron: '<path d="m9 6 6 6-6 6"/>',
+    menu: '<path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    headset: '<path d="M5 13a7 7 0 0 1 14 0"/><path d="M3 14a2 2 0 0 1 2-2h1v6H5a2 2 0 0 1-2-2zM21 14a2 2 0 0 0-2-2h-1v6h1a2 2 0 0 0 2-2z"/><path d="M19 18a4 4 0 0 1-4 3h-2"/>',
+    phone: '<path d="M5 3h3l2 5-2.5 1.5a11 11 0 0 0 5 5L19 14l3 3v3a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2Z"/>',
+    check: '<path d="m4 12 5 5L20 6"/>',
+    building: '<path d="M5 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16"/><path d="M16 21h3V11h-3"/><path d="M9 7h2M9 11h2M9 15h2"/>',
+    construccion: '<path d="M3 21h18"/><path d="M5 21V10l4-2 4 2v11"/><path d="M13 21V13l4-2 2 1v9"/><path d="M7 13h2M7 16h2"/>',
+    herramientas: '<path d="M14 7a3 3 0 0 0 4 4l3 3-3 3-3-3a3 3 0 0 0-4-4z"/><path d="m11 11-7 7 2 2 7-7"/>',
+    ferreteria: '<path d="m14 7 3-3 3 3-3 3"/><path d="m4 20 8-8"/><circle cx="6" cy="18" r="2"/><path d="m13 11 3 3"/>',
+    pinturas: '<path d="M4 5h13v5H4z"/><path d="M17 7h3v4h-6v4"/><path d="M12 15h4v6h-4z"/>',
+    gasfiteria: '<path d="M7 4v6a4 4 0 0 0 4 4h3"/><path d="M14 11h6v6"/><path d="M4 4h6M4 7h4"/>',
+    jardin: '<path d="M4 20c0-9 7-15 16-15 0 9-6 15-13 15a8 8 0 0 1-3 0zM4 20c2-5 6-8 10-9"/>',
+    bano: '<path d="M5 4v8M5 8h6a3 3 0 0 1 3 3"/><path d="M3 12h18v2a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z"/><path d="M8 19l-1 2M16 19l1 2"/>',
+    cocina: '<path d="M8 3a2 2 0 0 1 4 0c2 0 3 1 3 4H8z"/><path d="M7 8h9l-1 12H8z"/>',
+    electrohogar: '<path d="M6 3h12v18H6z"/><path d="M6 10h12"/><path d="M9 6v1M9 14v2"/>',
+    pisos: '<path d="M3 7h18M3 12h18M3 17h18"/><path d="M8 7v5M14 12v5M11 17v3"/>',
+    decoracion: '<path d="M9 3h6l3 7H6z"/><path d="M12 10v8"/><path d="M9 21h6"/>',
+    dormitorio: '<path d="M3 18V9h13a4 4 0 0 1 4 4v5"/><path d="M3 14h17"/><path d="M3 18v2M20 18v2"/><path d="M6 9V7a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v2"/>',
+    muebles: '<path d="M4 11a2 2 0 0 1 4 0v3h8v-3a2 2 0 0 1 4 0v6H4z"/><path d="M6 17v2M18 17v2"/><path d="M8 14v-3a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v3"/>',
+    automovil: '<path d="M3 13l2-5h14l2 5v5h-3v-2H6v2H3z"/><circle cx="7" cy="16" r="1.4"/><circle cx="17" cy="16" r="1.4"/>',
+  };
+
+  ic(name, opt) {
+    opt = opt || {};
+    return React.createElement('svg', {
+      viewBox: '0 0 24 24', width: opt.size || '1em', height: opt.size || '1em',
+      fill: opt.filled ? 'currentColor' : 'none', stroke: 'currentColor',
+      strokeWidth: opt.filled ? 0 : 1.8, strokeLinecap: 'round', strokeLinejoin: 'round',
+      style: Object.assign({ display: 'block', flexShrink: 0 }, opt.style || {}),
+      dangerouslySetInnerHTML: { __html: this.paths[name] || '' },
+    });
+  }
+
+  products = [
+    { id: 'p-001', name: 'Cemento Especial 25kg', brand: 'Andescem', cat: 'construccion', retail: 6490, b2bNet: 3990, unit: 'saco', rating: 4.6, reviews: 254, stock: 1200, tags: ['hot'], vol: true, key: 'Peso: 25 kg' },
+    { id: 'p-002', name: 'Fierro Estriado 8mm x 6m', brand: 'AceroChile', cat: 'construccion', retail: 4290, b2bNet: 2890, unit: 'barra', rating: 4.5, reviews: 47, stock: 5000, vol: true, key: 'Largo: 6 m' },
+    { id: 'p-003', name: 'Arena Gruesa Ensacada 25kg', brand: 'Áridos Maipo', cat: 'construccion', retail: 2990, b2bNet: 1690, unit: 'saco', rating: 4.3, reviews: 31, stock: 800, vol: true, key: 'Peso: 25 kg' },
+    { id: 'p-004', name: 'Plancha OSB Estructural 11mm', brand: 'Maderba', cat: 'construccion', retail: 18990, b2bNet: 11900, unit: 'plancha', rating: 4.3, reviews: 53, stock: 600, vol: true, key: 'Espesor: 11 mm' },
+    { id: 'p-005', name: 'Pino Cepillado 2x2" x 3.2m', brand: 'Maderba', cat: 'construccion', retail: 3290, b2bNet: 1990, unit: 'pieza', rating: 4.2, reviews: 36, stock: 1200, vol: true, key: 'Sección: 2x2"' },
+    { id: 'p-006', name: 'Taladro Percutor Inalámbrico 20V 2 Baterías', brand: 'Bauker', cat: 'herramientas', retail: 79990, offer: 64990, b2bNet: 49000, unit: 'unidad', rating: 4.6, reviews: 312, stock: 84, tags: ['hot'], vol: true, fast: true, key: 'Voltaje: 20V' },
+    { id: 'p-007', name: 'Set Destornilladores y Puntas 32 piezas', brand: 'Toolmax', cat: 'herramientas', retail: 18990, b2bNet: 11200, unit: 'set', rating: 4.4, reviews: 98, stock: 220, vol: true, key: 'Material: Cr-V' },
+    { id: 'p-008', name: 'Esmeril Angular 4.5" 820W', brand: 'Bauker', cat: 'herramientas', retail: 54990, offer: 47990, b2bNet: 35900, unit: 'unidad', rating: 4.7, reviews: 156, stock: 47, vol: true, key: 'Potencia: 820W' },
+    { id: 'p-010', name: 'Carretilla Buggy 90L Rueda Neumática', brand: 'Toolmax', cat: 'herramientas', retail: 44990, offer: 37990, b2bNet: 24900, unit: 'unidad', rating: 4.5, reviews: 73, stock: 55, vol: true, key: 'Capacidad: 90 L' },
+    { id: 'p-011', name: 'Caja Tornillos Autoperforantes 6x1" (500u)', brand: 'Fixser', cat: 'ferreteria', retail: 7990, b2bNet: 4300, unit: 'caja', rating: 4.5, reviews: 132, stock: 400, tags: ['hot'], vol: true, key: 'Medida: 6x1"' },
+    { id: 'p-012', name: 'Silicona Multiuso Transparente 280ml', brand: 'Sellatodo', cat: 'ferreteria', retail: 3990, offer: 2990, b2bNet: 1750, unit: 'unidad', rating: 4.4, reviews: 210, stock: 520, vol: true, key: 'Contenido: 280 ml' },
+    { id: 'p-013', name: 'Guantes de Seguridad Nitrilo (Par)', brand: 'SafeGrip', cat: 'ferreteria', retail: 2990, b2bNet: 1500, unit: 'par', rating: 4.4, reviews: 156, stock: 900, tags: ['hot'], vol: true, key: 'Material: Nitrilo' },
+    { id: 'p-014', name: 'Botas de Seguridad Punta de Acero', brand: 'SafeStep', cat: 'ferreteria', retail: 32990, offer: 27990, b2bNet: 18900, unit: 'par', rating: 4.5, reviews: 92, stock: 140, vol: true, key: '' },
+    { id: 'p-016', name: 'Látex Interior Lavable Blanco 1 Galón', brand: 'Colormax', cat: 'pinturas', retail: 24990, offer: 19990, b2bNet: 13900, unit: 'galón', rating: 4.2, reviews: 188, stock: 300, vol: true, key: 'Rendimiento: 12 m²/L' },
+    { id: 'p-026', name: 'Fertilizante Universal NPK 5kg', brand: 'AgroVida', cat: 'jardin', retail: 9990, b2bNet: 5600, unit: 'saco', rating: 4.6, reviews: 88, stock: 340, tags: ['hot'], vol: true, key: 'Peso: 5 kg' },
+    { id: 'p-034', name: 'Estufa a Gas Infrarroja 4200 kcal', brand: 'CalorHome', cat: 'electrohogar', retail: 89990, offer: 74990, b2bNet: 49900, unit: 'unidad', rating: 4.4, reviews: 77, stock: 60, tags: ['season'], fast: true, key: 'Potencia: 4200 kcal' },
+  ];
+
+  tiersById = {
+    'p-001': [{ min: 1, net: 3990 }, { min: 50, net: 3650 }, { min: 500, net: 3290 }],
+    'p-002': [{ min: 1, net: 2890 }, { min: 100, net: 2690 }, { min: 1000, net: 2490 }],
+    'p-003': [{ min: 1, net: 1690 }, { min: 50, net: 1490 }, { min: 300, net: 1290 }],
+    'p-004': [{ min: 1, net: 11900 }, { min: 30, net: 11200 }, { min: 200, net: 10400 }],
+    'p-005': [{ min: 1, net: 1990 }, { min: 50, net: 1790 }, { min: 300, net: 1590 }],
+    'p-006': [{ min: 1, net: 49000 }, { min: 5, net: 46500 }, { min: 20, net: 43900 }],
+    'p-007': [{ min: 1, net: 11200 }, { min: 10, net: 10300 }, { min: 50, net: 9400 }],
+    'p-008': [{ min: 1, net: 35900 }, { min: 5, net: 33900 }],
+    'p-010': [{ min: 1, net: 24900 }, { min: 6, net: 22900 }],
+    'p-011': [{ min: 1, net: 4300 }, { min: 20, net: 3800 }, { min: 100, net: 3300 }],
+    'p-012': [{ min: 1, net: 1750 }, { min: 24, net: 1550 }, { min: 120, net: 1350 }],
+    'p-013': [{ min: 1, net: 1500 }, { min: 50, net: 1300 }, { min: 200, net: 1100 }],
+    'p-014': [{ min: 1, net: 18900 }, { min: 12, net: 17500 }, { min: 50, net: 16200 }],
+    'p-016': [{ min: 1, net: 13900 }, { min: 12, net: 12900 }, { min: 48, net: 11500 }],
+    'p-026': [{ min: 1, net: 5600 }, { min: 20, net: 5000 }, { min: 100, net: 4400 }],
+    'p-034': [{ min: 1, net: 49900 }, { min: 6, net: 46900 }],
+  };
+
+  cats = [
+    { id: 'construccion', name: 'Materiales de Construcción' }, { id: 'herramientas', name: 'Herramientas y Maquinarias' },
+    { id: 'ferreteria', name: 'Ferretería y Seguridad' }, { id: 'pinturas', name: 'Pinturas y Accesorios' },
+    { id: 'gasfiteria', name: 'Gasfitería y Electricidad' }, { id: 'jardin', name: 'Jardín y Terraza' },
+    { id: 'bano', name: 'Baño' }, { id: 'cocina', name: 'Cocina y Menaje' },
+    { id: 'electrohogar', name: 'Electrohogar' }, { id: 'pisos', name: 'Pisos y Revestimientos' },
+    { id: 'decoracion', name: 'Decoración e Iluminación' }, { id: 'dormitorio', name: 'Dormitorio' },
+    { id: 'muebles', name: 'Muebles' }, { id: 'automovil', name: 'Automóvil' },
+  ];
+
+  componentDidMount() {
+    try { const m = localStorage.getItem('mimbral_mode'); if (m === 'b2c' || m === 'b2b') this.setState({ mode: m }); } catch (e) {}
+    this._timer = setInterval(() => {
+      const n = this.heroCount();
+      this.setState((s) => ({ heroIndex: (s.heroIndex + 1) % n }));
+    }, 5500);
+  }
+  componentWillUnmount() { clearInterval(this._timer); if (this._toastT) clearTimeout(this._toastT); }
+
+  heroCount() { return this.state.mode === 'b2b' ? 2 : 3; }
+
+  fmt(v) {
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(Math.round(v));
+  }
+  hue(id) { let h = 0; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 360; return h; }
+
+  setMode(m) { try { localStorage.setItem('mimbral_mode', m); } catch (e) {} this.setState({ mode: m, heroIndex: 0 }); }
+  prevSlide() { const n = this.heroCount(); this.setState((s) => ({ heroIndex: (s.heroIndex - 1 + n) % n })); }
+  nextSlide() { const n = this.heroCount(); this.setState((s) => ({ heroIndex: (s.heroIndex + 1) % n })); }
+  goSlide(i) { this.setState({ heroIndex: i }); }
+  add(p, n) {
+    n = n || 1;
+    this.setState((s) => ({ cart: Object.assign({}, s.cart, { [p.id]: (s.cart[p.id] || 0) + n }), addDrawer: p.id }));
+  }
+  addComplement(key, name) {
+    this.setState((s) => ({ cart: Object.assign({}, s.cart, { [key]: (s.cart[key] || 0) + 1 }), toast: name + ' agregado' }));
+    if (this._toastT) clearTimeout(this._toastT);
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 2200);
+  }
+  closeDrawer() { this.setState({ addDrawer: null }); }
+  complementsFor(id, cat) {
+    return this.complementData[id] || this.byCat[cat] || [
+      { name: 'Guantes de Seguridad Nitrilo', brand: 'SafeGrip', cat: 'ferreteria', retail: 2990, net: 1500 },
+      { name: 'Cinta Métrica 5m', brand: 'Toolmax', cat: 'herramientas', retail: 3990, net: 2200 },
+    ];
+  }
+  buildDrawer() {
+    const id = this.state.addDrawer; if (!id) return null;
+    const isB2b = this.state.mode === 'b2b';
+    const main = this.products.find((p) => p.id === id); if (!main) return null;
+    const mh = this.hue(id);
+    const cs = this.complementsFor(id, main.cat);
+    const comps = cs.map((c, i) => {
+      const cid = 'x-' + id + '-' + i; const h = this.hue(c.name + i);
+      const price = isB2b ? c.net : c.retail;
+      return { name: c.name, brand: c.brand, price: this.fmt(price) + (isB2b ? ' neto' : ''), c1: `hsl(${h} 50% 47%)`, c2: `hsl(${(h + 24) % 360} 55% 33%)`, iconEl: this.ic(c.cat, { size: '100%' }), onAdd: () => this.addComplement(cid, c.name) };
+    });
+    const kitTotal = cs.reduce((s, c) => s + (isB2b ? c.net : c.retail), 0);
+    const kitSaved = Math.round(kitTotal * 0.10);
+    return {
+      isB2b, mainName: main.name, mainBrand: main.brand,
+      mc1: `hsl(${mh} 50% 47%)`, mc2: `hsl(${(mh + 24) % 360} 55% 33%)`, mainIcon: this.ic(main.cat, { size: '100%' }),
+      addedLabel: isB2b ? 'Agregado a tu orden' : 'Agregado al carro',
+      title: isB2b ? 'Completa tu faena' : 'Suele combinarse con',
+      comps, count: cs.length,
+      kitSaved: this.fmt(kitSaved), kitTotal: this.fmt(kitTotal - kitSaved),
+      onAddAll: () => {
+        this.setState((s) => { const cart = Object.assign({}, s.cart); cs.forEach((c, i) => { const k = 'x-' + id + '-' + i; cart[k] = (cart[k] || 0) + 1; }); return { cart, toast: 'Kit agregado · ' + cs.length + ' productos' }; });
+        if (this._toastT) clearTimeout(this._toastT); this._toastT = setTimeout(() => this.setState({ toast: null }), 2200);
+      },
+      icCheck: this.ic('check'),
+    };
+  }
+  setSel(id, q) {
+    q = Math.max(1, Math.min(99999, q));
+    this.setState((s) => ({ qtySel: Object.assign({}, s.qtySel, { [id]: q }) }));
+  }
+  setQty(id, q) {
+    this.setState((s) => {
+      const c = Object.assign({}, s.cart);
+      if (q <= 0) delete c[id]; else c[id] = q;
+      return { cart: c };
+    });
+  }
+  toggleFav(id) { this.setState((s) => { const f = Object.assign({}, s.favs); if (f[id]) delete f[id]; else f[id] = true; return { favs: f }; }); }
+
+  buildCard(p) {
+    const isB2b = this.state.mode === 'b2b';
+    const hue = this.hue(p.id);
+    const c1 = `hsl(${hue} 50% 47%)`, c2 = `hsl(${(hue + 24) % 360} 55% 33%)`;
+    const badges = [];
+    if (p.offer) badges.push({ label: 'Oferta', bg: '#e1251b' });
+    if (p.tags && p.tags.includes('hot')) badges.push({ label: 'Más vendido', bg: '#173a8a' });
+    if (p.tags && p.tags.includes('season')) badges.push({ label: 'Temporada', bg: '#e8651e' });
+    if (isB2b && p.vol) badges.push({ label: 'Por volumen', bg: '#157f5c' });
+    if (p.stock < 30) badges.push({ label: 'Bajo stock', bg: '#946100' });
+    const qty = this.state.cart[p.id] || 0;
+    const rk = Math.round(p.rating);
+
+    // --- B2B volume pricing ---
+    const tiers = this.tiersById[p.id] || [{ min: 1, net: p.b2bNet }];
+    const sel = this.state.qtySel[p.id] || 1;
+    let active = tiers[0];
+    for (const t of tiers) { if (sel >= t.min) active = t; }
+    const next = tiers.find((t) => t.min > sel) || null;
+    const baseNet = tiers[0].net;
+    const onVolume = active.min > 1;
+    const subtotalNet = active.net * sel;
+    const b2b = {
+      sel,
+      unitNet: this.fmt(active.net),
+      subtotalNet: this.fmt(subtotalNet),
+      subtotalGross: this.fmt(subtotalNet * 1.19) + ' con IVA',
+      onVolume,
+      savedPct: onVolume ? Math.round((1 - active.net / baseNet) * 100) + '%' : '',
+      hasNext: !!next,
+      nextHint: next ? 'Compra ' + next.min + '+ y paga ' + this.fmt(next.net) + ' c/u' : '',
+      nextSave: next ? '−' + Math.round((1 - next.net / baseNet) * 100) + '%' : '',
+      onTopTier: !next && onVolume,
+      onInc: () => this.setSel(p.id, sel + 1),
+      onDec: () => this.setSel(p.id, sel - 1),
+      onJump: next ? () => this.setSel(p.id, next.min) : () => {},
+      onAdd: () => this.add(p, sel),
+    };
+
+    const price = isB2b
+      ? { isB2b: true, isB2c: false, label: 'Precio empresa (neto)', net: b2b.unitNet, gross: this.fmt(active.net * 1.19) + ' con IVA' }
+      : { isB2b: false, isB2c: true, hasOffer: !!p.offer, list: this.fmt(p.retail), now: this.fmt(p.offer || p.retail), off: p.offer ? '-' + Math.round((1 - p.offer / p.retail) * 100) + '%' : '' };
+    return {
+      id: p.id, name: p.name, brand: p.brand, unit: 'Precio por ' + p.unit, key: p.key,
+      c1, c2, iconEl: this.ic(p.cat, { size: '100%', style: { color: '#fff', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,.18))' } }),
+      badges, ratingStars: '★★★★★'.slice(0, rk) + '☆☆☆☆☆'.slice(0, 5 - rk), rating: p.rating.toFixed(1), reviews: '(' + p.reviews + ')',
+      price, b2b, isB2bCard: isB2b, unitWord: p.unit,
+      qty, inCart: qty > 0, notInCart: qty === 0, faved: !!this.state.favs[p.id],
+      favColor: this.state.favs[p.id] ? '#d8261c' : '#5f7385',
+      accent: isB2b ? '#157f5c' : '#e1251b', accentShadow: isB2b ? '0 4px 12px rgba(21,127,92,.28)' : '0 4px 12px rgba(216,38,28,.26)',
+      addLabel: isB2b ? 'Agregar a la orden' : 'Agregar', showQuote: isB2b,
+      quoteEl: this.ic('doc', { size: '100%' }), heartEl: this.ic('heart', { size: '100%', filled: !!this.state.favs[p.id] }),
+      storeEl: this.ic('store', { size: '100%' }), truckEl: this.ic('truck', { size: '100%' }),
+      onAdd: () => this.add(p), onInc: () => this.setQty(p.id, qty + 1), onDec: () => this.setQty(p.id, qty - 1),
+      onFav: () => this.toggleFav(p.id),
+    };
+  }
+
+  complementData = {
+    'p-006': [{ name: 'Batería 20V 2.0Ah Bauker', brand: 'Bauker', cat: 'herramientas', retail: 24990, net: 16900 }, { name: 'Set de Brocas 13 piezas', brand: 'Toolmax', cat: 'herramientas', retail: 9990, net: 6200 }, { name: 'Maletín Organizador de Puntas', brand: 'Toolmax', cat: 'herramientas', retail: 14990, net: 9400 }],
+    'p-008': [{ name: 'Disco de Corte 4½" (pack 10)', brand: 'Bauker', cat: 'herramientas', retail: 9990, net: 6300 }, { name: 'Guantes Anticorte Nivel 5', brand: 'SafeGrip', cat: 'ferreteria', retail: 4990, net: 2900 }, { name: 'Antiparras de Seguridad', brand: 'SafeStep', cat: 'ferreteria', retail: 3990, net: 2200 }],
+    'p-001': [{ name: 'Arena Gruesa Ensacada 25kg', brand: 'Áridos Maipo', cat: 'construccion', retail: 2990, net: 1690 }, { name: 'Fierro Estriado 8mm x 6m', brand: 'AceroChile', cat: 'construccion', retail: 4290, net: 2890 }, { name: 'Malla Acma C92 2.6x5m', brand: 'AceroChile', cat: 'construccion', retail: 39990, net: 26900 }],
+    'p-016': [{ name: 'Brocha Profesional 3"', brand: 'Pintec', cat: 'pinturas', retail: 4990, net: 2500 }, { name: 'Rodillo Antigota 9" con Marco', brand: 'Pintec', cat: 'pinturas', retail: 5990, net: 3200 }, { name: 'Cinta de Enmascarar 24mm', brand: 'Pintec', cat: 'pinturas', retail: 2490, net: 1300 }],
+    'p-034': [{ name: 'Cilindro de Gas 15kg', brand: 'Gasco', cat: 'electrohogar', retail: 23990, net: 18900 }, { name: 'Regulador de Gas con Manguera', brand: 'CalorHome', cat: 'gasfiteria', retail: 8990, net: 5400 }, { name: 'Detector de Humo y CO', brand: 'Lumen', cat: 'electrohogar', retail: 14990, net: 9900 }],
+    'p-010': [{ name: 'Pala Punta Huevo con Mango', brand: 'Toolmax', cat: 'herramientas', retail: 12990, net: 8200 }, { name: 'Picota Forjada 2.5kg', brand: 'Toolmax', cat: 'herramientas', retail: 14990, net: 9600 }, { name: 'Guantes de Seguridad Nitrilo', brand: 'SafeGrip', cat: 'ferreteria', retail: 2990, net: 1500 }],
+    'p-026': [{ name: 'Manguera Reforzada 1/2" x 20m', brand: 'Hydro', cat: 'jardin', retail: 14990, net: 8200 }, { name: 'Regadera Plástica 10L', brand: 'AgroVida', cat: 'jardin', retail: 5990, net: 3600 }, { name: 'Guantes de Jardín', brand: 'AgroVida', cat: 'jardin', retail: 3990, net: 2300 }],
+  };
+  byCat = {
+    construccion: [{ name: 'Guantes de Seguridad Nitrilo', brand: 'SafeGrip', cat: 'ferreteria', retail: 2990, net: 1500 }, { name: 'Carretilla Buggy 90L', brand: 'Toolmax', cat: 'herramientas', retail: 44990, net: 24900 }, { name: 'Cinta Métrica 5m', brand: 'Toolmax', cat: 'herramientas', retail: 3990, net: 2200 }],
+    ferreteria: [{ name: 'Caja de Herramientas 16"', brand: 'Toolmax', cat: 'herramientas', retail: 12990, net: 8200 }, { name: 'Cinta Métrica 5m', brand: 'Toolmax', cat: 'herramientas', retail: 3990, net: 2200 }, { name: 'Casco de Obra', brand: 'SafeStep', cat: 'ferreteria', retail: 6990, net: 4200 }],
+    herramientas: [{ name: 'Guantes Anticorte Nivel 5', brand: 'SafeGrip', cat: 'ferreteria', retail: 4990, net: 2900 }, { name: 'Antiparras de Seguridad', brand: 'SafeStep', cat: 'ferreteria', retail: 3990, net: 2200 }, { name: 'Cinta Métrica 5m', brand: 'Toolmax', cat: 'herramientas', retail: 3990, net: 2200 }],
+    pinturas: [{ name: 'Brocha Profesional 3"', brand: 'Pintec', cat: 'pinturas', retail: 4990, net: 2500 }, { name: 'Rodillo Antigota 9"', brand: 'Pintec', cat: 'pinturas', retail: 5990, net: 3200 }, { name: 'Lija al Agua (pack 5)', brand: 'Pintec', cat: 'ferreteria', retail: 3990, net: 2100 }],
+  };
+
+  renderVals() {
+    const isB2b = this.state.mode === 'b2b';
+    const cart = this.state.cart;
+    const cartCount = Object.values(cart).reduce((a, b) => a + b, 0);
+    const favCount = Object.keys(this.state.favs).length;
+
+    // hero
+    const slideDefs = isB2b ? [
+      { bg: 'linear-gradient(120deg,#0f6347,#1aa06f)', eyebrow: 'Mimbral Empresas', title: 'Precios mayoristas para tu obra o negocio', ctaLabel: 'Ir al Portal Empresas' },
+      { bg: 'linear-gradient(120deg,#102a63,#1f4aa8)', eyebrow: 'Compra ahora, paga después', title: 'Línea de crédito para tu empresa', ctaLabel: 'Solicitar crédito' },
+    ] : [
+      { bg: 'linear-gradient(120deg,#102a63,#1f4aa8)', eyebrow: 'Temporada de invierno', title: 'Tu hogar más cálido con Mimbral', ctaLabel: 'Ver ofertas', pid: 'p-034', cat: 'electrohogar', now: 74990, was: 89990, discount: 17 },
+      { bg: 'linear-gradient(120deg,#0f6347,#1aa06f)', eyebrow: 'Renueva tus espacios', title: 'Pinturas con hasta 20% de descuento', ctaLabel: 'Ver pinturas', pid: 'p-016', cat: 'pinturas', now: 19990, was: 24990, discount: 20 },
+      { bg: 'linear-gradient(120deg,#7a1d15,#e1251b)', eyebrow: 'Maestros y profesionales', title: 'Potencia para todos tus proyectos', ctaLabel: 'Ver herramientas', pid: 'p-006', cat: 'herramientas', now: 64990, was: 79990, discount: 19 },
+    ];
+    const heroSlides = slideDefs.map((s) => {
+      const hasPrice = !!s.pid;
+      const hue = hasPrice ? this.hue(s.pid) : 0;
+      return {
+        bg: s.bg, eyebrow: s.eyebrow, title: s.title, ctaLabel: s.ctaLabel,
+        hasPrice, hasDiscount: !!s.discount, discount: s.discount,
+        priceNow: hasPrice ? this.fmt(s.now) : '', priceWas: hasPrice ? this.fmt(s.was) : '',
+        c1: hasPrice ? `hsl(${hue} 50% 47%)` : '', c2: hasPrice ? `hsl(${(hue + 24) % 360} 55% 33%)` : '',
+        iconEl: hasPrice ? this.ic(s.cat, { size: '100%', style: { color: '#fff' } }) : null,
+        onCta: () => {},
+      };
+    });
+    const trackStyle = { display: 'flex', transition: 'transform .5s cubic-bezier(.4,0,.2,1)', transform: `translateX(-${this.state.heroIndex * 100}%)` };
+    const heroDots = heroSlides.map((_, i) => ({
+      w: i === this.state.heroIndex ? '24px' : '9px',
+      bg: i === this.state.heroIndex ? '#e1251b' : 'rgba(255,255,255,.5)',
+      onClick: () => this.goSlide(i),
+    }));
+
+    const trust = [
+      { icon: 'truck', title: 'Despacho a todo Chile', text: 'Seguimiento en línea' },
+      { icon: 'store', title: 'Retiro en tienda', text: 'Listo el mismo día' },
+      { icon: 'lock', title: 'Pago seguro', text: 'Webpay y transferencia' },
+      { icon: 'return', title: '30 días', text: 'Cambios y devoluciones' },
+    ].map((t) => ({ title: t.title, text: t.text, iconEl: this.ic(t.icon) }));
+
+    const quickDefs = isB2b ? [
+      { icon: 'doc', title: 'Cotizar una obra', text: 'Crea una cotización formal para aprobar.' },
+      { icon: 'list', title: 'Recomprar frecuentes', text: 'Agrega listas completas al carro en segundos.' },
+      { icon: 'wallet', title: 'Revisar crédito', text: 'Consulta cupo, facturas y condiciones.' },
+    ] : [
+      { icon: 'percent', title: 'Buscar ofertas cercanas', text: 'Filtra productos con retiro o despacho rápido.' },
+      { icon: 'truck', title: 'Seguir mi pedido', text: 'Revisa el estado sin llamar a soporte.' },
+      { icon: 'heart', title: 'Guardar favoritos', text: 'Arma tu lista antes de comprar.' },
+    ];
+    const quickTasks = quickDefs.map((q) => ({
+      title: q.title, text: q.text, iconEl: this.ic(q.icon),
+      iconColor: isB2b ? '#0f6347' : '#173a8a', iconBg: isB2b ? '#e6f6ef' : '#eef3fb',
+    }));
+
+    const categories = this.cats.map((c) => ({ name: c.name, iconEl: this.ic(c.id, { size: '100%' }) }));
+
+    const projDefs = [
+      { cat: 'pinturas', label: 'Quiero pintar' }, { cat: 'bano', label: 'Renovar mi baño' },
+      { cat: 'herramientas', label: 'Equipar mi taller' }, { cat: 'construccion', label: 'Materiales de construcción' },
+      { cat: 'jardin', label: 'Preparar el jardín' }, { cat: 'electrohogar', label: 'Climatizar mi hogar' },
+    ];
+    const projects = projDefs.map((p) => ({ label: p.label, iconEl: this.ic(p.cat, { size: '100%' }) }));
+
+    const perks = [
+      { icon: 'percent', title: 'Descuentos por volumen', text: 'Mejor precio mientras más unidades compras.' },
+      { icon: 'wallet', title: 'Línea de crédito', text: 'Compra ahora y paga a 30, 60 o 90 días.' },
+      { icon: 'doc', title: 'Cotizaciones', text: 'Genera cotizaciones formales en segundos.' },
+      { icon: 'truck', title: 'Despacho a faena', text: 'Entrega programada en obra a todo Chile.' },
+    ].map((p) => ({ title: p.title, text: p.text, iconEl: this.ic(p.icon) }));
+
+    const byId = (id) => this.products.find((p) => p.id === id);
+    const offerCards = this.products.filter((p) => p.offer).slice(0, 4).map((p) => this.buildCard(p));
+    let featSrc;
+    if (isB2b) {
+      const best = this.products.filter((p) => p.tags && p.tags.includes('hot'));
+      const seen = {};
+      featSrc = best.concat(this.products).filter((p) => (seen[p.id] ? false : (seen[p.id] = true))).slice(0, 8);
+    } else {
+      featSrc = this.products.slice(0, 8);
+    }
+    const featuredCards = featSrc.map((p) => this.buildCard(p));
+
+    const brandDefs = [
+      { name: 'Bauker', mono: '#b81d15', tag: 'Herramientas' },
+      { name: 'Toolmax', mono: '#102a63', tag: 'Herramientas' },
+      { name: 'Colormax', mono: '#e08e06', tag: 'Pinturas' },
+      { name: 'Lumen', mono: '#1f4aa8', tag: 'Iluminación' },
+      { name: 'Andescem', mono: '#0f6347', tag: 'Construcción' },
+      { name: 'Hidroflex', mono: '#1f4aa8', tag: 'Gasfitería' },
+      { name: 'AgroVida', mono: '#0f6347', tag: 'Jardín' },
+      { name: 'Maderba', mono: '#102a63', tag: 'Maderas' },
+    ];
+    const brands = brandDefs.map((b) => ({ name: b.name, mono: b.mono, tag: b.tag, initial: b.name[0] }));
+
+    const assistDefs = isB2b ? [
+      { icon: 'doc', text: 'Cotización formal' }, { icon: 'list', text: 'Recomprar listas' }, { icon: 'wallet', text: 'Activar precios empresa' },
+    ] : [
+      { icon: 'truck', text: 'Despacho y retiro' }, { icon: 'return', text: 'Cambios fáciles' }, { icon: 'heart', text: 'Favoritos y recompra' },
+    ];
+    const assistItems = assistDefs.map((a) => ({ text: a.text, iconEl: this.ic(a.icon), color: isB2b ? '#0f6347' : '#173a8a' }));
+
+    const navDefs = ['Inicio', 'Construcción', 'Herramientas', 'Ferretería', 'Pinturas', 'Gasfitería', 'Ofertas', 'Inspiración', 'Empresas'];
+    const navItems = navDefs.map((n) => ({ label: n, color: n === 'Empresas' ? '#f6a821' : '#dceaf5' }));
+
+    const footerStrip = [
+      { icon: 'truck', title: 'Despacho a todo Chile', text: 'Cobertura nacional' },
+      { icon: 'store', title: 'Retiro en tienda', text: 'Listo en 2 horas' },
+      { icon: 'headset', title: 'Atención al cliente', text: '600 600 0000' },
+      { icon: 'lock', title: 'Compra protegida', text: 'Pago 100% seguro' },
+    ].map((f) => ({ title: f.title, text: f.text, iconEl: this.ic(f.icon, { size: '100%' }) }));
+
+    return {
+      mode: this.state.mode, isB2b, isB2c: !isB2b,
+      cartLabel: isB2b ? 'Mi orden' : 'Carro', cartLabelLower: isB2b ? 'a tu orden' : 'al carro',
+      cartCount, hasCart: cartCount > 0, favCount, hasFavs: favCount > 0,
+      quickSubtitle: isB2b ? 'compras de empresa' : 'compras de hogar',
+      featuredTitle: isB2b ? 'Más pedidos por empresas' : 'Destacados',
+      assistModeLabel: isB2b ? 'Modo empresa' : 'Compra hogar',
+      assistModeBg: isB2b ? '#e6f6ef' : '#eef3fb', assistModeColor: isB2b ? '#0f6347' : '#173a8a', assistModeBorder: isB2b ? '#c7e8da' : '#d8e4f5',
+      // mode switch
+      b2cActive: !isB2b, b2bActive: isB2b,
+      b2cBg: !isB2b ? '#173a8a' : 'transparent', b2cColor: !isB2b ? '#fff' : '#5f7385',
+      b2bBg: isB2b ? '#157f5c' : 'transparent', b2bColor: isB2b ? '#fff' : '#5f7385',
+      onB2c: () => this.setMode('b2c'), onB2b: () => this.setMode('b2b'), onGoB2b: () => this.setMode('b2b'),
+      heroSlides, trackStyle, heroDots, onPrev: () => this.prevSlide(), onNext: () => this.nextSlide(),
+      trust, quickTasks, categories, projects, perks, offerCards, featuredCards, brands, assistItems, navItems, footerStrip,
+      toast: this.state.toast,
+      accent: isB2b ? '#157f5c' : '#e1251b', accentText: isB2b ? '#0f6347' : '#b81d15', accentShadow: isB2b ? '0 4px 12px rgba(21,127,92,.28)' : '0 4px 12px rgba(216,38,28,.26)', drawerPriceColor: isB2b ? '#0f6347' : '#e1251b',
+      drawer: this.buildDrawer(), drawerOpen: !!this.state.addDrawer, onCloseDrawer: () => this.closeDrawer(), stop: (e) => e.stopPropagation(),
+      icSearch: this.ic('search'), icUser: this.ic('user'), icHeart: this.ic('heart'), icCart: this.ic('cart'),
+      icClock: this.ic('clock'), icHeadset: this.ic('headset'), icTruck: this.ic('truck'), icPhone: this.ic('phone'),
+      icChevron: this.ic('chevron'), icMenu: this.ic('menu'), icCheck: this.ic('check'),
+      icBuilding: this.ic('building', { size: '100%' }),
+      credit: { avail: '$4.800.000', total: '$8.000.000', pct: '60%' },
+    };
+  }
+}
+</script>
+</body>
+</html>

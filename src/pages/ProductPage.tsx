@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getProduct, warehouses, getCategory } from '@/data/products'
 import { useApp } from '@/context/AppContext'
@@ -20,7 +20,7 @@ import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
 import { getRecommendations } from '@/utils/recommendations'
 import { getVariants } from '@/utils/variants'
 import { priceFor, nextVolumeTier } from '@/utils/pricing'
-import { formatCLP } from '@/utils/format'
+import { formatCLP, IVA_RATE } from '@/utils/format'
 
 type DeliveryTab = 'despacho' | 'retiro' | 'tienda'
 
@@ -35,7 +35,20 @@ export default function ProductPage() {
   const [view, setView] = useState(0)
   const [sheet, setSheet] = useState<DeliveryTab | null>(null)
   const [variantSel, setVariantSel] = useState<Record<string, string>>({})
+  const [now, setNow] = useState(() => Date.now())
   const recentlyViewed = useRecentlyViewed(id)
+
+  // Campaña de tiempo limitado: termina al cierre del segundo día.
+  const campaignEnd = useMemo(() => {
+    const d = new Date()
+    d.setHours(23, 59, 59, 0)
+    d.setDate(d.getDate() + 2)
+    return d.getTime()
+  }, [])
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [])
 
   if (!product) {
     return (
@@ -51,6 +64,25 @@ export default function ProductPage() {
   const variants = getVariants(product)
   const price = priceFor(product, qty, mode, customer)
   const nextTier = mode === 'b2b' ? nextVolumeTier(product, qty) : undefined
+
+  // Desglose B2B: neto + IVA + total y ahorro frente al precio público.
+  const subtotalNet = price.unitNet * qty
+  const ivaAmount = subtotalNet * IVA_RATE
+  const totalGross = price.unitGross * qty
+  const publicTotal = product.retailPrice * qty
+  const savings = Math.max(0, publicTotal - totalGross)
+  const savingsPct = publicTotal > 0 ? Math.round((savings / publicTotal) * 100) : 0
+  const earlyPayDiscount = subtotalNet * 0.03 // pago en ≤15 días
+
+  // Cuenta regresiva de la campaña (oferta a público o precio por volumen B2B).
+  const showCampaign = Boolean(product.retailOffer) || (mode === 'b2b' && !!product.volumeTiers?.length)
+  const remainingSec = Math.max(0, Math.floor((campaignEnd - now) / 1000))
+  const cd = {
+    d: Math.floor(remainingSec / 86_400),
+    h: Math.floor((remainingSec % 86_400) / 3_600),
+    m: Math.floor((remainingSec % 3_600) / 60),
+    s: remainingSec % 60,
+  }
 
   const maxQty = Math.min(product.stock, 30)
   const lowStock = product.stock <= 12
@@ -120,6 +152,15 @@ export default function ProductPage() {
             <Rating value={product.rating} reviews={product.reviews} />
             <span className="pdp__sku">SKU {product.sku}</span>
           </div>
+
+          {showCampaign && remainingSec > 0 && (
+            <div className={`pdp__campaign ${mode === 'b2b' ? 'pdp__campaign--b2b' : ''}`}>
+              <span className="pdp__campaign-label"><Icon name="percent" /> {mode === 'b2b' ? 'Precios de campaña de invierno' : 'Oferta por tiempo limitado'}</span>
+              <span className="pdp__campaign-timer" aria-label={`Termina en ${cd.d} días ${cd.h} horas ${cd.m} minutos`}>
+                Termina en <strong>{cd.d}d</strong> <strong>{cd.h}h</strong> <strong>{cd.m}m</strong> <strong>{cd.s}s</strong>
+              </span>
+            </div>
+          )}
 
           <div className="pdp__priceblock">
             <div className="pdp__price-col">
@@ -221,10 +262,27 @@ export default function ProductPage() {
               </button>
             </div>
             <div className="pdp__buy-foot">
-              <span className="pdp__subtotal">Subtotal ({qty} {product.unit}): <strong>{formatCLP(price.unitGross * qty)}</strong>{mode === 'b2b' && <span className="muted"> · Neto {formatCLP(price.unitNet * qty)}</span>}</span>
+              {mode !== 'b2b' && (
+                <span className="pdp__subtotal">Subtotal ({qty} {product.unit}): <strong>{formatCLP(price.unitGross * qty)}</strong></span>
+              )}
               <span className="pdp__max">Máximo {maxQty} unidades</span>
             </div>
           </div>
+
+          {mode === 'b2b' && (
+            <div className="pdp__b2bsum">
+              <div className="pdp__b2bsum-early">
+                <span><Icon name="wallet" /> Pago en ≤15 días <em>−3% adicional</em></span>
+                <strong>−{formatCLP(earlyPayDiscount)}</strong>
+              </div>
+              <div className="pdp__b2bsum-row"><span>Subtotal neto ({qty} {product.unit})</span><span>{formatCLP(subtotalNet)}</span></div>
+              <div className="pdp__b2bsum-row"><span>IVA 19%</span><span>{formatCLP(ivaAmount)}</span></div>
+              <div className="pdp__b2bsum-row pdp__b2bsum-total"><span>Total con IVA</span><strong>{formatCLP(totalGross)}</strong></div>
+              {savings > 0 && (
+                <div className="pdp__b2bsum-save"><Icon name="percent" /> Ahorras {formatCLP(savings)} ({savingsPct}%) vs. precio público</div>
+              )}
+            </div>
+          )}
 
           <ul className="pdp__perks">
             {product.freeShipping && <li><Icon name="truck" /> Despacho gratis en compras sobre $49.990</li>}
