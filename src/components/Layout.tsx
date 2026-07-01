@@ -10,11 +10,19 @@ import { useApp } from '@/context/AppContext'
 
 export default function Layout() {
   const { mode } = useApp()
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
 
   useEffect(() => {
+    // Si la URL trae un ancla (#seccion), desplázate a ella; si no, arriba.
+    if (hash) {
+      const el = document.getElementById(hash.slice(1))
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        return
+      }
+    }
     window.scrollTo(0, 0)
-  }, [pathname])
+  }, [pathname, hash])
 
   // El chat no debe estorbar en grillas de producto
   const hideChat = /^\/(categoria|categorias|buscar|ofertas|favoritos|producto)(\/|$)/.test(pathname)

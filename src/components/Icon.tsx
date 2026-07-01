@@ -118,3 +118,43 @@ export function CategoryIcon({ id, className }: { id: string; className?: string
   const name = (id in paths ? id : 'tag') as IconName
   return <Icon name={name} className={className} />
 }
+
+/** Mapea el nombre de una subcategoría a un icono representativo.
+ *  Se usa en la tira de subcategorías del listado (todas las categorías). */
+const SUBCAT_ICONS: [RegExp, IconName][] = [
+  [/tablero|madera|osb|terciad|pino|melamin/, 'maderas'],
+  [/cemento|hormig|árido|arido|arena|grava|ripio|construc/, 'construccion'],
+  [/fierro|acero|barra|perfil/, 'construccion'],
+  [/taladro|atornill|esmeril|sierra|lijad|maquinaria|motor|herramient|manual/, 'herramientas'],
+  [/escalera|andamio/, 'herramientas'],
+  [/tornillo|fijaci|clavo|tuerca|perno|anclaje/, 'ferreteria'],
+  [/adhesiv|pegament|silicona|sellad/, 'ferreteria'],
+  [/candado|cerradura|seguridad|epp|casco|guante|protecci/, 'seguridad'],
+  [/látex|latex|esmalte|barniz|pintur|brocha|rodillo|diluyente/, 'pinturas'],
+  [/cañer|caner|fitting|tuber|gasfit|llave de paso/, 'gasfiteria'],
+  [/cable|enchufe|electr|iluminaci|lámpara|lampara|foco|ampolleta/, 'electricidad'],
+  [/riego|fertiliz|planta|agr|jard|semilla|maceta|pasto|césped|cesped/, 'jardin'],
+  [/piscina|camping|parrilla|terraza|outdoor|aire/, 'aire-libre'],
+  [/mascota|perro|gato/, 'aire-libre'],
+  [/vanitorio|\bwc\b|tina|ducha|inodoro|lavamanos/, 'bano'],
+  [/grifer|llave/, 'gasfiteria'],
+  [/lavaplato|campana|menaje|organiz|olla|sart/, 'cocina'],
+  [/estufa|calefacc|climatiz|caloventor/, 'temporada'],
+  [/ventilaci|ventilador|aire acond/, 'temporada'],
+  [/refrigeraci|refriger|congel|freezer|frío|frio/, 'electrohogar'],
+  [/lavado|lavadora|secadora|línea blanca|linea blanca/, 'electrohogar'],
+  [/cocina/, 'cocina'],
+  [/piso|flotante|cerámic|ceramic|porcelanato|alfombra|revestim|perfil/, 'pisos'],
+  [/espejo|cuadro|cortina|textil|decor/, 'decoracion'],
+  [/colch|cama|velador|clóset|closet|ropa de cama|dormitorio/, 'dormitorio'],
+  [/living|comedor|escritorio|estante|mueble/, 'muebles'],
+  [/lubricante|automó|automo|\bauto\b|audio|neumátic|neumatic/, 'automovil'],
+  [/limpieza|aseo/, 'sparkle'],
+  [/accesorio|vari/, 'tag'],
+]
+
+export function subcatIconName(name: string, fallback: IconName = 'tag'): IconName {
+  const n = name.toLowerCase()
+  for (const [re, icon] of SUBCAT_ICONS) if (re.test(n)) return icon
+  return fallback
+}

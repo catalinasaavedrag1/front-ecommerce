@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { categories, products } from '@/data/products'
 import { useApp } from '@/context/AppContext'
 import ProductCard from '@/components/ProductCard'
+import B2BDashboard from '@/components/B2BDashboard'
 import HeroCarousel, { type Slide } from '@/components/HeroCarousel'
 import Icon, { CategoryIcon, type IconName } from '@/components/Icon'
 
@@ -64,10 +65,42 @@ const projects: { label: string; to: string; icon: IconName }[] = [
 ]
 
 export default function HomePage() {
-  const { mode } = useApp()
+  const { mode, customer } = useApp()
   const offers = products.filter((p) => p.retailOffer).slice(0, 6)
   const bestSellers = products.filter((p) => p.tags?.includes('Más vendido'))
   const featured = products.slice(0, 8)
+
+  // Cliente B2B: en vez de una home de tienda, ve su panel de empresa primero.
+  if (mode === 'b2b' && customer) {
+    const b2bHighlights = (bestSellers.length ? bestSellers.concat(featured) : featured).slice(0, 8)
+    return (
+      <div className="home home--b2b">
+        <B2BDashboard customer={customer} />
+
+        <section className="catgrid">
+          <div className="row__head"><h2 className="section-title">Comprar por categoría</h2></div>
+          <div className="catgrid__items">
+            {categories.map((c) => (
+              <Link key={c.id} to={`/categoria/${c.slug}`} className="catgrid__item">
+                <span className="catgrid__icon"><CategoryIcon id={c.id} /></span>
+                <span>{c.name}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="row">
+          <div className="row__head">
+            <h2 className="section-title">Más pedidos por empresas</h2>
+            <Link to="/ofertas" className="row__more">Ver ofertas →</Link>
+          </div>
+          <div className="grid">
+            {b2bHighlights.map((p) => <ProductCard key={p.id} product={p} />)}
+          </div>
+        </section>
+      </div>
+    )
+  }
 
   return (
     <div className="home">

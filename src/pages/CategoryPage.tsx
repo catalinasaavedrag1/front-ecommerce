@@ -2,16 +2,26 @@ import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { categories, getCategory, productsByCategory } from '@/data/products'
 import { availabilityFor } from '@/utils/catalog'
+import { useApp } from '@/context/AppContext'
 import ProductCard from '@/components/ProductCard'
-import ProductImage from '@/components/ProductImage'
-import Icon, { CategoryIcon } from '@/components/Icon'
+import ProductTable from '@/components/ProductTable'
+import PriceViewToggle from '@/components/PriceViewToggle'
+import Icon, { CategoryIcon, subcatIconName, type IconName } from '@/components/Icon'
 import { ProductGridSkeleton } from '@/components/Skeleton'
 import { useBriefLoading } from '@/hooks/useBriefLoading'
 
 type SortKey = 'relevancia' | 'precio-asc' | 'precio-desc' | 'vendidos' | 'rating' | 'disponibilidad'
 
+/** Color estable derivado del nombre: cada subcategoría luce distinta. */
+function subcatHue(s: string): number {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360
+  return h
+}
+
 export default function CategoryPage() {
   const { slug = '' } = useParams()
+  const { mode } = useApp()
   const category = getCategory(slug)
   const [sort, setSort] = useState<SortKey>('relevancia')
   const [onlyOffers, setOnlyOffers] = useState(false)
@@ -20,19 +30,12 @@ export default function CategoryPage() {
   const [brands, setBrands] = useState<string[]>([])
   const [subcat, setSubcat] = useState<string | null>(null)
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const [view, setView] = useState<'grid' | 'list'>('grid')
+  const [view, setView] = useState<'grid' | 'list' | 'table'>('grid')
   const loading = useBriefLoading([slug, sort, onlyOffers, pickup, delivery, brands.join(','), subcat ?? ''])
 
   const all = category ? productsByCategory(category.id) : []
   const brandList = useMemo(() => Array.from(new Set(all.map((p) => p.brand))).sort(), [all])
-  const subcatTiles = useMemo(() => (category?.subcats ?? []).map((name) => {
-    const terms = name.toLowerCase().split(/\s+/).filter((t) => t.length > 2)
-    const product = all.find((p) => {
-      const hay = `${p.name} ${p.brand} ${Object.values(p.specs).join(' ')}`.toLowerCase()
-      return terms.some((t) => hay.includes(t))
-    }) ?? all[0]
-    return { name, product }
-  }), [all, category])
+  const subcatTiles = category?.subcats ?? []
 
   const items = useMemo(() => {
     let list = all
@@ -128,16 +131,23 @@ export default function CategoryPage() {
 
       {subcatTiles.length ? (
         <section className="subrail" aria-label="Subcategorías destacadas">
-          {subcatTiles.map(({ name, product }) => (
-            <button key={name} className={`subtile ${subcat === name ? 'is-active' : ''}`} aria-pressed={subcat === name} onClick={() => setSubcat(subcat === name ? null : name)}>
-              <span className="subtile__media">
-                {product ? <ProductImage product={product} className="subtile__img" /> : <CategoryIcon id={category.id} />}
-              </span>
-              <span>{name}</span>
-            </button>
-          ))}
+          {subcatTiles.map((name) => {
+            const hue = subcatHue(name)
+            const mediaStyle = {
+              ['--c1' as string]: `hsl(${hue} 52% 46%)`,
+              ['--c2' as string]: `hsl(${(hue + 26) % 360} 58% 33%)`,
+            }
+            return (
+              <button key={name} className={`subtile ${subcat === name ? 'is-active' : ''}`} aria-pressed={subcat === name} onClick={() => setSubcat(subcat === name ? null : name)}>
+                <span className="subtile__media" style={mediaStyle}>
+                  <Icon name={subcatIconName(name, category.icon as IconName)} />
+                </span>
+                <span>{name}</span>
+              </button>
+            )
+          })}
           <button className={`subtile subtile--all ${!subcat ? 'is-active' : ''}`} aria-pressed={!subcat} onClick={() => setSubcat(null)}>
-            <span className="subtile__media"><CategoryIcon id={category.id} /></span>
+            <span className="subtile__media subtile__media--all"><CategoryIcon id={category.id} /></span>
             <span>Ver todo</span>
           </button>
         </section>
@@ -174,10 +184,12 @@ export default function CategoryPage() {
               <span className="toolbar__results" aria-live="polite">{items.length} {items.length === 1 ? 'producto' : 'productos'}</span>
             </div>
             <div className="toolbar__right">
+              {mode === 'b2b' && <PriceViewToggle className="toolbar__pv" />}
               {sortSelect}
               <div className="viewtoggle" role="group" aria-label="Tipo de vista">
                 <button className={view === 'grid' ? 'is-active' : ''} onClick={() => setView('grid')} aria-label="Vista grilla" aria-pressed={view === 'grid'}><Icon name="grid" /></button>
                 <button className={view === 'list' ? 'is-active' : ''} onClick={() => setView('list')} aria-label="Vista lista" aria-pressed={view === 'list'}><Icon name="list" /></button>
+                {mode === 'b2b' && <button className={view === 'table' ? 'is-active' : ''} onClick={() => setView('table')} aria-label="Vista tabla" aria-pressed={view === 'table'}><Icon name="doc" /></button>}
               </div>
             </div>
           </div>
@@ -198,9 +210,13 @@ export default function CategoryPage() {
           {loading ? (
             <ProductGridSkeleton count={Math.min(10, Math.max(5, all.length))} />
           ) : items.length ? (
-            <div className={`grid ${view === 'list' ? 'grid--list' : ''}`}>
-              {items.map((p) => <ProductCard key={p.id} product={p} />)}
-            </div>
+            view === 'table' ? (
+              <ProductTable products={items} />
+            ) : (
+              <div className={`grid ${view === 'list' ? 'grid--list' : ''}`}>
+                {items.map((p) => <ProductCard key={p.id} product={p} />)}
+              </div>
+            )
           ) : (
             <div className="empty empty--cat">
               <p>No hay productos con esos filtros.</p>

@@ -4,18 +4,16 @@ import Icon from '@/components/Icon'
 
 type Col = { title: string; links: { label: string; to: string }[] }
 
-/** Nota: los enlaces sin página propia apuntan a rutas reales cercanas
- *  (p. ej. /ayuda) para no dejar links muertos. */
 const COLUMNS: Col[] = [
   {
     title: 'Servicio al cliente',
     links: [
       { label: 'Centro de ayuda', to: '/ayuda' },
-      { label: 'Cambios y devoluciones', to: '/ayuda' },
-      { label: 'Despachos', to: '/ayuda' },
+      { label: 'Cambios y devoluciones', to: '/ayuda#devoluciones' },
+      { label: 'Despachos', to: '/ayuda#despachos' },
       { label: 'Seguimiento de pedido', to: '/seguimiento' },
-      { label: 'Medios de pago', to: '/ayuda' },
-      { label: 'Contacto', to: '/ayuda' },
+      { label: 'Medios de pago', to: '/ayuda#pagos' },
+      { label: 'Contacto', to: '/contacto' },
     ],
   },
   {
@@ -26,7 +24,7 @@ const COLUMNS: Col[] = [
       { label: 'Ideas y proyectos', to: '/inspiracion' },
       { label: 'Mis favoritos', to: '/favoritos' },
       { label: 'Mis listas', to: '/listas' },
-      { label: 'Gift cards', to: '/ayuda' },
+      { label: 'Gift cards', to: '/gift-cards' },
     ],
   },
   {
@@ -37,29 +35,29 @@ const COLUMNS: Col[] = [
       { label: 'Línea de crédito Mimbral', to: '/empresas/credito' },
       { label: 'Licitaciones y grandes obras', to: '/cotizacion' },
       { label: 'Convenios empresa', to: '/empresas' },
-      { label: 'Atención empresas', to: '/ayuda' },
+      { label: 'Atención empresas', to: '/contacto?asunto=Atención empresas' },
     ],
   },
   {
     title: 'Tiendas y servicios',
     links: [
       { label: 'Ver tiendas', to: '/tiendas' },
-      { label: 'Patio Constructor', to: '/tiendas' },
+      { label: 'Patio Constructor', to: '/servicios#patio' },
       { label: 'Retiro en tienda', to: '/en-tienda' },
-      { label: 'Despacho a domicilio', to: '/ayuda' },
-      { label: 'Arriendo de herramientas', to: '/ayuda' },
-      { label: 'Corte y dimensionado', to: '/ayuda' },
+      { label: 'Despacho a domicilio', to: '/servicios#despacho' },
+      { label: 'Arriendo de herramientas', to: '/servicios#arriendo' },
+      { label: 'Corte y dimensionado', to: '/servicios#corte' },
     ],
   },
   {
     title: 'Mimbral',
     links: [
       { label: 'Sobre nosotros', to: '/nosotros' },
-      { label: 'Trabaja con nosotros', to: '/nosotros' },
-      { label: 'Proveedores', to: '/nosotros' },
-      { label: 'Sustentabilidad', to: '/nosotros' },
+      { label: 'Trabaja con nosotros', to: '/trabaja-con-nosotros' },
+      { label: 'Proveedores', to: '/nosotros#proveedores' },
+      { label: 'Sustentabilidad', to: '/nosotros#sustentabilidad' },
       { label: 'Ideas y proyectos', to: '/inspiracion' },
-      { label: 'Contacto corporativo', to: '/ayuda' },
+      { label: 'Contacto corporativo', to: '/contacto?asunto=Consulta general' },
     ],
   },
 ]

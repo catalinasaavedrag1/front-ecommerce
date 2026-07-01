@@ -6,6 +6,8 @@ import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import { useWishlist } from '@/context/WishlistContext'
 import SearchBar from './SearchBar'
+import DeliveryPicker from './DeliveryPicker'
+import PriceViewToggle from './PriceViewToggle'
 import Icon, { CategoryIcon, type IconName } from './Icon'
 
 export default function Header() {
@@ -78,14 +80,11 @@ export default function Header() {
           <Link to="/empresas"><Icon name="headset" /> Venta empresas</Link>
           <Link to="/seguimiento"><Icon name="truck" /> Sigue tu pedido</Link>
           <Link to="/ayuda" className="header__top-help"><Icon name="phone" /> 600 600 0000</Link>
+          <DeliveryPicker variant="top" />
         </div>
       </div>
 
-      <Link to="/tiendas" className="header__loc" aria-label="Despacho y retiro">
-        <Icon name="pin" />
-        <span>Despacha a <strong>Santiago Centro</strong></span>
-        <Icon name="chevron" className="header__loc-chev" />
-      </Link>
+      <DeliveryPicker variant="bar" />
 
       <div className="header__main">
         <button className="header__burger" aria-label="Abrir menú" onClick={() => setMenuOpen(true)}>
@@ -142,6 +141,7 @@ export default function Header() {
               <Icon name={item.icon} /> {item.text}
             </Link>
           ))}
+          {mode === 'b2b' && <PriceViewToggle className="assistbar__pv" />}
         </div>
       </div>
 

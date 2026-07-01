@@ -8,10 +8,12 @@ import ProductImage from './ProductImage'
 import Rating from './Rating'
 import Icon from './Icon'
 import { availabilityFor, badgesFor, keySpec } from '@/utils/catalog'
+import { deliveryInfo } from '@/data/comunas'
+import { formatCLP } from '@/utils/format'
 import { getVariants } from '@/utils/variants'
 
 export default function ProductCard({ product }: { product: Product }) {
-  const { mode } = useApp()
+  const { mode, comuna } = useApp()
   const { add, setQty, lines } = useCart()
   const wishlist = useWishlist()
   const navigate = useNavigate()
@@ -20,6 +22,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const badges = badgesFor(product, { mode })
   const avail = availabilityFor(product)
+  const del = deliveryInfo(comuna, product)
   const hasVariants = getVariants(product).length > 0
 
   return (
@@ -57,8 +60,11 @@ export default function ProductCard({ product }: { product: Product }) {
           <span className={`dot dot--${avail.delivery ? 'ok' : 'no'}`} aria-hidden />
           <span className="sr-only">{avail.delivery ? 'Despacho disponible' : 'Sin despacho a domicilio'}</span>
           {avail.pickupToday && <span className="card__av"><Icon name="store" /> Retiro hoy</span>}
-          {avail.fast && <span className="card__av"><Icon name="truck" /> Despacho rápido</span>}
-          {!avail.pickupToday && !avail.fast && <span className="card__av">{avail.label}</span>}
+          {avail.delivery && del.coverage && (
+            <span className="card__av"><Icon name="truck" /> {del.days <= 1 ? 'Mañana' : `${del.days} días`} a {comuna} · {del.free ? 'Gratis' : formatCLP(del.cost)}</span>
+          )}
+          {avail.delivery && !del.coverage && <span className="card__av"><Icon name="store" /> Solo retiro en tienda</span>}
+          {!avail.delivery && <span className="card__av">{avail.label}</span>}
         </div>
 
         <div className="card__actions">

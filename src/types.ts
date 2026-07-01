@@ -1,5 +1,8 @@
 export type SalesMode = 'b2c' | 'b2b'
 
+/** Cómo mostrar los precios B2B: neto (sin IVA), bruto (con IVA) o ambos. */
+export type PriceView = 'neto' | 'bruto' | 'ambos'
+
 export interface Category {
   id: string
   name: string

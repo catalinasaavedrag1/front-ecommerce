@@ -48,12 +48,35 @@ export default function AboutPage() {
           </div>
         </section>
 
+        <section className="aboutitem" id="proveedores">
+          <h2 className="section-title">Proveedores</h2>
+          <p>
+            Trabajamos con más de 60 marcas líderes y buscamos constantemente nuevos
+            socios que compartan nuestros estándares de calidad y servicio. Si quieres
+            ser proveedor de Mimbral, escríbenos a <a href="mailto:proveedores@mimbral.cl">proveedores@mimbral.cl</a> con
+            tu catálogo y condiciones comerciales.
+          </p>
+        </section>
+
+        <section className="aboutitem" id="sustentabilidad">
+          <h2 className="section-title">Sustentabilidad</h2>
+          <p>
+            Promovemos un consumo responsable: priorizamos productos eficientes,
+            reducimos el uso de embalajes y optimizamos nuestra logística para bajar
+            la huella de cada entrega. Creemos que construir mejor también significa
+            construir de forma más sostenible.
+          </p>
+        </section>
+
         <section className="ctaband">
           <div>
             <h2>¿Tienes una empresa o proyecto grande?</h2>
             <p>Conoce los beneficios de comprar con Mimbral Empresas.</p>
           </div>
-          <Link to="/empresas" className="btn btn--primary btn--lg">Ir al Portal Empresas</Link>
+          <div className="ctaband__actions">
+            <Link to="/empresas" className="btn btn--primary btn--lg">Ir al Portal Empresas</Link>
+            <Link to="/trabaja-con-nosotros" className="btn btn--ghost btn--lg">Trabaja con nosotros</Link>
+          </div>
         </section>
       </div>
     </div>

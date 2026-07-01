@@ -22,6 +22,12 @@ import CreditPage from './pages/CreditPage'
 import InspirationPage from './pages/InspirationPage'
 import CategoriesPage from './pages/CategoriesPage'
 import EnTiendaPage from './pages/EnTiendaPage'
+import { cmsRoutes } from './features/cms/CmsRoutes'
+import ContactPage from './pages/ContactPage'
+import ServicesPage from './pages/ServicesPage'
+import GiftCardsPage from './pages/GiftCardsPage'
+import CareersPage from './pages/CareersPage'
+import LegalPage from './pages/LegalPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 export default function App() {
@@ -30,6 +36,9 @@ export default function App() {
       {/* Carro y checkout fuera del Layout: foco en comprar, sin distracciones */}
       <Route path="carro" element={<CartPage />} />
       <Route path="checkout" element={<CheckoutPage />} />
+
+      {/* CMS avanzado (features/cms): panel con su propio layout, aislado del storefront */}
+      {cmsRoutes()}
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
         <Route path="categorias" element={<CategoriesPage />} />
@@ -43,7 +52,13 @@ export default function App() {
         <Route path="ofertas" element={<OffersPage />} />
         <Route path="inspiracion" element={<InspirationPage />} />
         <Route path="tiendas" element={<StoresPage />} />
+        <Route path="servicios" element={<ServicesPage />} />
         <Route path="ayuda" element={<HelpPage />} />
+        <Route path="contacto" element={<ContactPage />} />
+        <Route path="gift-cards" element={<GiftCardsPage />} />
+        <Route path="trabaja-con-nosotros" element={<CareersPage />} />
+        <Route path="legal" element={<LegalPage />} />
+        <Route path="legal/:doc" element={<LegalPage />} />
         <Route path="nosotros" element={<AboutPage />} />
         <Route path="seguimiento" element={<TrackingPage />} />
         <Route path="ingresar" element={<LoginPage />} />

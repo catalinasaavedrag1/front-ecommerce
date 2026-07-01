@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { getProduct, warehouses, getCategory } from '@/data/products'
+import { getProduct, getCategory } from '@/data/products'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import PriceTag from '@/components/PriceTag'
@@ -21,13 +21,16 @@ import { getRecommendations } from '@/utils/recommendations'
 import { getVariants } from '@/utils/variants'
 import { priceFor, nextVolumeTier } from '@/utils/pricing'
 import { formatCLP, IVA_RATE } from '@/utils/format'
+import { comunas, deliveryInfo, etaLabel } from '@/data/comunas'
+import { warehouseStock } from '@/utils/catalog'
+import { technicalSheet, productDocs } from '@/utils/techsheet'
 
 type DeliveryTab = 'despacho' | 'retiro' | 'tienda'
 
 export default function ProductPage() {
   const { id = '' } = useParams()
   const product = getProduct(id)
-  const { mode, customer } = useApp()
+  const { mode, customer, comuna, setComuna } = useApp()
   const { add } = useCart()
   const wishlist = useWishlist()
   const [qty, setQty] = useState(1)
@@ -86,12 +89,15 @@ export default function ProductPage() {
 
   const maxQty = Math.min(product.stock, 30)
   const lowStock = product.stock <= 12
-  const shipCost = product.bulky ? 24990 : 4990
-  const despachoOpts = [
-    { label: 'Llega mañana', cost: shipCost },
-    { label: 'Llega en 48 hrs', cost: Math.max(990, shipCost - 1000) },
-    { label: 'Llega en 72 hrs', cost: Math.max(990, shipCost - 2000) },
-  ]
+  const del = deliveryInfo(comuna, product)
+  const baseCost = del.free ? 0 : del.cost
+  const despachoOpts = del.coverage
+    ? [
+        { label: etaLabel(del.days), cost: baseCost },
+        { label: `Programado · en ${del.days + 2} días hábiles`, cost: del.free ? 0 : Math.max(990, baseCost - 1000) },
+      ]
+    : []
+  const stockReport = warehouseStock(product, qty)
   const retiroOpts = [
     { label: 'Retiro hoy', store: 'Tienda Balmaceda', when: 'Listo en 2 hrs' },
     { label: 'Retiro mañana', store: 'Tienda Chorrillos', when: 'Mañana desde 11:00' },
@@ -211,10 +217,10 @@ export default function ProductPage() {
 
           {/* Bloque de entrega */}
           <div className="pdp__delivery">
-            <div className="pdp__delivery-head"><Icon name="pin" /> Entrega en <strong>Santiago Centro</strong></div>
+            <div className="pdp__delivery-head"><Icon name="pin" /> Entrega en <strong>{comuna}</strong></div>
             <button className="delrow" onClick={() => setSheet('despacho')}>
               <span className="delrow__ic"><Icon name="truck" /></span>
-              <span className="delrow__txt"><strong>Despacho a domicilio</strong><span>Llega entre 24-72 hrs · Desde {formatCLP(despachoOpts[2].cost)}</span></span>
+              <span className="delrow__txt"><strong>Despacho a domicilio</strong><span>{del.coverage ? `${etaLabel(del.days)} · ${del.free ? 'Gratis' : `Desde ${formatCLP(baseCost)}`}` : `Sin cobertura en ${comuna}`}</span></span>
               <Icon name="chevron" className="delrow__chev" />
             </button>
             <button className="delrow" onClick={() => setSheet('retiro')}>
@@ -311,21 +317,39 @@ export default function ProductPage() {
             </ul>
           </Accordion>
 
-          <Accordion title="Especificaciones" defaultOpen>
+          <Accordion title="Ficha técnica" defaultOpen>
             <table className="aboutitem__specs">
               <tbody>
-                {Object.entries(product.specs).map(([k, v]) => (<tr key={k}><th>{k}</th><td>{v}</td></tr>))}
-                <tr><th>Marca</th><td>{product.brand}</td></tr>
-                <tr><th>Unidad de venta</th><td>{product.unit}</td></tr>
-                <tr><th>SKU</th><td>{product.sku}</td></tr>
+                {technicalSheet(product).map((f) => (<tr key={f.label}><th>{f.label}</th><td>{f.value}</td></tr>))}
               </tbody>
             </table>
+            <div className="docs">
+              <h3 className="docs__title">Documentos descargables</h3>
+              <div className="docs__list">
+                {productDocs(product).map((d) => (
+                  <a key={d.label} href="#" onClick={(e) => e.preventDefault()} className="docchip">
+                    <span className="docchip__ic"><Icon name="doc" /></span>
+                    <span className="docchip__txt">{d.label}</span>
+                    <em>{d.type}</em>
+                  </a>
+                ))}
+              </div>
+            </div>
             {mode === 'b2b' && (
               <div className="stockbox stockbox--inline">
-                <h3>Stock por bodega</h3>
-                <ul>
-                  {warehouses.map((w) => (<li key={w}><span>{w}</span><strong>{product.stockByWarehouse[w] ?? 0} u.</strong></li>))}
+                <div className="stockbox__head">
+                  <h3>Stock por bodega</h3>
+                  <span className={`stkbadge stkbadge--${stockReport.overall}`}>{stockReport.overallLabel}</span>
+                </div>
+                <ul className="stockbox__rows">
+                  {stockReport.rows.map((r) => (
+                    <li key={r.name}>
+                      <span className="stockbox__wh"><span className={`stkdot stkdot--${r.state}`} aria-hidden /> {r.name}</span>
+                      <strong>{r.label}</strong>
+                    </li>
+                  ))}
                 </ul>
+                {stockReport.overall === 'restock' && <p className="stockbox__note">Cubrimos las {qty} u. combinando stock en tienda + reposición desde el CD.</p>}
               </div>
             )}
           </Accordion>
@@ -376,7 +400,11 @@ export default function ProductPage() {
       {/* Bottom sheet de entrega con tabs */}
       {sheet && (
         <BottomSheet title="Opciones de entrega" icon="truck" onClose={() => setSheet(null)}>
-          <div className="dsheet__comuna"><Icon name="pin" /> Comuna: <strong>Santiago Centro</strong><button className="link-btn">Cambiar</button></div>
+          <label className="dsheet__comuna"><Icon name="pin" /> Comuna:
+            <select value={comuna} onChange={(e) => setComuna(e.target.value)} aria-label="Comuna de despacho">
+              {comunas.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
+            </select>
+          </label>
           <div className="dtabs" role="tablist">
             <button role="tab" aria-selected={sheet === 'despacho'} className={`dtab ${sheet === 'despacho' ? 'is-active' : ''}`} onClick={() => setSheet('despacho')}>Despacho</button>
             <button role="tab" aria-selected={sheet === 'retiro'} className={`dtab ${sheet === 'retiro' ? 'is-active' : ''}`} onClick={() => setSheet('retiro')}>Retiro</button>
@@ -385,13 +413,15 @@ export default function ProductPage() {
 
           {sheet === 'despacho' && (
             <div className="dopts">
-              {despachoOpts.map((o) => (
+              {despachoOpts.length ? despachoOpts.map((o) => (
                 <div className="dopt" key={o.label}>
                   <span className="dopt__ic"><Icon name="truck" /></span>
-                  <span className="dopt__txt"><strong>{o.label}</strong><span>Despacho a domicilio</span></span>
-                  <span className="dopt__price">{formatCLP(o.cost)}</span>
+                  <span className="dopt__txt"><strong>{o.label}</strong><span>Despacho a {comuna}</span></span>
+                  <span className={`dopt__price ${o.cost === 0 ? 'dopt__price--free' : ''}`}>{o.cost === 0 ? 'Gratis' : formatCLP(o.cost)}</span>
                 </div>
-              ))}
+              )) : (
+                <p className="muted">Aún no tenemos despacho a domicilio en {comuna}. Puedes elegir retiro en tienda.</p>
+              )}
             </div>
           )}
           {sheet === 'retiro' && (

@@ -52,3 +52,50 @@ export function availabilityFor(p: Product): Availability {
   else if (level === 'bajo') label = `Últimas ${p.stock} unidades`
   return { pickupToday, delivery, fast, label }
 }
+
+export type WarehouseState = 'full' | 'partial' | 'restock' | 'none'
+
+export interface WarehouseRow {
+  name: string
+  qty: number
+  state: WarehouseState
+  label: string
+}
+
+export interface StockReport {
+  rows: WarehouseRow[]
+  total: number
+  overall: WarehouseState
+  overallLabel: string
+}
+
+const CD_NAME = 'CD Santiago'
+
+/** Disponibilidad por bodega frente a una cantidad solicitada, con estados claros
+ *  (completo / parcial / con reposición / sin stock) para el cliente B2B. */
+export function warehouseStock(p: Product, requested = 1): StockReport {
+  const entries = Object.entries(p.stockByWarehouse)
+  const rows: WarehouseRow[] = entries.map(([name, qty]) => {
+    const isCD = name === CD_NAME
+    let state: WarehouseState
+    let label: string
+    if (qty <= 0) {
+      state = 'none'; label = 'Sin stock'
+    } else if (qty >= requested) {
+      state = isCD ? 'restock' : 'full'
+      label = isCD ? `${qty} u. · despacho 24-48 h` : `${qty} u. disponibles hoy`
+    } else {
+      state = 'partial'; label = `${qty} u. (parcial)`
+    }
+    return { name, qty, state, label }
+  })
+  const total = entries.reduce((s, [, q]) => s + q, 0)
+  const hoy = rows.filter((r) => r.name !== CD_NAME).reduce((s, r) => s + r.qty, 0)
+  let overall: WarehouseState
+  let overallLabel: string
+  if (total <= 0) { overall = 'none'; overallLabel = 'Sin stock' }
+  else if (hoy >= requested) { overall = 'full'; overallLabel = 'Disponible completo hoy' }
+  else if (total >= requested) { overall = 'restock'; overallLabel = 'Disponible con reposición' }
+  else { overall = 'partial'; overallLabel = 'Disponible parcial' }
+  return { rows, total, overall, overallLabel }
+}

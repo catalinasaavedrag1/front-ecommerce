@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom'
 
 const LINKS: { label: string; to: string }[] = [
-  { label: 'Términos y condiciones', to: '/ayuda' },
-  { label: 'Privacidad', to: '/ayuda' },
-  { label: 'Políticas de despacho', to: '/ayuda' },
-  { label: 'Cambios y devoluciones', to: '/ayuda' },
+  { label: 'Términos y condiciones', to: '/legal/terminos' },
+  { label: 'Privacidad', to: '/legal/privacidad' },
+  { label: 'Políticas de despacho', to: '/legal/despacho' },
+  { label: 'Cambios y devoluciones', to: '/legal/devoluciones' },
   { label: 'Tiendas', to: '/tiendas' },
-  { label: 'Libro de reclamos', to: '/ayuda' },
+  { label: 'Libro de reclamos', to: '/contacto?asunto=Libro de reclamos' },
+  { label: 'Administración (CMS)', to: '/cms' },
 ]
 
 /** Última línea legal: enlaces secundarios + copyright. */
