@@ -196,6 +196,37 @@ Códigos reales del BFF mapeados: `STOCK_UNAVAILABLE`, `PRICING_UNAVAILABLE`,
 
 ---
 
+## 6b. Verificación en vivo (BFF corriendo)
+
+Se levantó el `web-bff-service` local (sin downstream: Redis/Kafka/cache
+apagados, servicios de dominio a puerto muerto → `failOpen`) y se golpearon los
+endpoints reales. Resultado:
+
+| Comprobación | Resultado |
+|---|---|
+| Envelope de éxito `{ success, data, correlationId }` | ✅ confirmado (`/health`, `/home`, `/auth/session`) |
+| Envelope de error `{ success:false, code, message, statusCode, details, correlationId }` | ✅ confirmado; `DOWNSTREAM_SERVICE_ERROR` (502) en `/categories`, `/search`, `/products`, `/cart`, `/account` |
+| **Contexto B2B por JWT** | ✅ con un token `{ customerType:b2b, priceListId, companyId }` el BFF resolvió `customerId` e `isAuthenticated:true` en `/auth/session`. Valida §4 (front manda token, BFF deriva del claim) |
+| Guard de auth | ✅ con token pasa; falla recién en downstream (no 401) |
+| `BffSession` | ✅ calza exacto: `{ sessionId, customerId?, isAuthenticated, cartId? }` |
+
+Cruce campo-a-campo contra los mappers reales del BFF (`src/mappers/*.mapper.ts`):
+`BffPrice`, `BffAvailability`, `BffProductCard`, `BffProductDetail`,
+`BffCartItem`, `BffFilter` y `promotions` **calzan exacto**. Se corrigieron los
+tipos que omitían campos:
+
+- `BffHome.seo` y `BffCategoryPage.seo` (**requeridos** — el BFF siempre los
+  devuelve; se agregó el tipo `BffSeo`, espejo de `SeoView`).
+- `BffProductDetail.seo?` (opcional).
+- `BffSearchPage.redirect?` (opcional).
+- `BffCart.checkoutId?` (opcional).
+
+> No se pudieron ver los datos poblados de product/cart/search en vivo porque
+> requieren sus downstream con DB. La forma (nombres de campos) quedó verificada
+> contra los mappers, que son la fuente del contrato.
+
+---
+
 ## 7. Carrito y precios — "el BFF manda"
 
 Decisión: **cuando el BFF está conectado, la fuente de verdad de totales, stock
