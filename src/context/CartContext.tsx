@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { CartLine } from '@/types'
+import { mirrorAdd, mirrorClear, mirrorRemove, mirrorSetQty } from '@/api/cart'
 
 interface CartState {
   lines: CartLine[]
@@ -42,6 +43,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return [...prev, { productId, qty, variant }]
     })
     setLastAdded({ productId, qty, ts: Date.now() })
+    // Espejo best-effort hacia cart-service (solo si el BFF está configurado).
+    void mirrorAdd(productId, qty)
   }
 
   const setQty: CartState['setQty'] = (productId, qty) => {
@@ -50,12 +53,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
         ? prev.filter((l) => l.productId !== productId)
         : prev.map((l) => (l.productId === productId ? { ...l, qty } : l)),
     )
+    void (qty <= 0 ? mirrorRemove(productId) : mirrorSetQty(productId, qty))
   }
 
-  const remove: CartState['remove'] = (productId) =>
+  const remove: CartState['remove'] = (productId) => {
     setLines((prev) => prev.filter((l) => l.productId !== productId))
+    void mirrorRemove(productId)
+  }
 
-  const clear = () => setLines([])
+  const clear = () => {
+    setLines([])
+    mirrorClear()
+  }
 
   const count = useMemo(() => lines.reduce((sum, l) => sum + l.qty, 0), [lines])
 

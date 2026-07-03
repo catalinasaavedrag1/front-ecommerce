@@ -43,6 +43,8 @@ export interface Product {
   unit: string
   /** Glifo opcional (legacy). La imagen real se genera con ProductImage. */
   image?: string
+  /** URL de imagen real (cuando el producto viene del BFF). */
+  imageUrl?: string
   /** Palabra(s) clave para la foto de stock del producto. */
   photo?: string
   rating: number
