@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { categories, products } from '@/data/products'
+import { categories } from '@/data/products'
+import { useHomeProducts } from '@/hooks/useBffCatalog'
 import { useApp } from '@/context/AppContext'
 import ProductCard from '@/components/ProductCard'
 import B2BDashboard from '@/components/B2BDashboard'
@@ -66,9 +67,11 @@ const projects: { label: string; to: string; icon: IconName }[] = [
 
 export default function HomePage() {
   const { mode, customer } = useApp()
-  const offers = products.filter((p) => p.retailOffer).slice(0, 6)
-  const bestSellers = products.filter((p) => p.tags?.includes('Más vendido'))
-  const featured = products.slice(0, 8)
+  // Catálogo desde el BFF cuando está configurado; mocks locales si no.
+  const { data: catalog } = useHomeProducts()
+  const offers = catalog.filter((p) => p.retailOffer).slice(0, 6)
+  const bestSellers = catalog.filter((p) => p.tags?.includes('Más vendido'))
+  const featured = catalog.slice(0, 8)
 
   // Cliente B2B: en vez de una home de tienda, ve su panel de empresa primero.
   if (mode === 'b2b' && customer) {

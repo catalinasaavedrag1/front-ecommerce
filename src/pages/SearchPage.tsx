@@ -5,18 +5,16 @@ import ProductCard from '@/components/ProductCard'
 import { CategoryIcon } from '@/components/Icon'
 import { ProductGridSkeleton } from '@/components/Skeleton'
 import { useBriefLoading } from '@/hooks/useBriefLoading'
+import { useSearchProducts } from '@/hooks/useBffCatalog'
 
 export default function SearchPage() {
   const [params] = useSearchParams()
   const q = (params.get('q') ?? '').toLowerCase().trim()
-  const loading = useBriefLoading([q])
+  const briefLoading = useBriefLoading([q])
 
-  const results = useMemo(() => {
-    if (!q) return []
-    return products.filter((p) =>
-      [p.name, p.brand, p.sku, ...(p.tags ?? [])].join(' ').toLowerCase().includes(q),
-    )
-  }, [q])
+  // Búsqueda server-side (search-service via BFF) o filtro local sin BFF.
+  const { data: results, loading: bffLoading } = useSearchProducts(q)
+  const loading = briefLoading || bffLoading
 
   // Categorías relacionadas (por coincidencia en sus productos) para el estado vacío.
   const related = useMemo(() => {

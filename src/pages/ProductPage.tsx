@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { getProduct, getCategory } from '@/data/products'
+import { getCategory } from '@/data/products'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import PriceTag from '@/components/PriceTag'
@@ -17,6 +17,7 @@ import ShareButton from '@/components/ShareButton'
 import Accordion from '@/components/Accordion'
 import { useWishlist } from '@/context/WishlistContext'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
+import { useProductDetail } from '@/hooks/useBffCatalog'
 import { getRecommendations } from '@/utils/recommendations'
 import { getVariants } from '@/utils/variants'
 import { priceFor, nextVolumeTier } from '@/utils/pricing'
@@ -29,7 +30,8 @@ type DeliveryTab = 'despacho' | 'retiro' | 'tienda'
 
 export default function ProductPage() {
   const { id = '' } = useParams()
-  const product = getProduct(id)
+  // Ficha desde el BFF cuando está configurado (mock/registro como base).
+  const { data: product, loading: productLoading } = useProductDetail(id)
   const { mode, customer, comuna, setComuna } = useApp()
   const { add } = useCart()
   const wishlist = useWishlist()
@@ -54,6 +56,9 @@ export default function ProductPage() {
   }, [])
 
   if (!product) {
+    if (productLoading) {
+      return <div className="container empty"><h1>Cargando producto…</h1></div>
+    }
     return (
       <div className="container empty">
         <h1>Producto no encontrado</h1>

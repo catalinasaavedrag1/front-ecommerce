@@ -61,3 +61,29 @@ En `/ingresar` hay accesos rápidos:
   corporativo y línea de crédito.
 
 > Datos, precios y catálogo son de demostración.
+
+## Conexión con el web-bff-service
+
+El front puede funcionar en dos modos:
+
+| Modo | Cómo | Qué pasa |
+| --- | --- | --- |
+| **Maqueta** (default) | `VITE_BFF_URL` vacío/ausente | Todo funciona con los datos de ejemplo de `src/data/` (comportamiento original) |
+| **Conectado** | `VITE_BFF_URL=/api/web-bff` (+ proxy de Vite) o URL directa | Home, categoría, búsqueda y ficha cargan del BFF; el carrito se espeja a cart-service y el checkout hace el handoff real |
+
+```bash
+cp .env.example .env
+# editar: VITE_BFF_URL=/api/web-bff   (el proxy de vite.config.ts apunta a localhost:3080)
+npm run dev
+```
+
+La degradación es automática: si el BFF no responde, cada pantalla vuelve a los
+datos locales (no se rompe la navegación). Piezas de la integración:
+
+- `src/api/bff.ts` — cliente HTTP (sesión anónima, headers de contexto, errores tipados)
+- `src/api/adapters.ts` — vistas del BFF → tipo `Product` del front (los componentes no cambian)
+- `src/api/registry.ts` — registro de productos vivos (carrito/vistos recientes resuelven SKUs reales)
+- `src/api/cart.ts` — espejo del carrito + handoff de checkout (best-effort)
+- `src/hooks/useBffCatalog.ts` — hooks con fallback por pantalla
+
+Documentación completa del BFF: `Microservicios/web-bff-service/docs/`.

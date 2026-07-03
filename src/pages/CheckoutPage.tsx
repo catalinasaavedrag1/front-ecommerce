@@ -2,6 +2,7 @@ import { useMemo, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
+import { confirmCheckout } from '@/api/cart'
 import { buildTotals } from '@/utils/cart'
 import { formatCLP, formatRut } from '@/utils/format'
 import OrderSummary from '@/components/checkout/OrderSummary'
@@ -205,11 +206,21 @@ export default function CheckoutPage() {
     setDoc('factura'); setFactSheet(false)
   }
 
-  const placeOrder = () => {
+  const placeOrder = async () => {
     if (processing) return
     setProcessing(true)
+    // Handoff real al BFF (snapshot + lock en cart-service) cuando está
+    // configurado; si no, se mantiene la confirmación local de demostración.
+    const handoff = await confirmCheckout({
+      method: anyDomicilio ? 'DELIVERY' : 'PICKUP',
+      commune: comuna || undefined,
+      region: region || undefined,
+      addressLine1: addr.street ? `${addr.street} ${addr.number}`.trim() : undefined,
+    })
     const rand = Math.floor(Number(String(Date.now()).slice(-6)))
-    const n = `MIM-${100000 + (rand % 900000)}`
+    const n = handoff
+      ? `MIM-${handoff.snapshotId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8).toUpperCase()}`
+      : `MIM-${100000 + (rand % 900000)}`
     setTimeout(() => {
       setPlaced(n)
       if (checkoutLines.length === lines.length) clear()
