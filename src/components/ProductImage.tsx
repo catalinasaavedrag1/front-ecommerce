@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Product } from '@/types'
 import { CategoryIcon } from './Icon'
 
@@ -20,7 +21,16 @@ function hueFor(id: string): number {
 }
 
 export default function ProductImage({ product, className, variant = 0 }: Props) {
+  // Si el producto trae imagen real (BFF), se muestra; ante error se cae al tile.
+  const [broken, setBroken] = useState(false)
   const hue = (hueFor(product.id) + variant * 47) % 360
+  if (product.imageUrl && !broken) {
+    return (
+      <div className={`pimg pimg--photo ${className ?? ''}`} role="img" aria-label={product.name}>
+        <img src={product.imageUrl} alt={product.name} loading="lazy" onError={() => setBroken(true)} />
+      </div>
+    )
+  }
   const c1 = `hsl(${hue} 50% 47%)`
   const c2 = `hsl(${(hue + 24) % 360} 55% 33%)`
   return (

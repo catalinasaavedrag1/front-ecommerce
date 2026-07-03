@@ -15,5 +15,13 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    // Proxy de dev hacia el web-bff-service (evita CORS en local).
+    // Con VITE_BFF_URL=/api/web-bff las llamadas pasan por aquí.
+    proxy: {
+      '/api/web-bff': {
+        target: process.env.BFF_PROXY_TARGET ?? 'http://localhost:3080',
+        changeOrigin: true,
+      },
+    },
   },
 })

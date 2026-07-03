@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { categories, getCategory, productsByCategory } from '@/data/products'
+import { categories, getCategory } from '@/data/products'
 import { availabilityFor } from '@/utils/catalog'
 import { useApp } from '@/context/AppContext'
 import ProductCard from '@/components/ProductCard'
@@ -9,6 +9,7 @@ import PriceViewToggle from '@/components/PriceViewToggle'
 import Icon, { CategoryIcon, subcatIconName, type IconName } from '@/components/Icon'
 import { ProductGridSkeleton } from '@/components/Skeleton'
 import { useBriefLoading } from '@/hooks/useBriefLoading'
+import { useCategoryProducts } from '@/hooks/useBffCatalog'
 
 type SortKey = 'relevancia' | 'precio-asc' | 'precio-desc' | 'vendidos' | 'rating' | 'disponibilidad'
 
@@ -31,9 +32,11 @@ export default function CategoryPage() {
   const [subcat, setSubcat] = useState<string | null>(null)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [view, setView] = useState<'grid' | 'list' | 'table'>('grid')
-  const loading = useBriefLoading([slug, sort, onlyOffers, pickup, delivery, brands.join(','), subcat ?? ''])
+  const briefLoading = useBriefLoading([slug, sort, onlyOffers, pickup, delivery, brands.join(','), subcat ?? ''])
 
-  const all = category ? productsByCategory(category.id) : []
+  // Productos del BFF (search-service por categoría) o mocks locales.
+  const { data: all, loading: bffLoading } = useCategoryProducts(category?.id ?? '', slug)
+  const loading = briefLoading || bffLoading
   const brandList = useMemo(() => Array.from(new Set(all.map((p) => p.brand))).sort(), [all])
   const subcatTiles = category?.subcats ?? []
 

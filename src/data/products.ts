@@ -1,4 +1,5 @@
 import type { Category, Product } from '@/types'
+import { getRegisteredProduct } from '@/api/registry'
 
 /** Taxonomía basada en la de mimbral.cl */
 export const categories: Category[] = [
@@ -259,6 +260,9 @@ export const products: Product[] = [
 ]
 
 export function getProduct(id: string): Product | undefined {
+  // Productos reales llegados del BFF (carrito/vistos recientes con SKUs vivos).
+  const live = getRegisteredProduct(id)
+  if (live) return live
   return products.find((p) => p.id === id)
 }
 
