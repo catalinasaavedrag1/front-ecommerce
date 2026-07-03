@@ -99,6 +99,7 @@ datos locales (no se rompe la navegación). Piezas de la integración:
 
 Documentación de la integración:
 
+- **[`docs/GUIA-OPERACION.md`](docs/GUIA-OPERACION.md)** — 📖 guía operacional **para no-programadores**: qué es cada pieza, cómo se conectan, cómo encender todo, checklist de producción y qué hacer si algo se ve mal.
 - **[`docs/INTEGRACION-BFF.md`](docs/INTEGRACION-BFF.md)** — guía de uso con diagramas.
 - **[`docs/CONTRATOS-BFF.md`](docs/CONTRATOS-BFF.md)** — contrato técnico: mapeo endpoint↔BFF, headers, gaps y decisiones de arquitectura.
 - Documentación completa del BFF: `Microservicios/web-bff-service/docs/`.
