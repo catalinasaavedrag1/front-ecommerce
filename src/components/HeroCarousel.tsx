@@ -13,6 +13,9 @@ export interface Slide {
   ctaTo: string
   productId?: string
   discount?: number
+  /** Imagen del slide (banners del CMS); manda sobre la foto de producto. */
+  imageUrl?: string
+  imageAlt?: string
 }
 
 export default function HeroCarousel({ slides }: { slides: Slide[] }) {
@@ -57,7 +60,11 @@ export default function HeroCarousel({ slides }: { slides: Slide[] }) {
                 <span className="slide__webpay">Webpay · 12 cuotas sin interés</span>
               </div>
               <div className="slide__art">
-                {product ? <ProductImage product={product} className="slide__img" /> : null}
+                {s.imageUrl ? (
+                  <img src={s.imageUrl} alt={s.imageAlt ?? ''} className="slide__img slide__img--photo" loading="lazy" />
+                ) : product ? (
+                  <ProductImage product={product} className="slide__img" />
+                ) : null}
                 {s.discount ? (
                   <span className="slide__dcto"><strong>{s.discount}%</strong><span>DE DCTO.</span></span>
                 ) : null}

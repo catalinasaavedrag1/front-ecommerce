@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { categories } from '@/data/products'
-import { useHomeProducts } from '@/hooks/useBffCatalog'
+import { cmsProductSections, cmsSlides, cmsStripBanners, useBffHome } from '@/hooks/useBffHome'
 import { useApp } from '@/context/AppContext'
 import ProductCard from '@/components/ProductCard'
 import B2BDashboard from '@/components/B2BDashboard'
@@ -67,11 +67,18 @@ const projects: { label: string; to: string; icon: IconName }[] = [
 
 export default function HomePage() {
   const { mode, customer } = useApp()
-  // Catálogo desde el BFF cuando está configurado; mocks locales si no.
-  const { data: catalog } = useHomeProducts()
+  // Home completa desde el BFF (contenido CMS + productos) cuando está
+  // configurado; maqueta local si no. Una sola llamada a GET /home.
+  const { home, products: catalog, live } = useBffHome()
   const offers = catalog.filter((p) => p.retailOffer).slice(0, 6)
   const bestSellers = catalog.filter((p) => p.tags?.includes('Más vendido'))
   const featured = catalog.slice(0, 8)
+
+  // Contenido publicado por marketing en el CMS. Si existe, manda sobre la
+  // maqueta (hero, carruseles y banners); si no, la home local queda intacta.
+  const heroSlides = live ? cmsSlides(home) : []
+  const productSections = live ? cmsProductSections(home) : []
+  const stripBanners = live ? cmsStripBanners(home) : []
 
   // Cliente B2B: en vez de una home de tienda, ve su panel de empresa primero.
   if (mode === 'b2b' && customer) {
@@ -107,7 +114,8 @@ export default function HomePage() {
 
   return (
     <div className="home">
-      <HeroCarousel slides={mode === 'b2b' ? b2bSlides : b2cSlides} />
+      {/* Hero: contenido publicado en el CMS si existe; maqueta local si no. */}
+      <HeroCarousel slides={heroSlides.length ? heroSlides : mode === 'b2b' ? b2bSlides : b2cSlides} />
 
       <section className="trustbar">
         {trust.map((t) => (
@@ -200,34 +208,65 @@ export default function HomePage() {
         </section>
       )}
 
-      {offers.length > 0 && (
-        <section className="row">
-          <div className="row__head">
-            <h2 className="section-title">Ofertas</h2>
-            <Link to="/ofertas" className="row__more">Ver todas →</Link>
-          </div>
-          <div className="grid">
-            {offers.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+      {/* Franja de banners publicados en el CMS (placements no-hero). */}
+      {stripBanners.length > 0 && (
+        <section className="cmsbanners" aria-label="Promociones">
+          {stripBanners.map((b) => (
+            <Link key={b.id} to={b.targetUrl?.startsWith('/') ? b.targetUrl : '/ofertas'}>
+              <img src={(b.desktopImageUrl ?? b.mobileImageUrl)!} alt={b.altText ?? b.name} loading="lazy" />
+            </Link>
+          ))}
         </section>
       )}
 
-      <section className="row">
-        <div className="row__head">
-          <h2 className="section-title">
-            {mode === 'b2b' ? 'Más pedidos por empresas' : 'Destacados'}
-          </h2>
-        </div>
-        <div className="grid">
-          {(mode === 'b2b' && bestSellers.length ? bestSellers.concat(featured) : featured)
-            .slice(0, 8)
-            .map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-        </div>
-      </section>
+      {/* Carruseles armados por marketing en el CMS: cuando existen, mandan
+          sobre las filas genéricas de la maqueta. */}
+      {productSections.length > 0 ? (
+        productSections.map((s) => (
+          <section className="row" key={s.id}>
+            <div className="row__head">
+              <h2 className="section-title">{s.title ?? 'Destacados'}</h2>
+            </div>
+            <div className="grid">
+              {(s.products ?? []).slice(0, 8).map((c) => {
+                const p = catalog.find((x) => x.sku === c.sku)
+                return p ? <ProductCard key={p.id} product={p} /> : null
+              })}
+            </div>
+          </section>
+        ))
+      ) : (
+        <>
+          {offers.length > 0 && (
+            <section className="row">
+              <div className="row__head">
+                <h2 className="section-title">Ofertas</h2>
+                <Link to="/ofertas" className="row__more">Ver todas →</Link>
+              </div>
+              <div className="grid">
+                {offers.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section className="row">
+            <div className="row__head">
+              <h2 className="section-title">
+                {mode === 'b2b' ? 'Más pedidos por empresas' : 'Destacados'}
+              </h2>
+            </div>
+            <div className="grid">
+              {(mode === 'b2b' && bestSellers.length ? bestSellers.concat(featured) : featured)
+                .slice(0, 8)
+                .map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+            </div>
+          </section>
+        </>
+      )}
 
       <section className="brandstrip">
         <div className="row__head">

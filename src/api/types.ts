@@ -105,10 +105,24 @@ export interface BffHomeSection {
   products?: BffProductCard[]
 }
 
+/** Banner publicado del CMS (espejo de CmsBanner que el BFF reexpone). */
+export interface BffBanner {
+  id: string
+  name: string
+  placement: string
+  desktopImageUrl?: string | null
+  mobileImageUrl?: string | null
+  altText?: string | null
+  targetUrl?: string | null
+  salesChannel?: string | null
+  priority: number
+  status: string
+}
+
 export interface BffHome {
   hero?: Record<string, unknown> | null
   sections: BffHomeSection[]
-  banners: unknown[]
+  banners: BffBanner[]
   seo: BffSeo
 }
 
