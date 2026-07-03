@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { CartLine } from '@/types'
-import { mirrorAdd, mirrorClear, mirrorRemove, mirrorSetQty } from '@/api/cart'
+import { mirrorAdd, mirrorClear, mirrorRemove, mirrorSetQty } from '@/api/cart.api'
 
 interface CartState {
   lines: CartLine[]

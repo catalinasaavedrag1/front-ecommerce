@@ -122,3 +122,79 @@ export interface BffCheckoutHandoff {
   status: string
   expiresAt: string
 }
+
+/* ------------------------------- Checkout ------------------------------- */
+
+export interface BffDeliveryOption {
+  type: 'pickup' | 'home_delivery' | string
+  label: string
+  available: boolean
+  costFormatted?: string
+  etaLabel?: string
+  storeId?: string
+}
+
+export interface BffPaymentMethod {
+  code: string
+  label: string
+  available: boolean
+}
+
+export interface BffCheckoutView {
+  checkoutId?: string
+  cartId: string
+  cart?: BffCart
+  deliveryOptions?: BffDeliveryOption[]
+  paymentMethods?: BffPaymentMethod[]
+  status?: string
+  order?: { orderId: string; status: string } | null
+}
+
+/* -------------------------------- Cuenta -------------------------------- */
+
+export interface BffAddress {
+  id: string
+  label?: string
+  addressLine1: string
+  commune?: string
+  region?: string
+  isDefault?: boolean
+}
+
+export interface BffAccountProfile {
+  customerId: string
+  name: string
+  email: string
+  type: 'b2c' | 'b2b' | string
+  company?: string
+  rut?: string
+  roles?: string[]
+  priceListId?: string
+  hasCredit?: boolean
+}
+
+/* -------------------------------- Pedidos ------------------------------- */
+
+export interface BffOrderSummary {
+  orderId: string
+  createdAt: string
+  statusLabel: string
+  totalFormatted: string
+  itemCount: number
+}
+
+export interface BffOrderDetail extends BffOrderSummary {
+  items: { sku: string; name: string; quantity: number; totalFormatted: string; image?: string }[]
+  fulfillment?: { method: string; statusLabel: string; trackingUrl?: string }
+  documents?: { type: string; label: string; url: string }[]
+  totals?: Record<string, string>
+}
+
+/* ------------------------------ Autenticación --------------------------- */
+
+export interface BffSession {
+  sessionId: string
+  customerId?: string
+  isAuthenticated: boolean
+  cartId?: string
+}
