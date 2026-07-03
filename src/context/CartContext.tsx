@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { CartLine } from '@/types'
-import { mirrorAdd, mirrorClear, mirrorRemove, mirrorSetQty } from '@/api/cart'
+import { fetchCart, mirrorAdd, mirrorClear, mirrorRemove, mirrorSetQty } from '@/api/cart.api'
+import { isBffEnabled } from '@/api/web-bff.client'
+import type { BffCart } from '@/api/types'
 
 interface CartState {
   lines: CartLine[]
@@ -11,6 +13,12 @@ interface CartState {
   count: number
   /** Último producto agregado (para mostrar confirmación/toast). */
   lastAdded: { productId: string; qty: number; ts: number } | null
+  /**
+   * Carrito recalculado por el BFF (cart-service): fuente autoritativa de
+   * totales, stock validado y promociones cuando hay conexión. `null` en modo
+   * maqueta o si el BFF/carrito no está disponible (la UI cae a `buildTotals`).
+   */
+  bffCart: BffCart | null
 }
 
 const CartContext = createContext<CartState | undefined>(undefined)
@@ -31,6 +39,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [lines])
 
   const [lastAdded, setLastAdded] = useState<CartState['lastAdded']>(null)
+  const [bffCart, setBffCart] = useState<BffCart | null>(null)
+
+  // Al montar, si hay BFF y un carrito abierto, hidrata los totales del BFF.
+  useEffect(() => {
+    if (!isBffEnabled()) return
+    let cancelled = false
+    fetchCart()
+      .then((cart) => {
+        if (!cancelled && cart) setBffCart(cart)
+      })
+      .catch(() => {
+        /* sin carrito o BFF caído: se queda en modo local */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const add: CartState['add'] = (productId, qty = 1, variant) => {
     setLines((prev) => {
@@ -43,8 +68,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return [...prev, { productId, qty, variant }]
     })
     setLastAdded({ productId, qty, ts: Date.now() })
-    // Espejo best-effort hacia cart-service (solo si el BFF está configurado).
-    void mirrorAdd(productId, qty)
+    // Espejo hacia cart-service (solo si el BFF está configurado). El carrito
+    // recalculado que devuelve pasa a ser la fuente autoritativa de totales.
+    void mirrorAdd(productId, qty).then((cart) => cart && setBffCart(cart))
   }
 
   const setQty: CartState['setQty'] = (productId, qty) => {
@@ -53,24 +79,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
         ? prev.filter((l) => l.productId !== productId)
         : prev.map((l) => (l.productId === productId ? { ...l, qty } : l)),
     )
-    void (qty <= 0 ? mirrorRemove(productId) : mirrorSetQty(productId, qty))
+    void (qty <= 0 ? mirrorRemove(productId) : mirrorSetQty(productId, qty)).then(
+      (cart) => cart && setBffCart(cart),
+    )
   }
 
   const remove: CartState['remove'] = (productId) => {
     setLines((prev) => prev.filter((l) => l.productId !== productId))
-    void mirrorRemove(productId)
+    void mirrorRemove(productId).then((cart) => cart && setBffCart(cart))
   }
 
   const clear = () => {
     setLines([])
     mirrorClear()
+    setBffCart(null)
   }
 
   const count = useMemo(() => lines.reduce((sum, l) => sum + l.qty, 0), [lines])
 
   const value = useMemo<CartState>(
-    () => ({ lines, add, setQty, remove, clear, count, lastAdded }),
-    [lines, count, lastAdded],
+    () => ({ lines, add, setQty, remove, clear, count, lastAdded, bffCart }),
+    [lines, count, lastAdded, bffCart],
   )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

@@ -2826,7 +2826,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
   border-radius: 6px;
 }
 .header :focus-visible, .catnav :focus-visible, .hero :focus-visible { outline-color: #fff; }
-=======
 /* Imagen real de producto (BFF) dentro del tile estándar */
 .pimg--photo { background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .pimg--photo img { width: 100%; height: 100%; object-fit: contain; }

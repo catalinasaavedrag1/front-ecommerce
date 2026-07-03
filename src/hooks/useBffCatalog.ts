@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import type { Product } from '@/types'
-import { isBffEnabled } from '@/api/bff'
-import { fetchCategoryProducts, fetchHomeProducts, fetchProductDetail, searchProducts } from '@/api/catalog'
+import { isBffEnabled } from '@/api/web-bff.client'
+import { fetchHomeProducts } from '@/api/home.api'
+import { fetchCategoryProducts } from '@/api/category.api'
+import { searchProducts } from '@/api/search.api'
+import { fetchProductDetail } from '@/api/product.api'
 import { getRegisteredProduct } from '@/api/registry'
 import { getProduct as getMockProduct, products as mockProducts, productsByCategory } from '@/data/products'
 
