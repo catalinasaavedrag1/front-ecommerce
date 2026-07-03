@@ -88,7 +88,7 @@ type Sel = { method: 'retiro' | 'domicilio'; storeId: string; dateIso: string }
 
 export default function CheckoutPage() {
   const { mode, customer } = useApp()
-  const { lines, clear, remove } = useCart()
+  const { lines, clear, remove, bffCart } = useCart()
   // Respeta exactamente los productos seleccionados en el carro (si los hay).
   const checkoutLines = useMemo(() => {
     try {
@@ -523,12 +523,12 @@ export default function CheckoutPage() {
         </div>
 
         <div className="cksummary-desk">
-          <OrderSummary totals={totals} shipping={shipping} deliveryLabel={deliveryLabel} etaLabel={eta} discount={discount} discountLabel={discountLabel} />
+          <OrderSummary totals={totals} shipping={shipping} deliveryLabel={deliveryLabel} etaLabel={eta} discount={discount} discountLabel={discountLabel} bffCart={bffCart} />
           <Link to="/carro" className="cksummary__back">← Volver al carro</Link>
         </div>
       </div>
 
-      <OrderSummary totals={totals} shipping={shipping} deliveryLabel={deliveryLabel} etaLabel={eta} discount={discount} discountLabel={discountLabel} mobile />
+      <OrderSummary totals={totals} shipping={shipping} deliveryLabel={deliveryLabel} etaLabel={eta} discount={discount} discountLabel={discountLabel} mobile bffCart={bffCart} />
 
       {/* ---------- Sheet: Cambiar fecha ---------- */}
       {dateSheet && (() => {

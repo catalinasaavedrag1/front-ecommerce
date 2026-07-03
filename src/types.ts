@@ -111,4 +111,8 @@ export interface OrderRecord {
   total: number
   status: 'preparando' | 'despachado' | 'entregado'
   items: number
+  /** Total ya formateado por el BFF (manda sobre `total` cuando viene). */
+  totalLabel?: string
+  /** Estado tal como lo entrega el BFF, entendible para el cliente. */
+  statusLabel?: string
 }

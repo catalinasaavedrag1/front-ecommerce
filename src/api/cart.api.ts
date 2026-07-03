@@ -113,27 +113,27 @@ export function forgetCart(): void {
  * migramos la UI a "BFF manda" (Fase 4).
  * ------------------------------------------------------------------------ */
 
-export async function mirrorAdd(sku: string, qty: number): Promise<void> {
+export async function mirrorAdd(sku: string, qty: number): Promise<BffCart | null> {
   try {
-    await addItem(sku, qty)
+    return await addItem(sku, qty)
   } catch {
-    /* best-effort */
+    return null /* best-effort */
   }
 }
 
-export async function mirrorSetQty(sku: string, qty: number): Promise<void> {
+export async function mirrorSetQty(sku: string, qty: number): Promise<BffCart | null> {
   try {
-    await setItemQty(sku, qty)
+    return await setItemQty(sku, qty)
   } catch {
-    /* best-effort */
+    return null /* best-effort */
   }
 }
 
-export async function mirrorRemove(sku: string): Promise<void> {
+export async function mirrorRemove(sku: string): Promise<BffCart | null> {
   try {
-    await removeItem(sku)
+    return await removeItem(sku)
   } catch {
-    /* best-effort */
+    return null /* best-effort */
   }
 }
 

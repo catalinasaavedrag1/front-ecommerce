@@ -1,18 +1,24 @@
 import { Link } from 'react-router-dom'
-import { products } from '@/data/products'
+import { products as localProducts } from '@/data/products'
 import { priceFor } from '@/utils/pricing'
 import { useApp } from '@/context/AppContext'
+import { useHomeProducts } from '@/hooks/useBffCatalog'
 import ProductCard from '@/components/ProductCard'
 import PageHero from '@/components/PageHero'
 
 export default function OffersPage() {
   const { mode, customer } = useApp()
-  const offers = products
-    .filter((p) => p.retailOffer)
-    .sort(
-      (a, b) =>
-        priceFor(b, 1, 'b2c').discount - priceFor(a, 1, 'b2c').discount,
-    )
+  // Con BFF vivo, los productos (y sus precios/ofertas) vienen del BFF; en
+  // maqueta o ante fallo, el hook degrada a los datos locales.
+  const { data, live } = useHomeProducts()
+
+  // Ofertas = productos con precio de oferta. Si la fuente activa no trae
+  // ninguno (p. ej. la home del BFF no tiene destacados en oferta), se cae al
+  // catálogo local para no dejar la pantalla vacía.
+  const source = data.filter((p) => p.retailOffer)
+  const offers = (source.length ? source : localProducts.filter((p) => p.retailOffer)).sort(
+    (a, b) => priceFor(b, 1, 'b2c').discount - priceFor(a, 1, 'b2c').discount,
+  )
 
   return (
     <div>
@@ -43,7 +49,9 @@ export default function OffersPage() {
           </div>
         )}
         {customer == null && (
-          <p className="muted-note">* Precios referenciales. Inicia sesión para ver precios y stock personalizados.</p>
+          <p className="muted-note">
+            * Precios {live ? 'en línea' : 'referenciales'}. Inicia sesión para ver precios y stock personalizados.
+          </p>
         )}
       </div>
     </div>

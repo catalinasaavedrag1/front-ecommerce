@@ -234,13 +234,16 @@ validado y promociones es el BFF** (cart-service vía BFF). El cálculo local
 (`utils/pricing.ts`) queda **solo como fallback** de maqueta o caída del BFF.
 En **checkout siempre se recalcula** contra el BFF antes de confirmar.
 
-- Plomería lista en esta pasada: `cart.api.ts` (`fetchCart`, `addItem`,
-  `setItemQty`, `removeItem`, `applyCoupon`, `validateCart` devuelven el
-  carrito **recalculado** del BFF) y `checkout.api.ts` (recalcula/confirma).
-- Pendiente (Fase 4): que `CartContext`/`OrderSummary` consuman esos totales
-  del BFF cuando `live`, en vez del cálculo local. Hoy la UI usa el carrito
-  local como estado visual y espeja al BFF (best-effort) para no romper la
-  maqueta antes de la revisión.
+- Plomería lista: `cart.api.ts` (`fetchCart`, `addItem`, `setItemQty`,
+  `removeItem`, `applyCoupon`, `validateCart` devuelven el carrito
+  **recalculado** del BFF) y `checkout.api.ts` (recalcula/confirma).
+- **Fase 4 (hecho):** `CartContext` expone `bffCart` (el carrito recalculado del
+  BFF; se hidrata al montar y tras cada operación). `OrderSummary` usa esos
+  totales (`subtotal/discount/shipping/total Formatted`) como **autoritativos**
+  cuando `bffCart` existe, con el badge "Totales validados"; en maqueta o caída
+  del BFF cae a `buildTotals`. La página de carrito interactiva mantiene su
+  aritmética local para las barras de progreso/IVA (necesita números), tomando
+  el total autoritativo del BFF cuando está vivo.
 
 ---
 
@@ -308,8 +311,15 @@ Decisión: el backoffice queda **solo en `cms-front`**, conectado **directo a
   centralizados, sin romper la maqueta (degradación intacta).
 - [x] **Fase 2** — Sacar el CMS admin del front público (decisión §9): hecho.
 - [ ] **Fase 3** — `cms-front` ↔ `cms-service` (cliente real, sin mocks).
-- [ ] **Fase 4** — Wiring de pantallas faltantes (cuenta, pedidos, ofertas) y
-  carrito/checkout "BFF manda" en la UI. Refinar tipos con payloads reales.
+- [~] **Fase 4** — En curso:
+  - [x] Ofertas → BFF (vía home, degradable). Funciona en vivo.
+  - [x] Carrito "BFF manda" en los resúmenes (`CartContext.bffCart` + `OrderSummary`).
+  - [x] Pedidos → hook `useBffOrders` con degradación (dormido hasta login, gap #1).
+  - [x] Tipos refinados contra payloads reales (§6b).
+  - [ ] Cuenta (perfil): el perfil hoy es el `customer` local; el wiring a
+    `/account/profile` queda dormido hasta que exista login real (gap #1).
+  - [ ] Página de carrito interactiva 100% sobre totales del BFF (requiere
+    cart-service arriba para probar end-to-end).
 
 ---
 

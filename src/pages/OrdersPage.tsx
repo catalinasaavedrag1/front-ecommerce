@@ -1,14 +1,9 @@
 import { Link } from 'react-router-dom'
 import { useApp } from '@/context/AppContext'
 import type { OrderRecord } from '@/types'
+import { useBffOrders } from '@/hooks/useBffOrders'
 import { formatCLP } from '@/utils/format'
 import Icon from '@/components/Icon'
-
-const sampleOrders: OrderRecord[] = [
-  { id: 'MIM-528413', date: '2026-06-18', mode: 'b2b', total: 1284500, status: 'despachado', items: 12 },
-  { id: 'MIM-517702', date: '2026-06-02', mode: 'b2b', total: 389900, status: 'entregado', items: 5 },
-  { id: 'MIM-490031', date: '2026-05-21', mode: 'b2c', total: 64990, status: 'entregado', items: 1 },
-]
 
 const statusLabel: Record<OrderRecord['status'], string> = {
   preparando: 'Preparando',
@@ -18,7 +13,10 @@ const statusLabel: Record<OrderRecord['status'], string> = {
 
 export default function OrdersPage() {
   const { customer, mode } = useApp()
-  const orders = sampleOrders.filter((o) => (customer ? true : o.mode === mode))
+  // Con BFF vivo (y sesión) los pedidos vienen del BFF; si no, datos de ejemplo.
+  const { data, live } = useBffOrders(mode)
+  // En maqueta sin sesión, filtra por el modo activo; con datos vivos, todos son del cliente.
+  const orders = live || customer ? data : data.filter((o) => o.mode === mode)
 
   return (
     <div className="container">
@@ -34,7 +32,7 @@ export default function OrdersPage() {
           <div key={o.id} className="ordercard">
             <div className="ordercard__head">
               <strong>{o.id}</strong>
-              <span className={`status status--${o.status}`}>{statusLabel[o.status]}</span>
+              <span className={`status status--${o.status}`}>{o.statusLabel ?? statusLabel[o.status]}</span>
             </div>
             <div className="ordercard__meta">
               <span><Icon name="calendar" /> {o.date}</span>
@@ -44,7 +42,7 @@ export default function OrdersPage() {
               </span>
             </div>
             <div className="ordercard__foot">
-              <span className="ordercard__total">{formatCLP(o.total)}</span>
+              <span className="ordercard__total">{o.totalLabel ?? formatCLP(o.total)}</span>
               <div className="ordercard__actions">
                 <a href="#detalle" className="link-btn">Ver detalle</a>
                 {o.mode === 'b2b' && <a href="#factura" className="link-btn">Descargar factura</a>}
