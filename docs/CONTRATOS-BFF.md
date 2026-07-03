@@ -249,16 +249,21 @@ En **checkout siempre se recalcula** contra el BFF antes de confirmar.
 
 ## 8. Gaps del BFF a cerrar (contratos propuestos, NO lógica en el front)
 
-**Gap #1 — Login / emisión de token.** El BFF valida JWT pero no lo emite.
-Falta definir el emisor (probablemente `id-service`) y, si se quiere que el
-front hable solo con el BFF, un proxy:
+**Gap #1 — Login / emisión de token. ✅ RESUELTO (lado BFF).** El BFF ahora
+expone la **fachada de auth** delegando en id-service (el emisor de los JWT de
+la plataforma, secreto compartido):
 ```
-POST /auth/login   { username, password }  → { token, expiresIn, customer }
-POST /auth/logout                          → { success }
-POST /auth/refresh { refreshToken }        → { token }
+POST /auth/login   { correo, password, plataformaId, forzarSesion? } → { token, usuarioId, nombre, correo }
+POST /auth/refresh { tokenAnterior }                                 → { token }
+POST /auth/logout  { usuarioId, plataformaId }                       → { success }  (best-effort)
+GET  /auth/me                                                        → identidad + permisos + empresa
 ```
-El token debe incluir claims: `sub/customerId`, `customerType`, `priceListId`,
-`companyId`, `roles`.
+Códigos: `INVALID_CREDENTIALS` (401), `SESSION_ALREADY_ACTIVE` (409, reintentar
+con `forzarSesion:true`), `SESSION_EXPIRED` (401). IAM caído → 502 (no se
+disfraza de error de credenciales). El front tiene el contrato listo en
+`api/auth.api.ts`; **la UI de login sigue demo por decisión de producto**.
+Matiz vigente: id-service es hoy el IAM interno (staff/B2B provisionado); una
+identidad de shoppers B2C dedicada sigue siendo trabajo futuro.
 
 **Gap #2 — Checkout por pasos de cliente.** No hay `POST /checkout/:id/customer`.
 Si el flujo lo requiere (asociar cliente/dirección al checkout), definir:
@@ -266,13 +271,17 @@ Si el flujo lo requiere (asociar cliente/dirección al checkout), definir:
 POST /checkout/:cartId/customer { customerId?, guest?, addressId?, address? }
 ```
 
-**Gap #3 — Cuenta B2B.** Faltan:
+**Gap #3 — Cuenta B2B. ✅ PARCIALMENTE RESUELTO.** El BFF ahora expone:
 ```
-GET /account/companies     → empresas asociadas al comprador
-GET /account/price-lists   → listas de precio disponibles
-GET /account/permissions   → permisos/rol del comprador
+GET /account/companies     → empresa(s) del comprador (comerce-service, failOpen)
+GET /account/permissions   → permisos del usuario (id-service, failOpen)
+GET /context               → contexto comercial completo de la sesión
+                             (canal, cliente del token, empresa, tienda, comuna)
 ```
-(Alternativa: incluirlos dentro de `GET /account/profile`.)
+Separación de responsabilidades (cerrada): **id-service define quién eres**
+(emite el JWT, permisos); **comerce-service define dónde operas** (empresa,
+canal, tienda, cuenta); el BFF solo compone. Pendiente menor:
+`GET /account/price-lists` (hoy la lista viaja como claim `priceListId`).
 
 **Gap #4 — Contexto de ubicación.** `RequestContextFactory` no puebla
 `context.location` (región/comuna). El BFF debería leer `x-commune`/`x-region`

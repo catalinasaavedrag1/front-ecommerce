@@ -440,11 +440,17 @@ ejemplo o un mensaje amable. Eso ya está construido.
 | `GET /seo/structured-data/product/:slug` | JSON-LD del producto. | La ficha "etiquetada" para que Google muestre precio y estrellas. |
 | `GET /sitemap.xml` · `GET /robots.txt` | **En la raíz del dominio** (fuera del prefijo). | El mapa del sitio y las reglas para el robot de Google. |
 
-### 6.15 Sesión
+### 6.15 Sesión y autenticación
 
 | API | Técnico | En simple |
 |---|---|---|
-| `GET /auth/session` | `BffSession` (5.11). Con token válido incluye `customerId`. **El BFF valida tokens pero no los emite** (login pendiente). | "¿Quién soy para ti?" — con esto la tienda sabe si mostrarte "Hola, Camila" o "Inicia sesión". |
+| `GET /auth/session` | `BffSession` (5.11). Con token válido incluye `customerId`. | "¿Quién soy para ti?" — con esto la tienda sabe si mostrarte "Hola, Camila" o "Inicia sesión". |
+| `POST /auth/login` | Fachada → id-service (`{correo, password, plataformaId, forzarSesion?}` → `{token…}`). Errores: `INVALID_CREDENTIALS` 401, `SESSION_ALREADY_ACTIVE` 409. IAM caído → 502 honesto. | "Quiero iniciar sesión": el coordinador le pide la credencial al servicio de identidad y te la entrega firmada. *(La pantalla de login de la tienda sigue en demo por decisión de producto.)* |
+| `POST /auth/refresh` | `{tokenAnterior}` → `{token}` nuevo vía id-service. | "Renuévame la credencial antes de que venza". |
+| `POST /auth/logout` | `{usuarioId, plataformaId}`; best-effort (nunca falla hacia el front). | "Cierra mi sesión" — y aunque el sistema interno no responda, tu navegador la olvida igual. |
+| `GET /auth/me` | Claims del token + permisos (id-service, failOpen) + empresa (comerce-service, failOpen). | "Muéstrame todo lo que sabes de mí": quién soy, qué puedo hacer y mi empresa. |
+| `GET /context` | Contexto comercial de la sesión: canal, cliente, empresa, tienda, comuna (`commercial-context`). | La "ficha completa de la visita": ¿persona o empresa?, ¿qué canal?, ¿qué comuna? — todo lo que el resto de la tienda usa para mostrarte lo correcto. |
+| `GET /account/companies` · `GET /account/permissions` | Empresa del comprador (comerce) y permisos (id-service), ambos failOpen. | "Mi empresa" y "qué me dejan hacer" para el portal B2B. |
 
 ### 6.16 Observabilidad
 
