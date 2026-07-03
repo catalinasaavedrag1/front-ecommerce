@@ -64,6 +64,8 @@ En `/ingresar` hay accesos rápidos:
 
 ## Conexión con el web-bff-service
 
+> 📘 Guía completa con diagramas: **[`docs/INTEGRACION-BFF.md`](docs/INTEGRACION-BFF.md)**
+
 El front puede funcionar en dos modos:
 
 | Modo | Cómo | Qué pasa |
