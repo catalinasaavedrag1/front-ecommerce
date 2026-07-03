@@ -213,6 +213,8 @@ buscar en los registros).
 
 ## 9. Dónde está la documentación técnica (para el equipo dev)
 
+- **Diccionario campo por campo y API por API** (técnico + en simple):
+  `front-ecommerce/docs/DICCIONARIO-DATOS-Y-APIS.md`
 - Contrato tienda ↔ coordinador: `front-ecommerce/docs/CONTRATOS-BFF.md`
 - Guía de integración con diagramas: `front-ecommerce/docs/INTEGRACION-BFF.md`
 - Contrato panel ↔ archivo de contenido: `cms-front/docs/CONTRATOS-CMS.md`
