@@ -263,9 +263,10 @@ Decisión: el backoffice queda **solo en `cms-front`**, conectado **directo a
 **consume contenido ya publicado** vía BFF (`/home`, `/categories`,
 `/content/landings`). 
 
-Próxima tarea (fuera de esta pasada, ya decidida): eliminar `src/features/cms/`
-y `cmsRoutes()` de este repo; cablear `cms-front` contra `cms-service`
-(reemplazar `simulateRequest`/mocks por un `cms-service.client.ts`).
+**Estado (Fase 2, hecha):** se eliminó `src/features/cms/` (45 archivos) y el
+`cmsRoutes()` de `App.tsx` de este repo. El bundle bajó ~138 kB de JS. Falta
+(Fase 3, en `cms-front`): cablear `cms-front` contra `cms-service` — reemplazar
+`simulateRequest`/mocks por un `cms-service.client.ts`.
 
 ---
 
@@ -274,7 +275,7 @@ y `cmsRoutes()` de este repo; cablear `cms-front` contra `cms-service`
 - [x] **Fase 0** — Contratos, mapeo y gaps (este documento).
 - [x] **Fase 1** — Capa `api/` + `lib/` limpia, contexto B2C/B2B, errores
   centralizados, sin romper la maqueta (degradación intacta).
-- [ ] **Fase 2** — Sacar el CMS admin del front público (decisión §9).
+- [x] **Fase 2** — Sacar el CMS admin del front público (decisión §9): hecho.
 - [ ] **Fase 3** — `cms-front` ↔ `cms-service` (cliente real, sin mocks).
 - [ ] **Fase 4** — Wiring de pantallas faltantes (cuenta, pedidos, ofertas) y
   carrito/checkout "BFF manda" en la UI. Refinar tipos con payloads reales.

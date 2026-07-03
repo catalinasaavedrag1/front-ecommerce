@@ -22,7 +22,6 @@ import CreditPage from './pages/CreditPage'
 import InspirationPage from './pages/InspirationPage'
 import CategoriesPage from './pages/CategoriesPage'
 import EnTiendaPage from './pages/EnTiendaPage'
-import { cmsRoutes } from './features/cms/CmsRoutes'
 import ContactPage from './pages/ContactPage'
 import ServicesPage from './pages/ServicesPage'
 import GiftCardsPage from './pages/GiftCardsPage'
@@ -37,8 +36,9 @@ export default function App() {
       <Route path="carro" element={<CartPage />} />
       <Route path="checkout" element={<CheckoutPage />} />
 
-      {/* CMS avanzado (features/cms): panel con su propio layout, aislado del storefront */}
-      {cmsRoutes()}
+      {/* El CMS admin vive en el repo `cms-front` (conectado directo a
+          cms-service). Este front público solo consume contenido publicado
+          vía web-bff-service. Ver docs/CONTRATOS-BFF.md §9. */}
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
         <Route path="categorias" element={<CategoriesPage />} />
