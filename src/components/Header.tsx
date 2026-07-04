@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { categories } from '@/data/products'
-import { categoryTree } from '@/data/menu'
+import { useBffNavigation } from '@/hooks/useBffNavigation'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import { useWishlist } from '@/context/WishlistContext'
@@ -13,6 +13,9 @@ import Icon, { CategoryIcon, type IconName } from './Icon'
 export default function Header() {
   const { mode, customer, logout } = useApp()
   const { count } = useCart()
+  // Subcategorías del mega-menú: del CMS (vía BFF) cuando hay contenido
+  // publicado; árbol local de la maqueta si no.
+  const { tree: categoryTree } = useBffNavigation()
   const wishlist = useWishlist()
   const { pathname } = useLocation()
   const navigate = useNavigate()
