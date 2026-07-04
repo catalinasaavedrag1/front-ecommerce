@@ -90,11 +90,21 @@ líneas. Los enlaces externos antiguos siguen funcionando.
   de React lo usan directo a propósito (serán `'use client'`).
 - ✅ Sin efecto visible: typecheck y build idénticos.
 
-### F1 — Cascarón Next.js · ~2-3 días
-- Scaffold Next 14+ (App Router, TS). `app/layout.tsx`: importa `index.css`, monta `<AppProvider><WishlistProvider><CartProvider>` (client) y el `Header`/`Footer`.
-- `next.config`: `rewrites` de `/api/web-bff/*` → BFF (reemplaza el proxy de Vite); imágenes remotas permitidas.
-- Variables: `NEXT_PUBLIC_WEB_BFF_URL` (browser) y `WEB_BFF_INTERNAL_URL` (server, red interna — el server llama al BFF directo, sin pasar por el edge).
-- Criterio de salida: la home renderiza client-side igual que hoy, bajo Next.
+### F1 — Cascarón Next.js · ✅ HECHA
+- ✅ Next 14.2.15 (App Router) **conviviendo con Vite** en el mismo repo:
+  `npm run dev`/`build` = Vite (intacto, HashRouter para gh-pages);
+  `npm run dev:next`/`build:next`/`start:next` = Next.
+- ✅ `app/layout.tsx` (CSS global + metadata base) y `app/[[...app]]/page.tsx`:
+  catch-all client que monta el SPA (`src/AppRoot.tsx`: BrowserRouter +
+  providers) con **URLs reales sin `#`** y redirección `/#/ruta → /ruta`.
+- ✅ `next.config.mjs` con rewrites `/api/web-bff/*` → BFF (equivalente al
+  proxy de Vite).
+- ✅ `src/pages` → `src/views` (colisionaba con el Pages Router de Next).
+- ✅ Verificado: `next build` ✓; `next start` responde 200 con el shell en
+  `/`, `/producto/:id`, `/categoria/:slug`, `/carro`; Vite build y typecheck
+  intactos.
+- Nota: en F1 el render sigue siendo client-side (ssr:false) — el valor SEO
+  llega en F2 al extraer home/PLP/PDP como server components.
 
 ### F2 — Páginas SEO server-side (el corazón) · ~4-6 días
 - **Home**: server component que llama `fetchHome()` en el servidor; `generateMetadata()` mapea `BffSeo` → `Metadata` de Next (title, description, robots, canonical, openGraph, twitter); `structuredData` → `<script type="application/ld+json">`. ISR `revalidate: 300`.
