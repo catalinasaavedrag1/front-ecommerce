@@ -106,12 +106,26 @@ líneas. Los enlaces externos antiguos siguen funcionando.
 - Nota: en F1 el render sigue siendo client-side (ssr:false) — el valor SEO
   llega en F2 al extraer home/PLP/PDP como server components.
 
-### F2 — Páginas SEO server-side (el corazón) · ~4-6 días
-- **Home**: server component que llama `fetchHome()` en el servidor; `generateMetadata()` mapea `BffSeo` → `Metadata` de Next (title, description, robots, canonical, openGraph, twitter); `structuredData` → `<script type="application/ld+json">`. ISR `revalidate: 300`.
-- **PDP** (`producto/[id]`): ídem con `fetchProductDetailRaw()`; JSON-LD `Product` del BFF. `dynamic` con cache corto (precio/stock cambian).
-- **PLP** (`categoria/[slug]`): ídem con `fetchCategoryPage()`; facetas se hidratan client-side.
-- Mapeo `BffSeo → Metadata` en un helper único (`lib/seo-next.ts`): un solo lugar donde vive la traducción.
-- Criterio de salida: **"Ver código fuente" muestra title/description/canonical/JSON-LD reales por URL.**
+### F2 — Head SSR por URL (metadata + JSON-LD del BFF) · ✅ HECHA
+- ✅ `src/lib/seo-next.tsx`: traducción ÚNICA `BffSeo → Metadata` de Next
+  (title absoluto, description, robots, canonical, hreflang, OG, Twitter) +
+  componente `JsonLd` (schema.org en el HTML crudo). Fallback honesto sin BFF.
+- ✅ Páginas server con `generateMetadata` desde el BFF e ISR alineado a su
+  cache: `/` (revalidate 300), `/producto/[id]` (120), `/categoria/[slug]`
+  (180). El catch-all pasó a `[...app]` (las rutas SEO tienen página propia).
+- ✅ `metadataBase` (NEXT_PUBLIC_SITE_URL) para canonical/OG absolutos.
+- ✅ **Verificado en vivo** (BFF corriendo): el HTML crudo de `/` muestra el
+  title/description/robots/OG compuestos por el BFF (cadena
+  seo-service→BFF→head, server-side); la ficha degrada a metadata limpia
+  cuando el downstream no responde.
+- ⚠️ Alcance honesto: en F2 el **head** es server-side por URL; el **body** de
+  home/PLP/PDP sigue client-side (Google lo renderiza vía JS). El body
+  server-rendered pasa a F3, que ahora incluye desacoplar los componentes
+  compartidos de react-router (Link/useNavigate → next/link) además de migrar
+  el resto de páginas.
+- Nota operacional: la home es estática+ISR ⇒ `WEB_BFF_INTERNAL_URL` debe
+  existir **también en el build** (si no, la primera versión queda con
+  metadata de fallback hasta la primera revalidación).
 
 ### F3 — Resto de páginas + navegación · ~3-4 días
 - Migración mecánica de las ~20 páginas restantes (client u SSG según tabla §2).

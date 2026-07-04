@@ -8,6 +8,7 @@ import '../src/index.css'
  * generateMetadata desde el bloque `seo` del BFF.
  */
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.mimbral.cl'),
   title: { default: 'Mimbral — Ferretería y Construcción', template: '%s | Mimbral' },
   description: 'Materiales de construcción, herramientas y más. Despacho a todo Chile o retiro en tienda.',
 }
