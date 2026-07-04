@@ -101,6 +101,7 @@ Documentación de la integración:
 
 - **[`docs/GUIA-OPERACION.md`](docs/GUIA-OPERACION.md)** — 📖 guía operacional **para no-programadores**: qué es cada pieza, cómo se conectan, cómo encender todo, checklist de producción y qué hacer si algo se ve mal.
 - **[`docs/DICCIONARIO-DATOS-Y-APIS.md`](docs/DICCIONARIO-DATOS-Y-APIS.md)** — 📚 diccionario **campo por campo y API por API** (headers, ajustes, modelos, endpoints del BFF y de cms-service), cada uno explicado en técnico y en simple, con qué se conecta.
+- **[`docs/PLAN-MIGRACION-NEXTJS.md`](docs/PLAN-MIGRACION-NEXTJS.md)** — 🗺️ plan por fases para migrar el storefront a Next.js (SSR) y cerrar el renderizado SEO: qué sobrevive, mapeo de rutas, riesgos (HashRouter) y criterios de aceptación.
 - **[`docs/INTEGRACION-BFF.md`](docs/INTEGRACION-BFF.md)** — guía de uso con diagramas.
 - **[`docs/CONTRATOS-BFF.md`](docs/CONTRATOS-BFF.md)** — contrato técnico: mapeo endpoint↔BFF, headers, gaps y decisiones de arquitectura.
 - Documentación completa del BFF: `Microservicios/web-bff-service/docs/`.

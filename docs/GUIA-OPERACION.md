@@ -182,6 +182,12 @@ Lo que falta no es código de la tienda: es **operación**. En orden:
   la credencial de cliente. Hasta entonces, "Mi cuenta" y "Mis pedidos" muestran
   datos de ejemplo, y los precios de empresa (B2B) usan la maqueta.
   *Responsable: decisión de negocio + backend.*
+- [ ] **Aparecer bien en Google (SEO)**: hoy la tienda arma las páginas en el
+  navegador y Google no ve bien las páginas internas. La solución es un
+  proyecto de ~3 semanas (migrar la tienda a la tecnología Next.js); el plan
+  paso a paso está en `docs/PLAN-MIGRACION-NEXTJS.md`. Conviene hacerlo
+  **antes del lanzamiento público**, no después. *Responsable: equipo front +
+  decisión de hosting con infraestructura.*
 
 ---
 
