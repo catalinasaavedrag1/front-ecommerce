@@ -160,7 +160,7 @@ Leyenda: ✅ existe y está cableado · 🟡 existe, aún sin UI · ❌ falta en
 
 ### Contenido publicado (CMS vía BFF)
 | `GET /landings/:slug` | `GET /content/landings/:slug` · `GET /content/pages/:slug` · `GET /content/banners` | 🟡 |
-| navegación/menús | `GET /navigation` | 🟡 |
+| navegación/menús | `GET /navigation` | ✅ `navigation.api.ts` + `useBffNavigation` (Header y CategoriesPage; árbol local como fallback) |
 
 ### SEO
 | metadata / schema.org / sitemap | `GET /seo/meta` · `GET /seo/structured-data/product/:slug` · `GET /sitemap.xml` · `GET /robots.txt` | 🟡 |

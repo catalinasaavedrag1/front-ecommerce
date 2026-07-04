@@ -305,6 +305,59 @@ Es lo que llena las **grillas** (home, categoría, búsqueda).
 | `costFormatted` / `etaLabel` | "$4.990" / "Llega el jueves". | Cuánto cuesta y cuándo llega. |
 | `storeId` | Tienda de retiro (si aplica). | En qué sucursal retiras. |
 
+### 5.13-bis Navegación (`BffNavigation`, `BffMenuItem`) — menú editorial del CMS + categorías del catálogo
+
+Lo devuelve `GET /navigation`. El coordinador junta **dos fuentes**: el menú
+`main` que administra marketing en el CMS y las categorías raíz del catálogo
+(respaldo estructural).
+
+| Campo | Técnico | En simple | Se conecta con |
+|---|---|---|---|
+| `menu` | `{id, code, name, items[]}` o `null` si no hay menú publicado. | El menú que armó marketing. Si es `null`, la tienda usa su menú local. | cms-service (`/public/menu/main`) vía coordinador. |
+| `menu.code` | Código estable del menú ("main", "footer"). | Qué menú es (el principal, el del pie). | El Front CMS lo crea/edita en `/menus`. |
+| `menu.items[].id` | Id del item. | Identificador interno. | — |
+| `menu.items[].label` | Texto visible del item. | Lo que se lee en el menú ("Herramientas"). | Editable en el MenuBuilder del backoffice. |
+| `menu.items[].url` | Link del item (p. ej. `/categoria/herramientas`). | A dónde te lleva el clic. **La tienda extrae el slug de aquí** para colgar el subárbol en la categoría correcta. | Rutas del front (`/categoria/:slug`). |
+| `menu.items[].position` | Orden dentro del nivel. | Cuál va primero. | Orden visual del mega-menú. |
+| `menu.items[].isVisible` | boolean. | Si está oculto, no se pinta (permite preparar sin publicar al menú). | Filtrado en `useBffNavigation`. |
+| `menu.items[].children[]` | Items anidados (recursivo, 3 niveles en la práctica). | Las subcategorías y sub-subcategorías del flyout. | Árbol del mega-menú del Header y de la página Categorías. |
+| `categories[]` | `{id, name, reference}` — categorías raíz del catálogo. | La lista "estructural" de categorías (independiente del menú editorial). | catalog-service vía coordinador. |
+
+> **Cómo lo consume la tienda** (`useBffNavigation`): convierte `menu.items` al
+> árbol `{slugCategoría → subcategorías}`. Los *tiles* de categoría (íconos,
+> descripciones) siguen siendo diseño local; **lo editorial — qué links cuelgan
+> de cada categoría — lo controla marketing**. Sin menú publicado, el árbol
+> local de la maqueta queda intacto.
+
+### 5.13-ter Auth y contexto comercial (fachada) — campos de entrada y salida
+
+**`POST /auth/login`** (entrada → id-service):
+
+| Campo | Técnico | En simple | Se conecta con |
+|---|---|---|---|
+| `correo` | email (también acepta RUT en id-service). | Tu usuario. | Tabla de usuarios de id-service. |
+| `password` | string (bcrypt en el backend). | Tu contraseña. | id-service la verifica; el BFF nunca la guarda. |
+| `plataformaId` | int — plataforma registrada en id-service (canal web). | "Desde qué sistema entras". | Control de acceso por plataforma de id-service. |
+| `forzarSesion` | boolean opcional. | "Cierra mi otra sesión abierta y entra igual" (respuesta al 409). | Caso `SESSION_ALREADY_ACTIVE`. |
+
+**Salida de login/refresh**: `token` (el JWT firmado — la credencial), más
+`usuarioId`, `nombre`, `correo` para saludar sin otra llamada.
+
+**`GET /context`** (salida — la "ficha comercial" de la sesión):
+
+| Campo | Técnico | En simple | Se conecta con |
+|---|---|---|---|
+| `session.sessionId` / `.isAuthenticated` | Sesión anónima + estado de login. | Tu número de visita y si iniciaste sesión. | `x-session-id`, JWT. |
+| `customer.customerId/customerType/roles/priceListId/companyId` | Claims del JWT (no editables por el cliente). | Quién eres, si eres persona o empresa, tu lista de precios. | id-service (emisor del token). |
+| `commercial.salesChannel` | 'web' \| 'b2b'. | En qué canal estás comprando. | Header `x-sales-channel`; caja y promociones. |
+| `commercial.storeId` | Tienda de contexto. | Tu sucursal de referencia. | `x-store-id`; stock por tienda, retiro. |
+| `commercial.location` | `{commune, region}` o null. | Tu comuna de despacho. | Headers `x-commune`/`x-region`; despacho. |
+| `commercial.company` | Empresa resuelta en comerce-service (o null si no aplica / no responde). | La ficha de tu empresa (razón social, condiciones). | comerce-service (`/company/:idOrRef`), failOpen. |
+
+> Regla de oro documentada: **id-service define quién eres** (emite el JWT);
+> **comerce-service define dónde operas** (empresa, canal, tienda). El
+> coordinador solo compone; ninguno reemplaza al otro.
+
 ### 5.13 Cuenta y pedidos (`BffAccountProfile`, `BffAddress`, `BffOrderSummary/Detail`)
 
 > ⚠️ Estos modelos son **pragmáticos**: requieren sesión (token) y sus payloads
@@ -345,7 +398,7 @@ ejemplo o un mensaje amable. Eso ya está construido.
 
 | API | Técnico | En simple |
 |---|---|---|
-| `GET /navigation` | Menú publicado (cms `menu/:code`). | "Dame el menú principal" (las categorías del encabezado). |
+| `GET /navigation` | `BffNavigation` (5.13-bis): menú `main` publicado en el CMS + categorías raíz del catálogo. Cache ~10 min. | "Dame el menú principal": lo que marketing armó en el backoffice, listo para el mega-menú. Lo consumen el encabezado y la página de categorías (`useBffNavigation`), con el menú local como respaldo. |
 
 ### 6.4 Categoría
 

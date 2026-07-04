@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
 import { categories } from '@/data/products'
-import { categoryTree } from '@/data/menu'
+import { useBffNavigation } from '@/hooks/useBffNavigation'
 import Icon, { CategoryIcon } from '@/components/Icon'
 
 export default function CategoriesPage() {
+  const { tree: categoryTree } = useBffNavigation()
   return (
     <div className="container catspage">
       <h1 className="page-title">Categorías</h1>

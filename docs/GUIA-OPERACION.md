@@ -57,6 +57,20 @@ Este es el flujo completo, de principio a fin:
 
 **Nadie toca código en este flujo.** Marketing publica; la tienda se actualiza.
 
+Lo mismo aplica a **todo el contenido editorial**, no solo banners:
+
+| Marketing administra en el panel… | …y el cliente lo ve en |
+|---|---|
+| Portada (hero, carruseles de productos, banners) | La página de inicio |
+| **Menú principal** (categorías, subcategorías y links del mega-menú) | El menú del encabezado y la página "Categorías" |
+| Landing pages de campaña | Las páginas especiales (`/dia-de-la-madre`) |
+| Campañas (agrupan piezas con fechas) | Las piezas se activan/desactivan solas |
+| Páginas informativas y SEO | Términos, "Quiénes somos", lo que muestra Google |
+
+> Detalle fino: los **íconos y descripciones** de las tarjetas de categoría son
+> diseño de la tienda (no se editan en el CMS). Lo que el CMS controla del menú
+> es **qué subcategorías y links** cuelgan de cada categoría.
+
 ---
 
 ## 3. Los dos modos de la tienda: "maqueta" y "conectado"

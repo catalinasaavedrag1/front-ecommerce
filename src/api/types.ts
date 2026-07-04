@@ -227,6 +227,24 @@ export interface BffOrderDetail extends BffOrderSummary {
   totals?: Record<string, string>
 }
 
+/* ------------------------------- Navegación ----------------------------- */
+
+/** Item del menú publicado en el CMS (árbol recursivo). */
+export interface BffMenuItem {
+  id: string
+  label: string
+  url?: string | null
+  position?: number
+  isVisible?: boolean
+  children?: BffMenuItem[]
+}
+
+/** Respuesta de GET /navigation: menú editorial (CMS) + categorías raíz (catálogo). */
+export interface BffNavigation {
+  menu: { id: string; code: string; name: string; items: BffMenuItem[] } | null
+  categories: { id: string; name: string; reference: string | null }[]
+}
+
 /* ------------------------------ Autenticación --------------------------- */
 
 export interface BffSession {

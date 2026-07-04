@@ -81,12 +81,16 @@ La integración está en dos capas: **`src/lib/`** (fundaciones) y **`src/api/`*
 
 | Pantalla | Hook | Endpoint del BFF | Fallback |
 | --- | --- | --- | --- |
-| `HomePage` | `useHomeProducts()` | `GET /home` (productos de los carruseles) | `products` de mocks |
+| `HomePage` | `useBffHome()` | `GET /home` (contenido CMS: hero/secciones/banners + productos) | maqueta local completa |
+| `Header` / `CategoriesPage` | `useBffNavigation()` | `GET /navigation` (menú `main` del CMS) | `categoryTree` local |
 | `CategoryPage` | `useCategoryProducts(id, slug)` | `GET /categories/:slug` | `productsByCategory()` |
 | `SearchPage` | `useSearchProducts(q)` | `GET /search?q=` | filtro local |
 | `ProductPage` | `useProductDetail(id)` | `GET /products/:slug` | registro → mock |
-| `CartContext` | — (espejo directo) | `POST/PATCH/DELETE /cart/...` | solo local |
-| `CheckoutPage` | — | `POST /checkout/:id/confirm` | confirmación local demo |
+| `OffersPage` | `useHomeProducts()` | `GET /home` (filtrado a ofertas) | catálogo local |
+| `OrdersPage` | `useBffOrders(mode)` | `GET /orders` (requiere sesión) | pedidos de ejemplo |
+| `CartContext` | — (`bffCart`) | `POST/PATCH/DELETE /cart/...` (carrito recalculado) | carrito local |
+| `CheckoutPage` / `OrderSummary` | — (`bffCart`) | totales del BFF + `POST /checkout/:id/confirm` | `buildTotals` local |
+| *(login — UI en demo)* | `api/auth.api.ts` listo | `POST /auth/login\|refresh\|logout`, `GET /auth/me`, `GET /context` | demo local |
 
 Los filtros, ordenamientos y la UI operan **igual en ambos modos**, porque el
 adaptador entrega el mismo tipo `Product` de siempre (con `imageUrl` extra: si
