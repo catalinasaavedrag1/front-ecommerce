@@ -5,29 +5,30 @@
  *   asociar carrito y comportamiento antes del login.
  * - `cartId`: referencia al carrito abierto en cart-service (vía BFF).
  *
- * Ambos persisten en localStorage. En un SPA Vite no hay cookies de servidor;
- * si el proyecto migra a SSR, `sessionId` debería pasar a cookie httpOnly
- * emitida por el backend (ver docs/CONTRATOS-BFF.md).
+ * Ambos persisten en localStorage (wrappers seguros de `storage.ts`). En SSR
+ * no hay navegador: `sessionId()` devuelve '' y el cliente HTTP omite el
+ * header. En la F4 de la migración a Next.js la sesión pasa a cookies
+ * (`lib/cookies.ts`) para que el servidor también la conozca.
  */
-import { STORAGE_KEYS } from './storage'
+import { STORAGE_KEYS, hasBrowserStorage, storageGet, storageSet } from './storage'
 
-/** Sesión anónima estable por navegador. La crea la primera vez que se usa. */
+/** Sesión anónima estable por navegador. '' en SSR (sin sesión que enviar). */
 export function sessionId(): string {
-  let id = localStorage.getItem(STORAGE_KEYS.SESSION_ID)
+  if (!hasBrowserStorage()) return ''
+  let id = storageGet(STORAGE_KEYS.SESSION_ID)
   if (!id) {
     id = crypto.randomUUID()
-    localStorage.setItem(STORAGE_KEYS.SESSION_ID, id)
+    storageSet(STORAGE_KEYS.SESSION_ID, id)
   }
   return id
 }
 
-/** cartId activo (o null si aún no hay carrito en el BFF). */
+/** cartId activo (o null si aún no hay carrito en el BFF / estamos en SSR). */
 export function getCartId(): string | null {
-  return localStorage.getItem(STORAGE_KEYS.CART_ID)
+  return storageGet(STORAGE_KEYS.CART_ID)
 }
 
-/** Fija/limpia el cartId activo. */
+/** Fija/limpia el cartId activo (no-op en SSR). */
 export function setCartId(id: string | null): void {
-  if (id) localStorage.setItem(STORAGE_KEYS.CART_ID, id)
-  else localStorage.removeItem(STORAGE_KEYS.CART_ID)
+  storageSet(STORAGE_KEYS.CART_ID, id)
 }

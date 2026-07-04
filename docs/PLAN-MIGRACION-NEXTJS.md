@@ -77,11 +77,18 @@ líneas. Los enlaces externos antiguos siguen funcionando.
 
 ## 3. Fases del proyecto
 
-### F0 — Preparación (en el repo actual, sin romper nada) · ~1-2 días
-- Guards SSR en `lib/storage|session|auth` (`typeof window === 'undefined'` → no-op/null).
-- `lib/env.ts` lee `NEXT_PUBLIC_WEB_BFF_URL` **o** `VITE_BFF_URL` (compatible con ambos mundos durante la transición).
-- Verificar que ningún componente importe `import.meta.env` directo (hoy ya está centralizado en `lib/env.ts` ✅).
-- *Se puede mergear al repo actual sin efecto visible.*
+### F0 — Preparación (en el repo actual, sin romper nada) · ✅ HECHA
+- ✅ Guards SSR: todo acceso a localStorage pasa por `storageGet/storageSet`
+  (`lib/storage.ts`, no-op/null en servidor); `sessionId()` devuelve `''` en
+  SSR y el cliente HTTP omite el header `x-session-id` vacío.
+- ✅ `lib/env.ts` con lectura DUAL: `VITE_BFF_URL` (Vite, hoy) o
+  `WEB_BFF_INTERNAL_URL`/`NEXT_PUBLIC_WEB_BFF_URL` (Next server/client) — con
+  accesos literales a `process.env.NEXT_PUBLIC_*` (Next los inyecta
+  estáticamente; no funcionan los lookups dinámicos).
+- ✅ Verificado: cero `import.meta.env` fuera de `lib/env.ts` y cero
+  `localStorage` directo en `lib/`+`api/` fuera de `storage.ts`. Los contextos
+  de React lo usan directo a propósito (serán `'use client'`).
+- ✅ Sin efecto visible: typecheck y build idénticos.
 
 ### F1 — Cascarón Next.js · ~2-3 días
 - Scaffold Next 14+ (App Router, TS). `app/layout.tsx`: importa `index.css`, monta `<AppProvider><WishlistProvider><CartProvider>` (client) y el `Header`/`Footer`.

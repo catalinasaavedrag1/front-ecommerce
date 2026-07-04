@@ -76,8 +76,10 @@ function buildHeaders(options: WebBffRequestOptions): Record<string, string> {
     'x-sales-channel': ctx.salesChannel,
     'x-locale': LOCALE,
     'x-currency': CURRENCY,
-    'x-session-id': sessionId(),
   }
+  // En SSR no hay sesión de navegador (sessionId() = ''): se omite el header.
+  const session = sessionId()
+  if (session) headers['x-session-id'] = session
   if (token) headers.authorization = `Bearer ${token}`
   if (cartId) headers['x-cart-id'] = cartId
   if (options.storeId) headers['x-store-id'] = options.storeId
