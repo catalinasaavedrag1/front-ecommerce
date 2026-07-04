@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import { Link } from '@/nav'
 import { frequentLists } from '@/data/account'
 import { getProduct } from '@/data/products'
 import { useCart } from '@/context/CartContext'

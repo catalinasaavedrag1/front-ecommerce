@@ -1,5 +1,7 @@
+'use client'
+
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '@/nav'
 import Icon, { type IconName } from '@/components/Icon'
 
 type Store = { id: string; name: string; addr: string; comuna: string; open: boolean; hours: string }

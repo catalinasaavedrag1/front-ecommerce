@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from '@/nav'
 
 const LINKS: { label: string; to: string }[] = [
   { label: 'Términos y condiciones', to: '/legal/terminos' },

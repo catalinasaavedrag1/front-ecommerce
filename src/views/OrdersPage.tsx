@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import { Link } from '@/nav'
 import { useApp } from '@/context/AppContext'
 import type { OrderRecord } from '@/types'
 import { useBffOrders } from '@/hooks/useBffOrders'

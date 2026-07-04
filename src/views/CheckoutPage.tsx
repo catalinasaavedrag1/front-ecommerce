@@ -1,5 +1,7 @@
+'use client'
+
 import { useMemo, useState, type KeyboardEvent, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '@/nav'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import { confirmCheckout } from '@/api/checkout.api'

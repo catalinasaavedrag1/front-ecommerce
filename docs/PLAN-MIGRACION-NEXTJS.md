@@ -127,10 +127,36 @@ líneas. Los enlaces externos antiguos siguen funcionando.
   existir **también en el build** (si no, la primera versión queda con
   metadata de fallback hasta la primera revalidación).
 
-### F3 — Resto de páginas + navegación · ~3-4 días
-- Migración mecánica de las ~20 páginas restantes (client u SSG según tabla §2).
-- Header/menú: el server layout puede pre-cargar `GET /navigation` y pasarla como initial data al hook (menos flicker).
-- Script de redirección de URLs `/#/…`.
+### F3 — Body server-rendered + todas las rutas · ✅ HECHA
+- ✅ **Shim de navegación `@/nav`**: todo el código compartido (views,
+  components, context, hooks) dejó de importar react-router-dom. Bajo Next,
+  `src/nav/index.tsx` implementa la misma API sobre next/link+next/navigation
+  (NavLink con clase `active` automática, `end`, className-función; useNavigate
+  con `-1` y `{replace}`; useSearchParams con setter `{replace}`); bajo Vite,
+  el alias `@/nav` → `src/nav/vite.tsx` re-exporta react-router (el SPA actual
+  sigue idéntico). Lección: el alias se puso del lado de Vite porque el alias
+  webpack de Next no gana sobre sus tsconfig-paths.
+- ✅ **Las 28 rutas como páginas Next reales**: grupo `(store)` con
+  `StoreShell` (Layout con children + Suspense), `carro`/`checkout` fuera del
+  layout, `not-found.tsx`, y `robots noindex` en las 10 rutas privadas/de
+  sesión (buscar, carro, checkout, cuenta, pedidos, favoritos, listas,
+  ingresar, seguimiento, cotización).
+- ✅ **Body SSR con datos sembrados**: home/PDP/PLP reciben la data obtenida en
+  el servidor (`initialHome`/`initialProduct`/`initialProducts`) — el HTML
+  inicial trae el contenido real y la hidratación coincide. Providers + hash
+  redirect en el layout raíz. Se eliminaron el catch-all/SpaShell/AppRoot de F1.
+- ✅ **Verificado en vivo** (BFF corriendo): home = 89 KB de HTML server-rendered
+  con el title del BFF y las secciones reales; PDP con `<h1>` del producto en
+  el HTML crudo; PLP con estructura completa; 404 correcto; canonical/OG/
+  noindex verificados por curl. Vite build y typecheck intactos.
+- ⚠️ Notas honestas: (1) el `useLocation` del shim no usa useSearchParams de
+  Next a propósito (forzaba bailout a CSR en páginas estáticas); search/hash se
+  leen del navegador y no son reactivos — suficiente para los usos actuales.
+  (2) Las vistas que usan useSearchParams directo (buscar, cotización,
+  contacto, calculadora) hacen bailout a CSR en su isla — sin impacto SEO
+  (noindex o contenido no crítico). (3) Con downstream de catálogo caído, PDP/
+  PLP degradan a title de fallback y skeletons/mocks — con datos reales arriba,
+  el HTML trae título y productos reales por URL.
 
 ### F4 — Sesión por cookies · ~2-3 días
 - `x-session-id`: pasa de localStorage a **cookie** (utilidades ya listas en `lib/cookies.ts`), para que el server también la envíe al BFF y el carrito/contexto sean consistentes SSR↔client.

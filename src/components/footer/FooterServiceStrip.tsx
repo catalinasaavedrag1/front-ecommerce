@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from '@/nav'
 import Icon, { type IconName } from '@/components/Icon'
 
 type Item = { icon: IconName; to: string; title: string; desc: string }

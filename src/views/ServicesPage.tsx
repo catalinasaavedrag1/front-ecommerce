@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import { Link } from '@/nav'
 import PageHero from '@/components/PageHero'
 import Icon, { type IconName } from '@/components/Icon'
 

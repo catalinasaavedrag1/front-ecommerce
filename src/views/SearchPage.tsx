@@ -1,5 +1,7 @@
+'use client'
+
 import { useMemo } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from '@/nav'
 import { categories, products } from '@/data/products'
 import ProductCard from '@/components/ProductCard'
 import { CategoryIcon } from '@/components/Icon'

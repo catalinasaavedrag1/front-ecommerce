@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from '@/nav'
 import type { Customer } from '@/types'
 import { useCart } from '@/context/CartContext'
 import { getProduct } from '@/data/products'

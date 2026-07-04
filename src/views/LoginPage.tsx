@@ -1,5 +1,7 @@
+'use client'
+
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/nav'
 import { useApp } from '@/context/AppContext'
 import type { Customer, SalesMode } from '@/types'
 

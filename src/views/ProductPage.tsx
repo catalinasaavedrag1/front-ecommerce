@@ -1,5 +1,7 @@
+'use client'
+
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from '@/nav'
 import { getCategory } from '@/data/products'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
@@ -28,10 +30,10 @@ import { technicalSheet, productDocs } from '@/utils/techsheet'
 
 type DeliveryTab = 'despacho' | 'retiro' | 'tienda'
 
-export default function ProductPage() {
+export default function ProductPage({ initialProduct }: { initialProduct?: import('@/types').Product } = {}) {
   const { id = '' } = useParams()
   // Ficha desde el BFF cuando está configurado (mock/registro como base).
-  const { data: product, loading: productLoading } = useProductDetail(id)
+  const { data: product, loading: productLoading } = useProductDetail(id, initialProduct)
   const { mode, customer, comuna, setComuna } = useApp()
   const { add } = useCart()
   const wishlist = useWishlist()

@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import { Link } from '@/nav'
 import { categories } from '@/data/products'
 import { cmsProductSections, cmsSlides, cmsStripBanners, useBffHome } from '@/hooks/useBffHome'
 import { useApp } from '@/context/AppContext'
@@ -65,11 +67,11 @@ const projects: { label: string; to: string; icon: IconName }[] = [
   { label: 'Climatizar mi hogar', to: '/categoria/electrohogar', icon: 'electrohogar' },
 ]
 
-export default function HomePage() {
+export default function HomePage({ initialHome }: { initialHome?: import('@/api/types').BffHome | null } = {}) {
   const { mode, customer } = useApp()
   // Home completa desde el BFF (contenido CMS + productos) cuando está
   // configurado; maqueta local si no. Una sola llamada a GET /home.
-  const { home, products: catalog, live } = useBffHome()
+  const { home, products: catalog, live } = useBffHome(initialHome)
   const offers = catalog.filter((p) => p.retailOffer).slice(0, 6)
   const bestSellers = catalog.filter((p) => p.tags?.includes('Más vendido'))
   const featured = catalog.slice(0, 8)
