@@ -332,10 +332,41 @@ Decisión: el backoffice queda **solo en `cms-front`**, conectado **directo a
 
 ---
 
-## 11. SEO (nota importante)
+## 11. SEO — arquitectura, estado real y plan
 
-Este front es un **SPA con Vite (React + react-router-dom), no Next.js**. El
-capítulo de SSR del brief no aplica tal cual: no hay render de servidor. El SEO
-se resuelve por otra vía (el BFF ya expone `sitemap.xml`, `robots.txt` y
-`/seo/meta`; para metadata por página se puede usar pre-render/SSG o
-`react-helmet`). Definir estrategia antes de asumir SSR.
+### 11.1 La separación de roles (verificada contra el código)
+
+```
+seo-service        = cerebro SEO (reglas, metadata, schema, sitemap, auditoría)
+web-bff-service    = orquestador (compone la página CON su bloque seo)
+front-ecommerce    = renderizador SEO (pinta metadata/JSON-LD en el <head>)
+cms-service        = contenido editable (incl. SEO por entidad, módulo /seo)
+catalog-service-v1 = verdad del producto
+```
+
+**Estado por eslabón:**
+
+| Eslabón | Estado |
+|---|---|
+| El front NUNCA llama a seo-service directo | ✅ solo habla con el BFF. |
+| El BFF llama a seo-service **en paralelo** en sus aggregators y entrega `seo` (`BffSeo`) dentro de home/categoría/ficha | ✅ verificado en vivo (`GET /home` → `seo{…}`). |
+| seo-service con integraciones internas a catalog, cms, search, comerce (+ pricing/inventory/pim para el JSON-LD de producto) y **no** al resto | ✅ verificado en su código; expone además `public/seo/page\|schema\|resolve`, `robots.txt`, `sitemap.xml`, auditoría, slugs. |
+| `robots.txt` / `sitemap.xml` en la raíz del dominio (reexpuestos por el BFF) | ✅ |
+| CMS con sección SEO editable por entidad; seo-service dueño de reglas globales | ✅ (`/seo` en cms-service + SeoContentHub en cms-front). |
+| **El front renderiza el bloque `seo` en el `<head>`** | ❌ **el eslabón faltante** — ver 11.2. |
+
+### 11.2 Los 3 pendientes SEO (backlog priorizado)
+
+1. **Renderizado server-side (crítico)** — el SPA usa **HashRouter**
+   (`/#/producto/...`): para Google todo el sitio es una sola URL, y el HTML
+   inicial lleva metadata estática. El bloque `seo` llega pero no se pinta.
+   Solución de fondo: **migrar el storefront a Next.js** — plan completo por
+   fases en **[`PLAN-MIGRACION-NEXTJS.md`](PLAN-MIGRACION-NEXTJS.md)**
+   (~3 semanas dev; F0 puede entrar hoy sin romper nada).
+2. **Reglas de indexación de facetas (seo-service)** — política
+   INDEX/NOINDEX/canonical para URLs parametrizadas de PLP
+   (`/taladros?marca=bosch&precio=…` → noindex + canonical a `/taladros`).
+   Debe vivir como regla en seo-service y viajar en `BffSeo.robots/canonical`.
+3. **Página de tiendas con datos reales** — `/tiendas` es maqueta; el JSON-LD
+   `LocalBusiness/Store` debe salir de comerce-service (la integración en
+   seo-service ya existe).

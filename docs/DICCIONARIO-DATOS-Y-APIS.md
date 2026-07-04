@@ -489,7 +489,7 @@ ejemplo o un mensaje amable. Eso ya está construido.
 
 | API | Técnico | En simple |
 |---|---|---|
-| `GET /seo/meta?path=` | `BffSeo` (5.9) por ruta. | Los datos de Google para cualquier página. |
+| `GET /seo/meta?path=` | `BffSeo` (5.9) por ruta. | Los datos de Google para cualquier página. ⚠️ *Hoy el dato llega pero la tienda (SPA) aún no lo pinta en el `<head>`; se cierra con la migración a Next.js (`PLAN-MIGRACION-NEXTJS.md`).* |
 | `GET /seo/structured-data/product/:slug` | JSON-LD del producto. | La ficha "etiquetada" para que Google muestre precio y estrellas. |
 | `GET /sitemap.xml` · `GET /robots.txt` | **En la raíz del dominio** (fuera del prefijo). | El mapa del sitio y las reglas para el robot de Google. |
 
