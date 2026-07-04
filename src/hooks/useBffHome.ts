@@ -26,16 +26,34 @@ export interface HomeResult {
   loading: boolean
 }
 
-export function useBffHome(): HomeResult {
-  const [state, setState] = useState<HomeResult>({
-    home: null,
-    products: mockProducts,
-    live: false,
-    loading: isBffEnabled(),
-  })
+/**
+ * @param initial Página ya obtenida en el servidor (F3): siembra el estado y
+ * evita el fetch client-side — el body server-rendered y el hidratado coinciden.
+ */
+export function useBffHome(initial?: BffHome | null): HomeResult {
+  const seeded = initial
+    ? {
+        home: initial,
+        products: (() => {
+          const items = initial.sections.flatMap((s) => s.products ?? []).map((c) => cardToProduct(c))
+          registerProducts(items)
+          return items.length > 0 ? items : mockProducts
+        })(),
+        live: true,
+        loading: false,
+      }
+    : null
+  const [state, setState] = useState<HomeResult>(
+    seeded ?? {
+      home: null,
+      products: mockProducts,
+      live: false,
+      loading: isBffEnabled(),
+    },
+  )
 
   useEffect(() => {
-    if (!isBffEnabled()) return
+    if (seeded || !isBffEnabled()) return
     let cancelled = false
     fetchHome()
       .then((home) => {

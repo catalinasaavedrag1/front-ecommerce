@@ -1,5 +1,7 @@
+'use client'
+
 import { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from '@/nav'
 import PageHero from '@/components/PageHero'
 import Icon, { type IconName } from '@/components/Icon'
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from '@/nav'
 import { categories } from '@/data/products'
 import { useBffNavigation } from '@/hooks/useBffNavigation'
 import { useApp } from '@/context/AppContext'

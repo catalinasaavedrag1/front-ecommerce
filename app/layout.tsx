@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import '../src/index.css'
+import Providers from './providers'
 
 /**
  * Layout raiz del cascarón Next (F1 del plan de migración).
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body><Providers>{children}</Providers></body>
     </html>
   )
 }

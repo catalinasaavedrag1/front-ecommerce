@@ -1,5 +1,7 @@
+'use client'
+
 import { useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from '@/nav'
 import { categories, getCategory } from '@/data/products'
 import { availabilityFor } from '@/utils/catalog'
 import { useApp } from '@/context/AppContext'
@@ -20,7 +22,7 @@ function subcatHue(s: string): number {
   return h
 }
 
-export default function CategoryPage() {
+export default function CategoryPage({ initialProducts }: { initialProducts?: import('@/types').Product[] } = {}) {
   const { slug = '' } = useParams()
   const { mode } = useApp()
   const category = getCategory(slug)
@@ -35,7 +37,7 @@ export default function CategoryPage() {
   const briefLoading = useBriefLoading([slug, sort, onlyOffers, pickup, delivery, brands.join(','), subcat ?? ''])
 
   // Productos del BFF (search-service por categoría) o mocks locales.
-  const { data: all, loading: bffLoading } = useCategoryProducts(category?.id ?? '', slug)
+  const { data: all, loading: bffLoading } = useCategoryProducts(category?.id ?? '', slug, initialProducts)
   const loading = briefLoading || bffLoading
   const brandList = useMemo(() => Array.from(new Set(all.map((p) => p.brand))).sort(), [all])
   const subcatTiles = category?.subcats ?? []

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '@/nav'
 import { useCart } from '@/context/CartContext'
 import { useApp } from '@/context/AppContext'
 import { getProduct } from '@/data/products'

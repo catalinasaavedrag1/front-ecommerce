@@ -146,6 +146,12 @@ npm run dev
 ```
 Se abre en `http://localhost:5173`.
 
+> **Modo Next.js (para SEO, el futuro de la tienda):** la misma tienda también
+> puede encenderse con `npm run dev:next` (se abre en `http://localhost:3000`,
+> con URLs sin `#` y las páginas armadas en el servidor). Para producción:
+> `WEB_BFF_INTERNAL_URL=<url del coordinador> npm run build:next && npm run start:next`.
+> Importante: esa variable debe existir **también al construir**, no solo al encender.
+
 **C. El panel de contenido (cms-front):**
 ```
 cd cms-front

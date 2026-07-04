@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import { Link } from '@/nav'
 import Icon from '@/components/Icon'
 
 export default function NotFoundPage() {

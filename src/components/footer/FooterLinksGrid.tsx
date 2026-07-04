@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '@/nav'
 import Icon from '@/components/Icon'
 
 type Col = { title: string; links: { label: string; to: string }[] }

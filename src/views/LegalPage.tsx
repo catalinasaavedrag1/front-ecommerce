@@ -1,4 +1,6 @@
-import { Navigate, NavLink, useParams } from 'react-router-dom'
+'use client'
+
+import { Navigate, NavLink, useParams } from '@/nav'
 import PageHero from '@/components/PageHero'
 
 type Doc = { slug: string; title: string; nav: string; updated: string; sections: { h: string; p: string }[] }

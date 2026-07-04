@@ -1,3 +1,5 @@
+'use client'
+
 import PageHero from '@/components/PageHero'
 import Icon from '@/components/Icon'
 

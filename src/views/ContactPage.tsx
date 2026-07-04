@@ -1,5 +1,7 @@
+'use client'
+
 import { useState, type FormEvent } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from '@/nav'
 import PageHero from '@/components/PageHero'
 import Icon from '@/components/Icon'
 

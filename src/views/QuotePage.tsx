@@ -1,5 +1,7 @@
+'use client'
+
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from '@/nav'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import { buildTotals } from '@/utils/cart'

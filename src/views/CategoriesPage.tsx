@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import { Link } from '@/nav'
 import { categories } from '@/data/products'
 import { useBffNavigation } from '@/hooks/useBffNavigation'
 import Icon, { CategoryIcon } from '@/components/Icon'

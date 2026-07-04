@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
+import { useEffect, type ReactNode } from 'react'
+import { Outlet, useLocation } from '@/nav'
 import Header from './Header'
 import Footer from './Footer'
 import PatioConstructorBanner from './PatioConstructorBanner'
@@ -8,7 +8,7 @@ import Icon from './Icon'
 import MobileBottomNav from './MobileBottomNav'
 import { useApp } from '@/context/AppContext'
 
-export default function Layout() {
+export default function Layout({ children }: { children?: ReactNode } = {}) {
   const { mode } = useApp()
   const { pathname, hash } = useLocation()
 
@@ -38,7 +38,7 @@ export default function Layout() {
         </div>
       )}
       <main className="main" id="main">
-        <Outlet />
+        {children ?? <Outlet />}
       </main>
       <PatioConstructorBanner />
       <Footer />

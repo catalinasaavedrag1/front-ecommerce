@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import { Link } from '@/nav'
 import { products as localProducts } from '@/data/products'
 import { priceFor } from '@/utils/pricing'
 import { useApp } from '@/context/AppContext'

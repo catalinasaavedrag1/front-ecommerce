@@ -52,12 +52,15 @@ export function useHomeProducts(): Result<Product[]> {
 }
 
 /** Productos de una categoría. */
-export function useCategoryProducts(categoryId: string, slug: string): Result<Product[]> {
-  return useBffList(
+export function useCategoryProducts(categoryId: string, slug: string, initial?: Product[]): Result<Product[]> {
+  // `initial` (F3): productos ya obtenidos en el servidor; sin fetch client-side.
+  const seeded = useBffList(
     productsByCategory(categoryId),
-    isBffEnabled() ? () => fetchCategoryProducts(slug) : null,
+    initial || !isBffEnabled() ? null : () => fetchCategoryProducts(slug),
     [categoryId, slug],
   )
+  if (initial && initial.length > 0) return { data: initial, live: true, loading: false }
+  return seeded
 }
 
 /** Resultados de búsqueda (server-side con BFF; local sin él). */
@@ -69,14 +72,15 @@ export function useSearchProducts(q: string): Result<Product[]> {
 }
 
 /** Ficha de producto: mock/registro al instante + enriquecimiento del BFF. */
-export function useProductDetail(idOrSlug: string): Result<Product | undefined> {
-  const initial = getRegisteredProduct(idOrSlug) ?? getMockProduct(idOrSlug)
+export function useProductDetail(idOrSlug: string, initialLive?: Product): Result<Product | undefined> {
+  const initial = initialLive ?? getRegisteredProduct(idOrSlug) ?? getMockProduct(idOrSlug)
   const [state, setState] = useState<Result<Product | undefined>>({
     data: initial,
-    live: false,
-    loading: isBffEnabled(),
+    live: !!initialLive,
+    loading: !initialLive && isBffEnabled(),
   })
   useEffect(() => {
+    if (initialLive) return
     const base = getRegisteredProduct(idOrSlug) ?? getMockProduct(idOrSlug)
     if (!isBffEnabled()) {
       setState({ data: base, live: false, loading: false })

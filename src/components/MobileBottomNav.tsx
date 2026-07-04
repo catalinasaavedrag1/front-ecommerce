@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation } from '@/nav'
 import { useCart } from '@/context/CartContext'
 import { useApp } from '@/context/AppContext'
 import Icon, { type IconName } from './Icon'
