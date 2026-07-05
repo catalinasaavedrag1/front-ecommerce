@@ -1,0 +1,462 @@
+'use client'
+
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useParams } from '@/nav'
+import { getCategory } from '@/data/products'
+import { useApp } from '@/context/AppContext'
+import { useCart } from '@/context/CartContext'
+import PriceTag from '@/components/PriceTag'
+import Rating from '@/components/Rating'
+import ProductImage from '@/components/ProductImage'
+import BottomSheet from '@/components/BottomSheet'
+import Icon from '@/components/Icon'
+import Calculator from '@/components/Calculator'
+import ProductCarousel from '@/components/ProductCarousel'
+import CompareTable from '@/components/CompareTable'
+import ProductReviews from '@/components/ProductReviews'
+import ProductQA from '@/components/ProductQA'
+import ShareButton from '@/components/ShareButton'
+import Accordion from '@/components/Accordion'
+import { useWishlist } from '@/context/WishlistContext'
+import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
+import { useProductDetail } from '@/hooks/useBffCatalog'
+import { getRecommendations } from '@/utils/recommendations'
+import { getVariants } from '@/utils/variants'
+import { priceFor, nextVolumeTier } from '@/utils/pricing'
+import { formatCLP, IVA_RATE } from '@/utils/format'
+import { comunas, deliveryInfo, etaLabel } from '@/data/comunas'
+import { warehouseStock } from '@/utils/catalog'
+import { technicalSheet, productDocs } from '@/utils/techsheet'
+
+type DeliveryTab = 'despacho' | 'retiro' | 'tienda'
+
+export default function ProductPage({ initialProduct }: { initialProduct?: import('@/types').Product } = {}) {
+  const { id = '' } = useParams()
+  // Ficha desde el BFF cuando está configurado (mock/registro como base).
+  const { data: product, loading: productLoading } = useProductDetail(id, initialProduct)
+  const { mode, customer, comuna, setComuna } = useApp()
+  const { add } = useCart()
+  const wishlist = useWishlist()
+  const [qty, setQty] = useState(1)
+  const [added, setAdded] = useState(false)
+  const [view, setView] = useState(0)
+  const [sheet, setSheet] = useState<DeliveryTab | null>(null)
+  const [variantSel, setVariantSel] = useState<Record<string, string>>({})
+  const [now, setNow] = useState(() => Date.now())
+  const recentlyViewed = useRecentlyViewed(id)
+
+  // Campaña de tiempo limitado: termina al cierre del segundo día.
+  const campaignEnd = useMemo(() => {
+    const d = new Date()
+    d.setHours(23, 59, 59, 0)
+    d.setDate(d.getDate() + 2)
+    return d.getTime()
+  }, [])
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [])
+
+  if (!product) {
+    if (productLoading) {
+      return <div className="container empty"><h1>Cargando producto…</h1></div>
+    }
+    return (
+      <div className="container empty">
+        <h1>Producto no encontrado</h1>
+        <Link to="/" className="btn btn--primary">Volver al inicio</Link>
+      </div>
+    )
+  }
+
+  const category = getCategory(product.categoryId)
+  const recs = getRecommendations(product)
+  const variants = getVariants(product)
+  const price = priceFor(product, qty, mode, customer)
+  const nextTier = mode === 'b2b' ? nextVolumeTier(product, qty) : undefined
+
+  // Desglose B2B: neto + IVA + total y ahorro frente al precio público.
+  const subtotalNet = price.unitNet * qty
+  const ivaAmount = subtotalNet * IVA_RATE
+  const totalGross = price.unitGross * qty
+  const publicTotal = product.retailPrice * qty
+  const savings = Math.max(0, publicTotal - totalGross)
+  const savingsPct = publicTotal > 0 ? Math.round((savings / publicTotal) * 100) : 0
+  const earlyPayDiscount = subtotalNet * 0.03 // pago en ≤15 días
+
+  // Cuenta regresiva de la campaña (oferta a público o precio por volumen B2B).
+  const showCampaign = Boolean(product.retailOffer) || (mode === 'b2b' && !!product.volumeTiers?.length)
+  const remainingSec = Math.max(0, Math.floor((campaignEnd - now) / 1000))
+  const cd = {
+    d: Math.floor(remainingSec / 86_400),
+    h: Math.floor((remainingSec % 86_400) / 3_600),
+    m: Math.floor((remainingSec % 3_600) / 60),
+    s: remainingSec % 60,
+  }
+
+  const maxQty = Math.min(product.stock, 30)
+  const lowStock = product.stock <= 12
+  const del = deliveryInfo(comuna, product)
+  const baseCost = del.free ? 0 : del.cost
+  const despachoOpts = del.coverage
+    ? [
+        { label: etaLabel(del.days), cost: baseCost },
+        { label: `Programado · en ${del.days + 2} días hábiles`, cost: del.free ? 0 : Math.max(990, baseCost - 1000) },
+      ]
+    : []
+  const stockReport = warehouseStock(product, qty)
+  const retiroOpts = [
+    { label: 'Retiro hoy', store: 'Tienda Balmaceda', when: 'Listo en 2 hrs' },
+    { label: 'Retiro mañana', store: 'Tienda Chorrillos', when: 'Mañana desde 11:00' },
+  ]
+
+  // Chips comerciales (máx. 4)
+  const chips: { label: string; kind: 'ok' | 'plain' | 'red' | 'warn' }[] = []
+  if (product.retailOffer) chips.push({ label: 'Oferta', kind: 'red' })
+  chips.push({ label: 'Retiro hoy', kind: 'ok' })
+  chips.push({ label: 'Despacho 24-72 hrs', kind: 'plain' })
+  chips.push(lowStock ? { label: `Solo ${product.stock} u.`, kind: 'warn' } : { label: 'Stock disponible', kind: 'ok' })
+  chips.push({ label: '12 cuotas sin interés', kind: 'plain' })
+  const visibleChips = chips.slice(0, 4)
+
+  const variantLabel = variants.length
+    ? variants.map((g) => variantSel[g.type] ?? g.options[0].label).join(' · ')
+    : undefined
+  const onAdd = () => {
+    add(product.id, qty, variantLabel)
+    setAdded(true)
+    setTimeout(() => setAdded(false), 1800)
+  }
+  const clampQty = (n: number) => Math.max(1, Math.min(maxQty, n))
+
+  return (
+    <div className="container pdp-page">
+      <nav className="breadcrumb">
+        <Link to="/">Inicio</Link> <span>/</span>{' '}
+        <Link to={`/categoria/${category?.slug ?? product.categoryId}`}>{category?.name ?? 'Categoría'}</Link> <span>/</span>{' '}
+        <span className="breadcrumb__current">{product.name}</span>
+      </nav>
+
+      <div className="pdp">
+        {/* Galería */}
+        <div className="pdp__gallery">
+          <div className="pdp__stage">
+            <ProductImage product={product} variant={view} className="pdp__img" />
+          </div>
+          <div className="pdp__thumbs">
+            {[0, 1, 2].map((v) => (
+              <button
+                key={v}
+                className={`pdp__thumb ${view === v ? 'is-active' : ''}`}
+                onClick={() => setView(v)}
+                aria-label={`Vista ${v + 1}`}
+              >
+                <ProductImage product={product} variant={v} className="pdp__thumb-img" />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Información principal + compra */}
+        <div className="pdp__info">
+          <span className="pdp__brand">{product.brand}</span>
+          <h1 className="pdp__title">{product.name}</h1>
+          <div className="pdp__meta">
+            <Rating value={product.rating} reviews={product.reviews} />
+            <span className="pdp__sku">SKU {product.sku}</span>
+          </div>
+
+          {showCampaign && remainingSec > 0 && (
+            <div className={`pdp__campaign ${mode === 'b2b' ? 'pdp__campaign--b2b' : ''}`}>
+              <span className="pdp__campaign-label"><Icon name="percent" /> {mode === 'b2b' ? 'Precios de campaña de invierno' : 'Oferta por tiempo limitado'}</span>
+              <span className="pdp__campaign-timer" aria-label={`Termina en ${cd.d} días ${cd.h} horas ${cd.m} minutos`}>
+                Termina en <strong>{cd.d}d</strong> <strong>{cd.h}h</strong> <strong>{cd.m}m</strong> <strong>{cd.s}s</strong>
+              </span>
+            </div>
+          )}
+
+          <div className="pdp__priceblock">
+            <div className="pdp__price-col">
+              <PriceTag product={product} qty={qty} />
+              <span className="pdp__unit">Por {product.unit}</span>
+            </div>
+            <div className="pdp__iconrow">
+              <ShareButton title={product.name} text={`Mira este producto en Mimbral: ${product.name}`} whatsappText={`Mira este producto en Mimbral: ${product.name} (${formatCLP(product.retailOffer ?? product.retailPrice)})`} />
+              <button
+                className={`pdp__iconbtn ${wishlist.has(product.id) ? 'is-on' : ''}`}
+                onClick={() => wishlist.toggle(product.id)}
+                aria-label={wishlist.has(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                aria-pressed={wishlist.has(product.id)}
+              >
+                <Icon name="heart" filled={wishlist.has(product.id)} />
+              </button>
+            </div>
+          </div>
+
+          {visibleChips.length > 0 && (
+            <div className="pdp__chips">
+              {visibleChips.map((c) => (
+                <span key={c.label} className={`pchip pchip--${c.kind}`}>{c.label}</span>
+              ))}
+            </div>
+          )}
+
+          {/* Variantes (si el producto tiene) */}
+          {variants.length > 0 && (
+            <div className="pvars">
+              {variants.map((g) => (
+                <div className="pvar" key={g.type}>
+                  <span className="pvar__label">{g.type}: <strong>{variantSel[g.type] ?? g.options[0].label}</strong></span>
+                  <div className="pvar__opts">
+                    {g.options.map((o) => {
+                      const active = (variantSel[g.type] ?? g.options[0].label) === o.label
+                      return o.color ? (
+                        <button key={o.label} className={`pvar__sw ${active ? 'is-on' : ''}`} style={{ background: o.color }} title={o.label} aria-label={`${g.type} ${o.label}`} aria-pressed={active} onClick={() => setVariantSel((s) => ({ ...s, [g.type]: o.label }))} />
+                      ) : (
+                        <button key={o.label} className={`pvar__chip ${active ? 'is-on' : ''}`} aria-pressed={active} onClick={() => setVariantSel((s) => ({ ...s, [g.type]: o.label }))}>{o.label}</button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Bloque de entrega */}
+          <div className="pdp__delivery">
+            <div className="pdp__delivery-head"><Icon name="pin" /> Entrega en <strong>{comuna}</strong></div>
+            <button className="delrow" onClick={() => setSheet('despacho')}>
+              <span className="delrow__ic"><Icon name="truck" /></span>
+              <span className="delrow__txt"><strong>Despacho a domicilio</strong><span>{del.coverage ? `${etaLabel(del.days)} · ${del.free ? 'Gratis' : `Desde ${formatCLP(baseCost)}`}` : `Sin cobertura en ${comuna}`}</span></span>
+              <Icon name="chevron" className="delrow__chev" />
+            </button>
+            <button className="delrow" onClick={() => setSheet('retiro')}>
+              <span className="delrow__ic"><Icon name="store" /></span>
+              <span className="delrow__txt"><strong>Retiro en tienda</strong><span>Retiro gratis hoy · {retiroOpts[0].store}</span></span>
+              <Icon name="chevron" className="delrow__chev" />
+            </button>
+            <button className="delrow" onClick={() => setSheet('tienda')}>
+              <span className="delrow__ic"><Icon name="box" /></span>
+              <span className="delrow__txt"><strong>Disponible en tienda</strong><span>{product.stock} unidades disponibles</span></span>
+              <Icon name="chevron" className="delrow__chev" />
+            </button>
+          </div>
+
+          {/* Tramos por volumen (B2B) */}
+          {mode === 'b2b' && product.volumeTiers?.length ? (
+            <table className="tiers">
+              <thead><tr><th>Cantidad</th><th>Precio neto unit.</th></tr></thead>
+              <tbody>
+                <tr className={qty < (product.volumeTiers[0]?.minQty ?? 1) ? 'is-active' : ''}>
+                  <td>1+</td><td>{formatCLP(product.b2bNet)}</td>
+                </tr>
+                {product.volumeTiers.map((t, i) => {
+                  const upper = product.volumeTiers![i + 1]?.minQty
+                  const active = qty >= t.minQty && (!upper || qty < upper)
+                  return <tr key={t.minQty} className={active ? 'is-active' : ''}><td>{t.minQty}+</td><td>{formatCLP(t.unitNet)}</td></tr>
+                })}
+              </tbody>
+            </table>
+          ) : null}
+          {nextTier && (
+            <p className="pdp__tierhint">Agrega {nextTier.minQty - qty} más y baja a {formatCLP(nextTier.unitNet)} neto por unidad.</p>
+          )}
+
+          {/* Zona de compra (visible en desktop; en móvil va en la barra fija) */}
+          <div className="pdp__buy">
+            <div className="qtyrow">
+              <div className="qty">
+                <button onClick={() => setQty((q) => clampQty(q - 1))} disabled={qty <= 1} aria-label="Restar">−</button>
+                <input type="number" inputMode="numeric" min={1} max={maxQty} value={qty} onChange={(e) => setQty(clampQty(Number(e.target.value) || 1))} aria-label="Cantidad" />
+                <button onClick={() => setQty((q) => clampQty(q + 1))} disabled={qty >= maxQty} aria-label="Sumar">+</button>
+              </div>
+              <button className="btn btn--primary btn--lg pdp__add" onClick={onAdd}>
+                {added ? <><Icon name="check" /> Agregado</> : mode === 'b2b' ? 'Agregar a la orden' : 'Agregar al carro'}
+              </button>
+            </div>
+            <div className="pdp__buy-foot">
+              {mode !== 'b2b' && (
+                <span className="pdp__subtotal">Subtotal ({qty} {product.unit}): <strong>{formatCLP(price.unitGross * qty)}</strong></span>
+              )}
+              <span className="pdp__max">Máximo {maxQty} unidades</span>
+            </div>
+          </div>
+
+          {mode === 'b2b' && (
+            <div className="pdp__b2bsum">
+              <div className="pdp__b2bsum-early">
+                <span><Icon name="wallet" /> Pago en ≤15 días <em>−3% adicional</em></span>
+                <strong>−{formatCLP(earlyPayDiscount)}</strong>
+              </div>
+              <div className="pdp__b2bsum-row"><span>Subtotal neto ({qty} {product.unit})</span><span>{formatCLP(subtotalNet)}</span></div>
+              <div className="pdp__b2bsum-row"><span>IVA 19%</span><span>{formatCLP(ivaAmount)}</span></div>
+              <div className="pdp__b2bsum-row pdp__b2bsum-total"><span>Total con IVA</span><strong>{formatCLP(totalGross)}</strong></div>
+              {savings > 0 && (
+                <div className="pdp__b2bsum-save"><Icon name="percent" /> Ahorras {formatCLP(savings)} ({savingsPct}%) vs. precio público</div>
+              )}
+            </div>
+          )}
+
+          <ul className="pdp__perks">
+            {product.freeShipping && <li><Icon name="truck" /> Despacho gratis en compras sobre $49.990</li>}
+            <li><Icon name="lock" /> Pago seguro Webpay y transferencia</li>
+            <li><Icon name="return" /> 30 días para cambios y devoluciones</li>
+          </ul>
+
+          {mode === 'b2b' && (
+            <Link to="/cotizacion" className="btn btn--ghost btn--block pdp__quote"><Icon name="doc" /> Solicitar cotización</Link>
+          )}
+
+          <Calculator product={product} />
+        </div>
+      </div>
+
+      {/* Sobre este producto: secciones colapsables (estilo Target) */}
+      <section className="aboutitem">
+        <h2 className="section-title">Sobre este producto</h2>
+        <div className="aboutitem__card">
+          <Accordion title="Detalles" defaultOpen>
+            <p className="aboutitem__desc">{product.description}</p>
+            <ul className="aboutitem__bullets">
+              <li>Marca {product.brand}</li>
+              <li>Unidad de venta: {product.unit}</li>
+              {Object.entries(product.specs).slice(0, 3).map(([k, v]) => (<li key={k}>{k}: {v}</li>))}
+            </ul>
+          </Accordion>
+
+          <Accordion title="Ficha técnica" defaultOpen>
+            <table className="aboutitem__specs">
+              <tbody>
+                {technicalSheet(product).map((f) => (<tr key={f.label}><th>{f.label}</th><td>{f.value}</td></tr>))}
+              </tbody>
+            </table>
+            <div className="docs">
+              <h3 className="docs__title">Documentos descargables</h3>
+              <div className="docs__list">
+                {productDocs(product).map((d) => (
+                  <a key={d.label} href="#" onClick={(e) => e.preventDefault()} className="docchip">
+                    <span className="docchip__ic"><Icon name="doc" /></span>
+                    <span className="docchip__txt">{d.label}</span>
+                    <em>{d.type}</em>
+                  </a>
+                ))}
+              </div>
+            </div>
+            {mode === 'b2b' && (
+              <div className="stockbox stockbox--inline">
+                <div className="stockbox__head">
+                  <h3>Stock por bodega</h3>
+                  <span className={`stkbadge stkbadge--${stockReport.overall}`}>{stockReport.overallLabel}</span>
+                </div>
+                <ul className="stockbox__rows">
+                  {stockReport.rows.map((r) => (
+                    <li key={r.name}>
+                      <span className="stockbox__wh"><span className={`stkdot stkdot--${r.state}`} aria-hidden /> {r.name}</span>
+                      <strong>{r.label}</strong>
+                    </li>
+                  ))}
+                </ul>
+                {stockReport.overall === 'restock' && <p className="stockbox__note">Cubrimos las {qty} u. combinando stock en tienda + reposición desde el CD.</p>}
+              </div>
+            )}
+          </Accordion>
+
+          <Accordion title="Despacho y devoluciones">
+            <ul className="returns__list">
+              <li><Icon name="truck" /> Despacho a domicilio en 24-72 hrs hábiles y retiro gratis en tienda.</li>
+              <li><Icon name="return" /> Tienes <strong>30 días</strong> para cambios y devoluciones desde la recepción.</li>
+              <li><Icon name="store" /> Gestiona el cambio en cualquier tienda Mimbral o en línea.</li>
+              <li><Icon name="shield" /> Productos con garantía del fabricante ante fallas.</li>
+            </ul>
+          </Accordion>
+
+        </div>
+      </section>
+
+      {/* Preguntas y respuestas */}
+      <ProductQA product={product} />
+
+      {/* Opiniones */}
+      <ProductReviews product={product} />
+
+      {/* Módulos recomendados (lazy: solo se montan al renderizar) */}
+      <ProductCarousel title="Más opciones para elegir" products={recs.similar} viewAllTo={`/categoria/${category?.slug ?? product.categoryId}`} />
+      <CompareTable current={product} products={recs.comparison.filter((p) => p.id !== product.id)} />
+      <ProductCarousel title="Complementa tu compra" products={recs.complements} />
+      <ProductCarousel title="También compraron" products={recs.frequentlyBoughtTogether} />
+      <ProductCarousel title="Vistos recientemente" products={recentlyViewed} />
+
+      {/* Barra de compra fija (móvil): reemplaza la navegación inferior en la ficha */}
+      <div className="buybar">
+        <span className="sr-only" aria-live="polite">{added ? 'Producto agregado al carro' : ''}</span>
+        <span className="buybar__max">Máximo {maxQty} unidades</span>
+        <div className="buybar__row">
+          <div className="buybar__info">
+            <span className="buybar__price">{formatCLP(price.unitGross)}</span>
+            <span className="buybar__unit">por {product.unit}</span>
+          </div>
+          <div className="buybar__qty">
+            <button onClick={() => setQty((q) => clampQty(q - 1))} disabled={qty <= 1} aria-label="Restar">−</button>
+            <span>{qty}</span>
+            <button onClick={() => setQty((q) => clampQty(q + 1))} disabled={qty >= maxQty} aria-label="Sumar">+</button>
+          </div>
+          <button className="btn btn--primary buybar__btn" onClick={onAdd}>{added ? <><Icon name="check" /> Listo</> : mode === 'b2b' ? 'Agregar' : 'Agregar al carro'}</button>
+        </div>
+      </div>
+
+      {/* Bottom sheet de entrega con tabs */}
+      {sheet && (
+        <BottomSheet title="Opciones de entrega" icon="truck" onClose={() => setSheet(null)}>
+          <label className="dsheet__comuna"><Icon name="pin" /> Comuna:
+            <select value={comuna} onChange={(e) => setComuna(e.target.value)} aria-label="Comuna de despacho">
+              {comunas.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
+            </select>
+          </label>
+          <div className="dtabs" role="tablist">
+            <button role="tab" aria-selected={sheet === 'despacho'} className={`dtab ${sheet === 'despacho' ? 'is-active' : ''}`} onClick={() => setSheet('despacho')}>Despacho</button>
+            <button role="tab" aria-selected={sheet === 'retiro'} className={`dtab ${sheet === 'retiro' ? 'is-active' : ''}`} onClick={() => setSheet('retiro')}>Retiro</button>
+            <button role="tab" aria-selected={sheet === 'tienda'} className={`dtab ${sheet === 'tienda' ? 'is-active' : ''}`} onClick={() => setSheet('tienda')}>En tienda</button>
+          </div>
+
+          {sheet === 'despacho' && (
+            <div className="dopts">
+              {despachoOpts.length ? despachoOpts.map((o) => (
+                <div className="dopt" key={o.label}>
+                  <span className="dopt__ic"><Icon name="truck" /></span>
+                  <span className="dopt__txt"><strong>{o.label}</strong><span>Despacho a {comuna}</span></span>
+                  <span className={`dopt__price ${o.cost === 0 ? 'dopt__price--free' : ''}`}>{o.cost === 0 ? 'Gratis' : formatCLP(o.cost)}</span>
+                </div>
+              )) : (
+                <p className="muted">Aún no tenemos despacho a domicilio en {comuna}. Puedes elegir retiro en tienda.</p>
+              )}
+            </div>
+          )}
+          {sheet === 'retiro' && (
+            <div className="dopts">
+              {retiroOpts.map((o) => (
+                <div className="dopt" key={o.label}>
+                  <span className="dopt__ic"><Icon name="store" /></span>
+                  <span className="dopt__txt"><strong>{o.label} · {o.store}</strong><span>{o.when}</span></span>
+                  <span className="dopt__price dopt__price--free">Gratis</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {sheet === 'tienda' && (
+            <div className="dstore">
+              <p className="dstore__ok"><Icon name="check" /> Disponible en <strong>Tienda Balmaceda</strong></p>
+              <div className="dstore__grid">
+                <div><span>Stock</span><strong>{product.stock} unidades</strong></div>
+                <div><span>Pasillo</span><strong>A</strong></div>
+                <div><span>Rack</span><strong>03</strong></div>
+                <div><span>Nivel</span><strong>2</strong></div>
+              </div>
+              <p className="muted">Acércate a un asesor con el SKU {product.sku} para retirarlo en sala.</p>
+            </div>
+          )}
+          <button className="btn btn--primary sheet__cta" onClick={() => setSheet(null)}>Listo</button>
+        </BottomSheet>
+      )}
+    </div>
+  )
+}

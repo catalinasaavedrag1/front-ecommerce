@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from '@/nav'
 
 /** Bloque promocional del Patio Constructor, antes del footer.
  *  Ilustración vectorial propia (sin foto) para reforzar marca Mimbral. */

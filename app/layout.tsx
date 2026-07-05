@@ -1,0 +1,23 @@
+import type { Metadata } from 'next'
+import '../src/index.css'
+import Providers from './providers'
+
+/**
+ * Layout raiz del cascarón Next (F1 del plan de migración).
+ * En F1 la app completa se monta client-side (ver app/[[...app]]/page.tsx);
+ * en F2 las páginas SEO (home/PLP/PDP) pasan a server components con
+ * generateMetadata desde el bloque `seo` del BFF.
+ */
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.mimbral.cl'),
+  title: { default: 'Mimbral — Ferretería y Construcción', template: '%s | Mimbral' },
+  description: 'Materiales de construcción, herramientas y más. Despacho a todo Chile o retiro en tienda.',
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="es">
+      <body><Providers>{children}</Providers></body>
+    </html>
+  )
+}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/nav'
 import { categories, products } from '@/data/products'
 import ProductImage from './ProductImage'
 import Icon from './Icon'

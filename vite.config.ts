@@ -9,6 +9,9 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      // Shim de navegación: bajo Vite '@/nav' usa react-router-dom
+      // (src/nav/vite.tsx); bajo Next el default es next/navigation.
+      '@/nav': path.resolve(__dirname, './src/nav/vite.tsx'),
       '@': path.resolve(__dirname, './src'),
     },
   },

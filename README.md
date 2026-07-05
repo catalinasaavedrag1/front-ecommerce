@@ -34,18 +34,26 @@ npm run typecheck# chequeo de tipos
 
 ```
 src/
+  api/             # cliente único del BFF (web-bff.client.ts) + apis por dominio
+                   # (home, category, search, product, cart, checkout, account,
+                   #  orders, delivery, auth) + adapters/registry/types
+  lib/             # env, session, auth, context (B2C/B2B), errors, cookies
   components/      # Header, Footer, ProductCard, PriceTag, ModeSwitch, ...
   context/         # AppContext (modo B2C/B2B + sesión), CartContext
-  data/products.ts # catálogo demo + categorías + bodegas
+  data/products.ts # catálogo demo + categorías + bodegas (fallback de maqueta)
   pages/           # Home, Categoría, Producto, Carro, Checkout,
                    # Portal Empresas, Cotización, Login, Pedidos, Búsqueda
-  utils/           # pricing (lógica de precios), cart (totales), format (CLP, IVA, RUT)
+  utils/           # pricing (fallback de precios), cart (totales), format (CLP, IVA, RUT)
   types.ts         # tipos del dominio
 ```
 
 ## Lógica de precios
 
-Centralizada en `src/utils/pricing.ts`:
+> Con el BFF conectado, **el precio/stock/promos los resuelve el BFF** y esta
+> lógica local queda como *fallback* de maqueta o caída del BFF (ver
+> `docs/CONTRATOS-BFF.md` §7). El front no es fuente oficial de precios.
+
+Fallback local en `src/utils/pricing.ts`:
 
 - **B2C:** usa `retailPrice` (IVA incluido) y `retailOffer` si existe.
 - **B2B:** parte del **neto base** (`b2bNet`), aplica el tramo de **volumen**
@@ -82,10 +90,18 @@ npm run dev
 La degradación es automática: si el BFF no responde, cada pantalla vuelve a los
 datos locales (no se rompe la navegación). Piezas de la integración:
 
-- `src/api/bff.ts` — cliente HTTP (sesión anónima, headers de contexto, errores tipados)
+- `src/api/web-bff.client.ts` — **cliente HTTP único** (`webBffRequest`): headers de contexto B2C/B2B, timeout, sobre `{success,data}`, `BffError` tipado
+- `src/lib/` — fundaciones: `env`, `session`, `auth`, `context` (canal B2C/B2B), `errors` (`code → userMessage`)
+- `src/api/*.api.ts` — apis por dominio (home, category, search, product, cart, checkout, account, orders, delivery, auth)
 - `src/api/adapters.ts` — vistas del BFF → tipo `Product` del front (los componentes no cambian)
 - `src/api/registry.ts` — registro de productos vivos (carrito/vistos recientes resuelven SKUs reales)
-- `src/api/cart.ts` — espejo del carrito + handoff de checkout (best-effort)
 - `src/hooks/useBffCatalog.ts` — hooks con fallback por pantalla
 
-Documentación completa del BFF: `Microservicios/web-bff-service/docs/`.
+Documentación de la integración:
+
+- **[`docs/GUIA-OPERACION.md`](docs/GUIA-OPERACION.md)** — 📖 guía operacional **para no-programadores**: qué es cada pieza, cómo se conectan, cómo encender todo, checklist de producción y qué hacer si algo se ve mal.
+- **[`docs/DICCIONARIO-DATOS-Y-APIS.md`](docs/DICCIONARIO-DATOS-Y-APIS.md)** — 📚 diccionario **campo por campo y API por API** (headers, ajustes, modelos, endpoints del BFF y de cms-service), cada uno explicado en técnico y en simple, con qué se conecta.
+- **[`docs/PLAN-MIGRACION-NEXTJS.md`](docs/PLAN-MIGRACION-NEXTJS.md)** — 🗺️ plan por fases para migrar el storefront a Next.js (SSR) y cerrar el renderizado SEO: qué sobrevive, mapeo de rutas, riesgos (HashRouter) y criterios de aceptación.
+- **[`docs/INTEGRACION-BFF.md`](docs/INTEGRACION-BFF.md)** — guía de uso con diagramas.
+- **[`docs/CONTRATOS-BFF.md`](docs/CONTRATOS-BFF.md)** — contrato técnico: mapeo endpoint↔BFF, headers, gaps y decisiones de arquitectura.
+- Documentación completa del BFF: `Microservicios/web-bff-service/docs/`.
