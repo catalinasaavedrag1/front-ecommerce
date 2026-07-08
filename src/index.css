@@ -140,14 +140,14 @@ h1, h2, h3, h4 {
 .search button { border: none; background: transparent; padding: 0 18px; color: var(--navy); display: grid; place-items: center; }
 .search button:hover { color: var(--red); }
 
-.header__actions { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
+.header__actions { display: flex; align-items: center; gap: 22px; flex-shrink: 0; }
 .header__icon-link, .header__cart {
-  position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px;
-  color: var(--navy); font-weight: 600; font-size: 0.72rem;
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  color: var(--navy); font-weight: 600; font-size: 0.78rem;
 }
-.header__icon-link span[aria-hidden], .header__cart span[aria-hidden] { font-size: 1.35rem; }
+.header__icon-link .ic, .header__cart .ic { font-size: 1.5rem; }
 .header__icon-link:hover, .header__cart:hover { color: var(--red); }
-.header__fav span[aria-hidden] { color: var(--red); }
+.header__fav .ic { color: var(--red); }
 .header__badge {
   position: absolute; top: -6px; right: -8px; background: var(--navy); color: #fff;
   border-radius: 999px; font-size: 0.68rem; font-weight: 800; min-width: 18px; height: 18px;
@@ -843,7 +843,7 @@ input[type="checkbox"]:focus, input[type="radio"]:focus { box-shadow: 0 0 0 3px 
 /* Credit */
 .creditbenefits { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 14px; }
 .creditbenefits li { display: flex; gap: 11px; align-items: flex-start; font-size: 0.86rem; }
-.creditbenefits li span[aria-hidden] { font-size: 1.3rem; }
+.creditbenefits__icon { font-size: 1.3rem; }
 .creditbenefits strong { display: block; color: var(--navy-900); }
 .creditbenefits div span { color: var(--muted); }
 .credit-check { flex-direction: row; align-items: center; gap: 9px; font-weight: 400; font-size: 0.86rem; color: var(--muted); margin: 16px 0; }
@@ -2125,6 +2125,19 @@ input[type="checkbox"]:focus, input[type="radio"]:focus { box-shadow: 0 0 0 3px 
   .cart2-summary__total { flex-direction: row; align-items: baseline; justify-content: space-between; }
   .cart2-summary__total strong { font-size: 1.5rem; }
   .cart2-summary__cta { width: 100%; }
+
+  /* Ítems proporcionados al ancho de escritorio: imagen y tipografías más grandes */
+  .citem { grid-template-columns: auto 104px 1fr; gap: 16px; padding: 18px 20px; }
+  .citem__media { width: 104px; height: 104px; border-radius: 12px; }
+  .citem__check { padding-top: 40px; }
+  .citem__name { font-size: 1rem; }
+  .citem__brand { font-size: 0.82rem; margin-top: 3px; }
+  .citem__price { font-size: 1.25rem; }
+  .citem__max { font-size: 0.74rem; }
+  .citem__alert, .citem__variant { font-size: 0.8rem; }
+  .citem__alt-btn { font-size: 0.85rem; }
+  .cart2-group__head { padding: 15px 20px; }
+  .cart2-group__head strong { font-size: 1rem; }
 
   /* Alternativas: que envuelvan en vez de scroll horizontal */
   .citem__alts { flex-wrap: wrap; overflow-x: visible; }
