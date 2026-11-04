@@ -144,7 +144,17 @@ export default function CartPage() {
                     <span className="citem__brand">{l.product.brand} · {l.product.sku}</span>
                     {l.variant && <span className="citem__variant">{l.variant}</span>}
                     {l.product.bulky && <span className="citem__tag">Voluminoso</span>}
-                    {overStock && <span className="citem__alert"><Icon name="box" /> Solo quedan {l.product.stock} u.</span>}
+                    {/* Con el BFF conectado `stock` es el tope del stepper, no una
+                        cantidad real: el aviso no inventa unidades. El veredicto
+                        firme es la validación del carro en el BFF. */}
+                    {overStock && (
+                      <span className="citem__alert">
+                        <Icon name="box" />{' '}
+                        {l.product.availability
+                          ? 'Cantidad sobre la disponible'
+                          : `Solo quedan ${l.product.stock} u.`}
+                      </span>
+                    )}
                     <div className="citem__row2">
                       <span className="citem__price">{formatCLP(l.lineGross)}</span>
                       <div className="citem__qtywrap">

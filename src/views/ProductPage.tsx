@@ -20,6 +20,7 @@ import Accordion from '@/components/Accordion'
 import { useWishlist } from '@/context/WishlistContext'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
 import { useProductDetail } from '@/hooks/useBffCatalog'
+import { useLiveAvailability } from '@/hooks/useLiveAvailability'
 import { getRecommendations } from '@/utils/recommendations'
 import { getVariants } from '@/utils/variants'
 import { priceFor, nextVolumeTier } from '@/utils/pricing'
@@ -34,6 +35,8 @@ export default function ProductPage({ initialProduct }: { initialProduct?: impor
   const { id = '' } = useParams()
   // Ficha desde el BFF cuando está configurado (mock/registro como base).
   const { data: product, loading: productLoading } = useProductDetail(id, initialProduct)
+  // Disponibilidad revalidada contra inventory (la ficha del BFF se cachea).
+  const liveAvailability = useLiveAvailability(product)
   const { mode, customer, comuna, setComuna } = useApp()
   const { add } = useCart()
   const wishlist = useWishlist()
@@ -69,6 +72,12 @@ export default function ProductPage({ initialProduct }: { initialProduct?: impor
     )
   }
 
+  /**
+   * Disponibilidad que MANDA en la ficha: la revalidada si llegó, y si no la
+   * que venía en la ficha. `undefined` en modo maqueta (no hay inventory).
+   */
+  const availability = liveAvailability.availability
+
   const category = getCategory(product.categoryId)
   const recs = getRecommendations(product)
   const variants = getVariants(product)
@@ -94,8 +103,24 @@ export default function ProductPage({ initialProduct }: { initialProduct?: impor
     s: remainingSec % 60,
   }
 
-  const maxQty = Math.min(product.stock, 30)
-  const lowStock = product.stock <= 12
+  /**
+   * ¿Se puede vender? Con `availability` manda inventory (y la revalidación:
+   * si el SKU se agotó mientras la ficha estaba cacheada, aquí ya es `false`).
+   * En maqueta decide el stock del catálogo demo.
+   */
+  const vendible = availability
+    ? availability.available && availability.status !== 'out_of_stock'
+    : product.stock > 0
+  const maxQty = vendible ? Math.min(product.stock, 30) : 0
+  /**
+   * Con el BFF conectado, `product.stock` es sólo el tope del stepper: la
+   * cantidad real no se publica al canal. El estado "quedan pocas" lo dice
+   * inventory-service a través de `availability.status`.
+   */
+  const unidadesConocidas = !availability
+  const lowStock = availability
+    ? availability.status === 'low_stock'
+    : product.stock <= 12
   const del = deliveryInfo(comuna, product)
   const baseCost = del.free ? 0 : del.cost
   const despachoOpts = del.coverage
@@ -115,7 +140,12 @@ export default function ProductPage({ initialProduct }: { initialProduct?: impor
   if (product.retailOffer) chips.push({ label: 'Oferta', kind: 'red' })
   chips.push({ label: 'Retiro hoy', kind: 'ok' })
   chips.push({ label: 'Despacho 24-72 hrs', kind: 'plain' })
-  chips.push(lowStock ? { label: `Solo ${product.stock} u.`, kind: 'warn' } : { label: 'Stock disponible', kind: 'ok' })
+  if (!vendible) chips.push({ label: availability?.label ?? 'Sin stock', kind: 'red' })
+  else if (unidadesConocidas) chips.push(lowStock ? { label: `Solo ${product.stock} u.`, kind: 'warn' } : { label: 'Stock disponible', kind: 'ok' })
+  else chips.push({
+    label: availability?.quantityLabel ?? availability?.label ?? 'Stock disponible',
+    kind: lowStock ? 'warn' : 'ok',
+  })
   chips.push({ label: '12 cuotas sin interés', kind: 'plain' })
   const visibleChips = chips.slice(0, 4)
 
@@ -123,11 +153,13 @@ export default function ProductPage({ initialProduct }: { initialProduct?: impor
     ? variants.map((g) => variantSel[g.type] ?? g.options[0].label).join(' · ')
     : undefined
   const onAdd = () => {
+    // Guarda de último momento: no se agrega lo que inventory marcó no vendible.
+    if (!vendible) return
     add(product.id, qty, variantLabel)
     setAdded(true)
     setTimeout(() => setAdded(false), 1800)
   }
-  const clampQty = (n: number) => Math.max(1, Math.min(maxQty, n))
+  const clampQty = (n: number) => Math.max(1, Math.min(Math.max(maxQty, 1), n))
 
   return (
     <div className="container pdp-page">
@@ -235,9 +267,18 @@ export default function ProductPage({ initialProduct }: { initialProduct?: impor
               <span className="delrow__txt"><strong>Retiro en tienda</strong><span>Retiro gratis hoy · {retiroOpts[0].store}</span></span>
               <Icon name="chevron" className="delrow__chev" />
             </button>
+            {/* Disponibilidad: sin desglose por bodega no se afirma "en tienda";
+                se muestra la disponibilidad agregada que resolvió el BFF. */}
             <button className="delrow" onClick={() => setSheet('tienda')}>
               <span className="delrow__ic"><Icon name="box" /></span>
-              <span className="delrow__txt"><strong>Disponible en tienda</strong><span>{product.stock} unidades disponibles</span></span>
+              <span className="delrow__txt">
+                <strong>{unidadesConocidas ? 'Disponible en tienda' : 'Disponibilidad'}</strong>
+                <span>
+                  {unidadesConocidas
+                    ? `${product.stock} unidades disponibles`
+                    : (availability?.quantityLabel ?? availability?.label ?? 'Consultar')}
+                </span>
+              </span>
               <Icon name="chevron" className="delrow__chev" />
             </button>
           </div>
@@ -270,7 +311,7 @@ export default function ProductPage({ initialProduct }: { initialProduct?: impor
                 <input type="number" inputMode="numeric" min={1} max={maxQty} value={qty} onChange={(e) => setQty(clampQty(Number(e.target.value) || 1))} aria-label="Cantidad" />
                 <button onClick={() => setQty((q) => clampQty(q + 1))} disabled={qty >= maxQty} aria-label="Sumar">+</button>
               </div>
-              <button className="btn btn--primary btn--lg pdp__add" onClick={onAdd}>
+              <button className="btn btn--primary btn--lg pdp__add" onClick={onAdd} disabled={!vendible}>
                 {added ? <><Icon name="check" /> Agregado</> : mode === 'b2b' ? 'Agregar a la orden' : 'Agregar al carro'}
               </button>
             </div>
@@ -278,7 +319,7 @@ export default function ProductPage({ initialProduct }: { initialProduct?: impor
               {mode !== 'b2b' && (
                 <span className="pdp__subtotal">Subtotal ({qty} {product.unit}): <strong>{formatCLP(price.unitGross * qty)}</strong></span>
               )}
-              <span className="pdp__max">Máximo {maxQty} unidades</span>
+              {vendible && <span className="pdp__max">Máximo {maxQty} unidades</span>}
             </div>
           </div>
 
@@ -345,18 +386,29 @@ export default function ProductPage({ initialProduct }: { initialProduct?: impor
             {mode === 'b2b' && (
               <div className="stockbox stockbox--inline">
                 <div className="stockbox__head">
-                  <h3>Stock por bodega</h3>
+                  <h3>{stockReport.known ? 'Stock por bodega' : 'Disponibilidad'}</h3>
                   <span className={`stkbadge stkbadge--${stockReport.overall}`}>{stockReport.overallLabel}</span>
                 </div>
-                <ul className="stockbox__rows">
-                  {stockReport.rows.map((r) => (
-                    <li key={r.name}>
-                      <span className="stockbox__wh"><span className={`stkdot stkdot--${r.state}`} aria-hidden /> {r.name}</span>
-                      <strong>{r.label}</strong>
-                    </li>
-                  ))}
-                </ul>
-                {stockReport.overall === 'restock' && <p className="stockbox__note">Cubrimos las {qty} u. combinando stock en tienda + reposición desde el CD.</p>}
+                {stockReport.known ? (
+                  <>
+                    <ul className="stockbox__rows">
+                      {stockReport.rows.map((r) => (
+                        <li key={r.name}>
+                          <span className="stockbox__wh"><span className={`stkdot stkdot--${r.state}`} aria-hidden /> {r.name}</span>
+                          <strong>{r.label}</strong>
+                        </li>
+                      ))}
+                    </ul>
+                    {stockReport.overall === 'restock' && <p className="stockbox__note">Cubrimos las {qty} u. combinando stock en tienda + reposición desde el CD.</p>}
+                  </>
+                ) : (
+                  /* El canal no recibe el desglose por bodega: el reparto entre
+                     bodegas lo decide DOM en el checkout, no el navegador. */
+                  <p className="stockbox__note">
+                    La bodega de origen se asigna al confirmar la entrega. Para ver el
+                    detalle por bodega, pide una cotización a tu ejecutivo.
+                  </p>
+                )}
               </div>
             )}
           </Accordion>
@@ -389,7 +441,7 @@ export default function ProductPage({ initialProduct }: { initialProduct?: impor
       {/* Barra de compra fija (móvil): reemplaza la navegación inferior en la ficha */}
       <div className="buybar">
         <span className="sr-only" aria-live="polite">{added ? 'Producto agregado al carro' : ''}</span>
-        <span className="buybar__max">Máximo {maxQty} unidades</span>
+        {vendible && <span className="buybar__max">Máximo {maxQty} unidades</span>}
         <div className="buybar__row">
           <div className="buybar__info">
             <span className="buybar__price">{formatCLP(price.unitGross)}</span>
@@ -400,7 +452,7 @@ export default function ProductPage({ initialProduct }: { initialProduct?: impor
             <span>{qty}</span>
             <button onClick={() => setQty((q) => clampQty(q + 1))} disabled={qty >= maxQty} aria-label="Sumar">+</button>
           </div>
-          <button className="btn btn--primary buybar__btn" onClick={onAdd}>{added ? <><Icon name="check" /> Listo</> : mode === 'b2b' ? 'Agregar' : 'Agregar al carro'}</button>
+          <button className="btn btn--primary buybar__btn" onClick={onAdd} disabled={!vendible}>{added ? <><Icon name="check" /> Listo</> : !vendible ? 'Sin stock' : mode === 'b2b' ? 'Agregar' : 'Agregar al carro'}</button>
         </div>
       </div>
 
@@ -444,13 +496,30 @@ export default function ProductPage({ initialProduct }: { initialProduct?: impor
           )}
           {sheet === 'tienda' && (
             <div className="dstore">
-              <p className="dstore__ok"><Icon name="check" /> Disponible en <strong>Tienda Balmaceda</strong></p>
-              <div className="dstore__grid">
-                <div><span>Stock</span><strong>{product.stock} unidades</strong></div>
-                <div><span>Pasillo</span><strong>A</strong></div>
-                <div><span>Rack</span><strong>03</strong></div>
-                <div><span>Nivel</span><strong>2</strong></div>
-              </div>
+              {unidadesConocidas ? (
+                <>
+                  <p className="dstore__ok"><Icon name="check" /> Disponible en <strong>Tienda Balmaceda</strong></p>
+                  <div className="dstore__grid">
+                    <div><span>Stock</span><strong>{product.stock} unidades</strong></div>
+                    <div><span>Pasillo</span><strong>A</strong></div>
+                    <div><span>Rack</span><strong>03</strong></div>
+                    <div><span>Nivel</span><strong>2</strong></div>
+                  </div>
+                </>
+              ) : (
+                /* Pasillo/rack/nivel son ubicaciones FÍSICAS del WMS: no son
+                   disponibilidad comercial y no se publican al canal. Con el
+                   BFF conectado se muestra sólo lo que resolvió inventory. */
+                <>
+                  <p className={availability?.available ? 'dstore__ok' : 'muted'}>
+                    <Icon name={availability?.available ? 'check' : 'box'} />{' '}
+                    {availability?.label ?? 'Disponibilidad no informada'}
+                  </p>
+                  {availability?.quantityLabel && (
+                    <p className="muted">{availability.quantityLabel}</p>
+                  )}
+                </>
+              )}
               <p className="muted">Acércate a un asesor con el SKU {product.sku} para retirarlo en sala.</p>
             </div>
           )}

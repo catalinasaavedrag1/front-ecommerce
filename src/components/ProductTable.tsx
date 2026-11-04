@@ -51,9 +51,14 @@ export default function ProductTable({ products }: { products: Product[] }) {
                   </div>
                 </td>
                 <td>{p.brand}</td>
+                {/* Sin desglose por bodega (caso BFF) se muestra la etiqueta
+                    agregada: `stock.total` es 0 por falta de dato, no por falta
+                    de stock. */}
                 <td className="ptable__stock">
                   <span className={`stkdot stkdot--${stock.overall}`} aria-hidden />
-                  {stock.total > 0 ? `${stock.total} u.` : 'Sin stock'}
+                  {stock.known
+                    ? (stock.total > 0 ? `${stock.total} u.` : 'Sin stock')
+                    : stock.overallLabel}
                 </td>
                 <td className="ptable__num">
                   {priceView === 'bruto' ? (

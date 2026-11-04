@@ -1,6 +1,15 @@
 import type { Product, StockLevel } from '@/types'
 
+/**
+ * Nivel de stock para la UI. Si el producto trae `availability` (viene del
+ * BFF), MANDA ese estado: es el único dato de inventario real. `p.stock` sólo
+ * decide el nivel en la maqueta.
+ */
 export function stockLevel(p: Product): StockLevel {
+  if (p.availability) {
+    if (!p.availability.available || p.availability.status === 'out_of_stock') return 'sin'
+    return p.availability.status === 'low_stock' ? 'bajo' : 'alto'
+  }
   if (p.stock <= 0) return 'sin'
   if (p.stock < 30) return 'bajo'
   return 'alto'
@@ -43,10 +52,21 @@ export interface Availability {
 
 export function availabilityFor(p: Product): Availability {
   const level = stockLevel(p)
+  // Retiro hoy exige saber que hay stock EN SALA. Con el BFF conectado no
+  // llega el desglose por bodega, así que no se afirma: se ofrece despacho y
+  // el retiro lo confirma el checkout contra DOM. Antes esto se calculaba
+  // sobre un `stockByWarehouse` vacío, que daba siempre false por accidente.
+  const warehouseKnown = Object.keys(p.stockByWarehouse).length > 0
   const anyStoreStock = Object.values(p.stockByWarehouse).some((n) => n > 0)
-  const pickupToday = !p.onlineOnly && anyStoreStock && level !== 'sin'
+  const pickupToday = !p.onlineOnly && warehouseKnown && anyStoreStock && level !== 'sin'
   const delivery = !p.storeOnly && level !== 'sin'
   const fast = Boolean(p.freeShipping) || level === 'alto'
+  // Con `availability` el texto lo da el BFF (nunca una cantidad).
+  if (p.availability) {
+    const a = p.availability
+    const label = a.quantityLabel ?? a.label
+    return { pickupToday, delivery, fast, label }
+  }
   let label = 'Sin stock'
   if (level === 'alto') label = 'En stock'
   else if (level === 'bajo') label = `Últimas ${p.stock} unidades`
@@ -67,6 +87,12 @@ export interface StockReport {
   total: number
   overall: WarehouseState
   overallLabel: string
+  /**
+   * `false` cuando no hay desglose por bodega (caso del BFF: no se publica al
+   * navegador). La UI debe OMITIR el panel en vez de pintar "Sin stock", que
+   * es lo que hacía al leer un mapa vacío.
+   */
+  known: boolean
 }
 
 const CD_NAME = 'CD Santiago'
@@ -75,6 +101,7 @@ const CD_NAME = 'CD Santiago'
  *  (completo / parcial / con reposición / sin stock) para el cliente B2B. */
 export function warehouseStock(p: Product, requested = 1): StockReport {
   const entries = Object.entries(p.stockByWarehouse)
+  const known = entries.length > 0
   const rows: WarehouseRow[] = entries.map(([name, qty]) => {
     const isCD = name === CD_NAME
     let state: WarehouseState
@@ -97,5 +124,11 @@ export function warehouseStock(p: Product, requested = 1): StockReport {
   else if (hoy >= requested) { overall = 'full'; overallLabel = 'Disponible completo hoy' }
   else if (total >= requested) { overall = 'restock'; overallLabel = 'Disponible con reposición' }
   else { overall = 'partial'; overallLabel = 'Disponible parcial' }
-  return { rows, total, overall, overallLabel }
+  if (!known) {
+    // Sin desglose: se refleja la disponibilidad agregada del BFF, si la hay.
+    const level = stockLevel(p)
+    overall = level === 'sin' ? 'none' : level === 'bajo' ? 'partial' : 'full'
+    overallLabel = p.availability?.quantityLabel ?? p.availability?.label ?? overallLabel
+  }
+  return { rows, total, overall, overallLabel, known }
 }
