@@ -6,6 +6,7 @@ import Icon from './Icon'
 import { formatCLP } from '@/utils/format'
 import { priceFor } from '@/utils/pricing'
 import { useApp } from '@/context/AppContext'
+import { useSearchAutocomplete } from '@/hooks/useSearchAutocomplete'
 
 const POPULAR: Record<'b2c' | 'b2b', string[]> = {
   b2c: ['Cemento', 'Taladro', 'Pintura blanca', 'Cerámica', 'Manguera', 'Foco LED'],
@@ -39,6 +40,19 @@ export default function SearchBar() {
   }, [])
 
   const term = q.trim().toLowerCase()
+
+  /**
+   * Autocompletado de search-service (vía BFF), con debounce y cancelación en
+   * el hook. Cuando responde, MANDA sobre el filtro local de `src/data`: es el
+   * índice real, con el catálogo vigente. Sin BFF o ante error, `live` queda
+   * en false y se sigue usando `sugg` (degradación elegante, igual que el
+   * resto de las pantallas).
+   */
+  const auto = useSearchAutocomplete(q)
+  const liveItems = auto.live ? auto.items : []
+  const liveTerms = liveItems.filter((i) => i.type === 'QUERY')
+  const liveCats = liveItems.filter((i) => i.type === 'CATEGORY')
+  const liveProds = liveItems.filter((i) => i.type === 'PRODUCT')
 
   const sugg = useMemo(() => {
     if (!term) return null
@@ -109,7 +123,46 @@ export default function SearchBar() {
             </>
           )}
 
-          {term && sugg && !sugg.empty && (
+          {/* Sugerencias del índice real. Todas navegan a la página de
+              búsqueda por su texto: el autocomplete entrega el UUID técnico
+              del SKU, y la ficha se resuelve por slug o por código comercial
+              (ADR-013 §1) — mandar el UUID daría 404. */}
+          {term && liveItems.length > 0 && (
+            <>
+              {liveTerms.length > 0 && (
+                <div className="ac__sec">
+                  <div className="ac__head"><span>Sugerencias</span></div>
+                  {liveTerms.map((i) => (
+                    <button key={`q-${i.label}`} className="ac__row ac__row--term" onClick={() => commit(i.label)}>
+                      <Icon name="search" /> {i.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {liveCats.length > 0 && (
+                <div className="ac__sec">
+                  <div className="ac__head"><span>Categorías</span></div>
+                  {liveCats.map((i) => (
+                    <button key={`c-${i.categoryId ?? i.label}`} className="ac__row ac__row--term" onClick={() => commit(i.label)}>
+                      <Icon name="filter" /> {i.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {liveProds.length > 0 && (
+                <div className="ac__sec">
+                  <div className="ac__head"><span>Productos</span></div>
+                  {liveProds.map((i) => (
+                    <button key={`p-${i.skuId ?? i.label}`} className="ac__row ac__row--term" onClick={() => commit(i.label)}>
+                      <Icon name="box" /> {i.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {term && liveItems.length === 0 && sugg && !sugg.empty && (
             <>
               {sugg.cats.length > 0 && (
                 <div className="ac__sec">
@@ -149,7 +202,7 @@ export default function SearchBar() {
             </>
           )}
 
-          {term && sugg?.empty && (
+          {term && liveItems.length === 0 && !auto.loading && sugg?.empty && (
             <div className="ac__empty">
               <p>Sin coincidencias para "<strong>{q}</strong>".</p>
               {mode === 'b2b' && (

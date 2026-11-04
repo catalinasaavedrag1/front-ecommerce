@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { fetchSeoMeta } from '@/api/seo.api'
+import { isBffEnabled } from '@/api/web-bff.client'
 import type { BffSeo } from '@/api/types'
 
 /**
@@ -57,4 +59,26 @@ export function JsonLd({ data }: { data: Record<string, unknown>[] | undefined |
       ))}
     </>
   )
+}
+
+/**
+ * Metadata de una ruta sin recurso propio en el BFF (páginas de contenido,
+ * listados estáticos). Pide el bloque SEO de seo-service y lo traduce.
+ *
+ * Degradación: sin BFF configurado, ante error o timeout se usa el `fallback`
+ * de la propia página. Nunca se deja el head vacío ni se bloquea el render —
+ * un `generateMetadata` que lanza rompe la página entera.
+ *
+ * El `canonical` se pasa como respaldo: si seo-service trae el suyo, manda ese.
+ */
+export async function metadataForPath(path: string, fallback: Metadata): Promise<Metadata> {
+  if (!isBffEnabled()) return fallback
+  try {
+    const seo = await fetchSeoMeta(path)
+    // Un bloque sin título no sirve de nada: se prefiere el de la página.
+    if (!seo?.title) return fallback
+    return bffSeoToMetadata(seo, path)
+  } catch {
+    return fallback
+  }
 }

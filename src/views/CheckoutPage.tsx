@@ -5,6 +5,8 @@ import { Link } from '@/nav'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import { confirmCheckout } from '@/api/checkout.api'
+import { useFulfillmentOptions } from '@/hooks/useFulfillmentOptions'
+import { toUserMessage } from '@/lib/errors'
 import { buildTotals } from '@/utils/cart'
 import { formatCLP, formatRut } from '@/utils/format'
 import OrderSummary from '@/components/checkout/OrderSummary'
@@ -147,7 +149,11 @@ export default function CheckoutPage() {
   const [done, setDone] = useState<Set<StepId>>(new Set())
   const [calc, setCalc] = useState(false)
   const [placed, setPlaced] = useState<string | null>(null)
+  /** true cuando el pedido se registró con handoff real en el BFF. */
+  const [placedLive, setPlacedLive] = useState(false)
   const [processing, setProcessing] = useState(false)
+  /** Error del handoff. Si hay error NO hay pedido: el carro se conserva. */
+  const [orderError, setOrderError] = useState<string | null>(null)
   // Bottom sheets
   const [dateSheet, setDateSheet] = useState<string | null>(null)
   const [storeSheet, setStoreSheet] = useState<string | null>(null)
@@ -155,6 +161,8 @@ export default function CheckoutPage() {
   const [couponSheet, setCouponSheet] = useState(false)
   const [factSheet, setFactSheet] = useState(false)
 
+  // Opciones de cumplimiento del carro (promesa + costo) resueltas por el backend.
+  const fulfillment = useFulfillmentOptions(comuna)
   const anyDomicilio = groups.some((g) => selFor(g.id).method === 'domicilio')
   const anyRetiro = groups.some((g) => selFor(g.id).method === 'retiro')
   const allRetiro = !anyDomicilio
@@ -162,7 +170,15 @@ export default function CheckoutPage() {
   const shipping = noCoverage ? null : groups.reduce((s, g) => s + groupCost(g, selFor(g.id)), 0)
   const deliveryLabel = allRetiro ? 'Retiro en tienda' : anyRetiro ? 'Entrega mixta' : 'Despacho a domicilio'
   const firstDom = groups.find((g) => selFor(g.id).method === 'domicilio')
-  const eta = firstDom ? `Llega el ${longLabel(dateObj(selFor(firstDom.id).dateIso))}` : 'Retiro en tienda'
+  /**
+   * Promesa de entrega: la resuelve cart-service (y DOM detrás) y manda sobre
+   * la fecha local, que es relleno de maqueta y no un compromiso. Si el
+   * backend no la ofrece, se mantiene el texto local.
+   */
+  const promesaBackend = fulfillment.optionFor(anyDomicilio ? 'DELIVERY' : 'PICKUP')?.promise
+  const eta =
+    promesaBackend ??
+    (firstDom ? `Llega el ${longLabel(dateObj(selFor(firstDom.id).dateIso))}` : 'Retiro en tienda')
 
   const selectedCard = cards.find((c) => c.id === payCard)
   const usingCard = payment === 'tarjeta'
@@ -209,20 +225,35 @@ export default function CheckoutPage() {
   }
 
   const placeOrder = async () => {
+    // `processing` evita el doble envío: dos handoff del mismo carro pueden
+    // terminar en dos pedidos downstream.
     if (processing) return
     setProcessing(true)
-    // Handoff real al BFF (snapshot + lock en cart-service) cuando está
-    // configurado; si no, se mantiene la confirmación local de demostración.
-    const handoff = await confirmCheckout({
-      method: anyDomicilio ? 'DELIVERY' : 'PICKUP',
-      commune: comuna || undefined,
-      region: region || undefined,
-      addressLine1: addr.street ? `${addr.street} ${addr.number}`.trim() : undefined,
-    })
+    setOrderError(null)
+
+    let handoff: Awaited<ReturnType<typeof confirmCheckout>> = null
+    try {
+      // Handoff real al BFF (snapshot + lock en cart-service) cuando está
+      // configurado. `null` = modo maqueta, no "falló".
+      handoff = await confirmCheckout({
+        method: anyDomicilio ? 'DELIVERY' : 'PICKUP',
+        commune: comuna || undefined,
+        region: region || undefined,
+        addressLine1: addr.street ? `${addr.street} ${addr.number}`.trim() : undefined,
+      })
+    } catch (err) {
+      // El handoff falló: NO hay pedido. Antes se seguía igual, se vaciaba el
+      // carro y se anunciaba "compra confirmada" con un número inventado.
+      setOrderError(toUserMessage(err))
+      setProcessing(false)
+      return
+    }
+
     const rand = Math.floor(Number(String(Date.now()).slice(-6)))
     const n = handoff
       ? `MIM-${handoff.snapshotId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8).toUpperCase()}`
       : `MIM-${100000 + (rand % 900000)}`
+    setPlacedLive(Boolean(handoff))
     setTimeout(() => {
       setPlaced(n)
       if (checkoutLines.length === lines.length) clear()
@@ -234,14 +265,19 @@ export default function CheckoutPage() {
   // ---------- Confirmación ----------
   if (placed) {
     const transfer = payment === 'transferencia'
+    // Con handoff real el pedido queda RECIBIDO, no confirmado: la orden la
+    // crea y confirma OMS downstream (ver `confirmCheckout`). Anunciar
+    // "compra confirmada" acá sería afirmar algo que el BFF no hizo.
+    const soloRecibido = transfer || placedLive
     return (
       <CheckoutShell minimal>
         <div className="cksuccess">
-          <div className={`cksuccess__icon ${transfer ? 'is-pending' : ''}`}><Icon name="check" /></div>
-          <h1>{transfer ? 'Recibimos tu pedido' : 'Tu compra fue confirmada'}</h1>
+          <div className={`cksuccess__icon ${soloRecibido ? 'is-pending' : ''}`}><Icon name="check" /></div>
+          <h1>{soloRecibido ? 'Recibimos tu pedido' : 'Tu compra fue confirmada'}</h1>
           <p className="cksuccess__sub">
             Pedido <strong>{placed}</strong>. Te enviamos el detalle a <strong>{data.email || 'tu correo'}</strong>.
             {transfer && ' Quedará confirmado cuando validemos tu transferencia (te enviamos los datos de pago al correo).'}
+            {placedLive && !transfer && ' Te avisaremos por correo en cuanto quede confirmado.'}
           </p>
           <div className="cksuccess__box">
             <h3><Icon name={allRetiro ? 'store' : 'truck'} /> {deliveryLabel}</h3>
@@ -517,6 +553,14 @@ export default function CheckoutPage() {
                 <div className="muted">{doc === 'factura' ? `Factura · ${fact.razon || 'empresa'}` : 'Boleta'}{discount > 0 ? ` · ${discountLabel}: -${formatCLP(discount)}` : ''}</div>
               </ReviewRow>
             </div>
+            {/* El handoff falló: se dice, el carro sigue intacto y se puede
+                reintentar. No se muestra ninguna confirmación. */}
+            {orderError && (
+              <p className="ckstep__error" role="alert">
+                <Icon name="box" /> No pudimos registrar tu pedido: {orderError}. Tu carro
+                sigue guardado — puedes intentarlo de nuevo.
+              </p>
+            )}
             <button className="btn btn--primary btn--lg ckstep__next" onClick={placeOrder} disabled={processing}>
               {processing ? <><span className="spinner" /> Procesando tu pago…</> : payment === 'transferencia' || payment === 'credito' ? 'Confirmar pedido' : `Pagar ${formatCLP(grandTotal)}`}
             </button>

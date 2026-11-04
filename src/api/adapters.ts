@@ -1,5 +1,5 @@
 import type { Product } from '@/types'
-import type { BffProductCard, BffProductDetail } from './types'
+import type { BffAvailability, BffProductCard, BffProductDetail } from './types'
 
 /**
  * Adapta las vistas del BFF al tipo `Product` del front, para que TODOS los
@@ -10,10 +10,22 @@ import type { BffProductCard, BffProductDetail } from './types'
 
 const IVA = 1.19
 
-function stockFrom(status: string, available: boolean): number {
-  if (!available || status === 'out_of_stock') return 0
-  if (status === 'low_stock') return 10 // < 30 => nivel "bajo" en el front
-  return 50 // nivel "alto"
+/**
+ * Tope del selector de cantidad cuando la cantidad exacta NO se publica al
+ * canal. inventory-service-v3 entrega `availableStock` al BFF, y el BFF lo
+ * traduce a una etiqueta cualitativa a propósito (`AvailabilityMapper`): el
+ * navegador no recibe unidades. Antes se devolvía 10/50 aquí y la ficha los
+ * imprimía como si fueran stock real ("50 unidades disponibles").
+ *
+ * No es stock: es el máximo que el stepper permite pedir. La disponibilidad
+ * que se MUESTRA viaja en `Product.availability`.
+ */
+const TOPE_CANTIDAD_SIN_DATO = 30
+
+/** 0 si no es vendible; si lo es, el tope del stepper (nunca se muestra). */
+function sellableUnits(availability: BffAvailability, available: boolean): number {
+  if (!available || availability.status === 'out_of_stock' || !availability.available) return 0
+  return TOPE_CANTIDAD_SIN_DATO
 }
 
 export function cardToProduct(card: BffProductCard, categoryId = ''): Product {
@@ -32,8 +44,10 @@ export function cardToProduct(card: BffProductCard, categoryId = ''): Product {
     imageUrl: card.image,
     rating: 0,
     reviews: 0,
-    stock: stockFrom(card.availability.status, card.available),
+    stock: sellableUnits(card.availability, card.available),
+    // El BFF no expone el desglose por bodega al navegador (ver types.ts).
     stockByWarehouse: {},
+    availability: card.availability,
     description: '',
     specs: {},
     tags: card.promotions.badges.length ? card.promotions.badges : undefined,
@@ -58,8 +72,10 @@ export function detailToProduct(d: BffProductDetail, categoryId = ''): Product {
     imageUrl: d.images[0]?.url,
     rating: 0,
     reviews: 0,
-    stock: stockFrom(d.availability.status, d.available),
+    stock: sellableUnits(d.availability, d.available),
+    // El BFF no expone el desglose por bodega al navegador (ver types.ts).
     stockByWarehouse: {},
+    availability: d.availability,
     description: d.description ?? '',
     specs,
     tags: d.promotions.badges.length ? d.promotions.badges : undefined,

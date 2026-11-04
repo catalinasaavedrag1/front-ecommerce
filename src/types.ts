@@ -23,6 +23,18 @@ export interface VolumeTier {
 
 export type StockLevel = 'alto' | 'bajo' | 'sin'
 
+/**
+ * Disponibilidad tal como la publica el BFF (`AvailabilityView` de
+ * web-bff-service). `status` es el vocabulario del BFF; `label` y
+ * `quantityLabel` son los textos ya resueltos para mostrar, sin cantidades.
+ */
+export interface ProductAvailability {
+  available: boolean
+  status: 'in_stock' | 'low_stock' | 'out_of_stock' | (string & {})
+  label: string
+  quantityLabel?: string
+}
+
 export interface Product {
   id: string
   sku: string
@@ -49,10 +61,26 @@ export interface Product {
   photo?: string
   rating: number
   reviews: number
-  /** Stock total disponible a público */
+  /**
+   * Unidades vendibles. En la maqueta es el stock del catálogo demo; con el
+   * BFF conectado es sólo un TOPE para el selector de cantidad (ver
+   * `api/adapters.ts`), porque inventory-service no publica la cantidad exacta
+   * al canal. Nunca se muestra como número cuando existe `availability`.
+   */
   stock: number
-  /** Stock por sucursal/centro de distribución, usado en vista B2B */
+  /**
+   * Stock por sucursal/CD (vista B2B). Sólo la maqueta lo tiene: el BFF no
+   * expone el desglose por bodega al navegador, así que con el BFF conectado
+   * llega vacío y la UI debe omitir el panel en vez de leerlo como "Sin stock".
+   */
   stockByWarehouse: Record<string, number>
+  /**
+   * Disponibilidad comercial resuelta por el BFF (inventory-service-v3 ->
+   * web-bff-service). Cuando viene, MANDA sobre `stock`/`stockByWarehouse`.
+   * Es cualitativa a propósito: el canal muestra si se puede vender, no el
+   * inventario físico ni el stock reservado.
+   */
+  availability?: ProductAvailability
   description: string
   specs: Record<string, string>
   tags?: string[]
@@ -115,4 +143,9 @@ export interface OrderRecord {
   totalLabel?: string
   /** Estado tal como lo entrega el BFF, entendible para el cliente. */
   statusLabel?: string
+  /**
+   * Id INTERNO de la orden en OMS. `id` es el número que ve el cliente
+   * (`commerceId`); las rutas `/orders/:orderId/...` del BFF piden este otro.
+   */
+  omsId?: string
 }

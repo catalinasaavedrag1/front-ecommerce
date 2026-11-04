@@ -90,6 +90,10 @@ La integración está en dos capas: **`src/lib/`** (fundaciones) y **`src/api/`*
 | `OrdersPage` | `useBffOrders(mode)` | `GET /orders` (requiere sesión) | pedidos de ejemplo |
 | `CartContext` | — (`bffCart`) | `POST/PATCH/DELETE /cart/...` (carrito recalculado) | carrito local |
 | `CheckoutPage` / `OrderSummary` | — (`bffCart`) | totales del BFF + `POST /checkout/:id/confirm` | `buildTotals` local |
+| `ProductPage` (disponibilidad) | `useLiveAvailability()` | `GET /products/:sku/availability` | la del bloque `availability` de la ficha |
+| `SearchBar` (autocompletado) | `useSearchAutocomplete()` | `GET /search/autocomplete` | filtro local sobre `src/data` |
+| `TrackingPage` | — (`orders.api`) | `GET /orders` + `GET /orders/:id/tracking` (requiere sesión) | aviso explícito, sin avance inventado |
+| Rutas de contenido | — (`seo.api`) | `GET /seo/meta?path=` | metadata propia de cada página |
 | *(login — UI en demo)* | `api/auth.api.ts` listo | `POST /auth/login\|refresh\|logout`, `GET /auth/me`, `GET /context` | demo local |
 
 Los filtros, ordenamientos y la UI operan **igual en ambos modos**, porque el
@@ -146,11 +150,16 @@ igual** por fallback. Ninguna pantalla se rompió.
 
 ## Límites conocidos
 
-- **Login de clientes**: el BFF valida JWT pero **no emite tokens** (solo
-  `GET /auth/session`). Falta definir el emisor/proxy — ver `CONTRATOS-BFF.md`
-  gap #1. La pantalla de login sigue siendo demo local hasta cerrarlo.
-- **Cuenta B2B**: faltan `/account/companies`, `/account/price-lists`,
-  `/account/permissions` en el BFF (gap #3).
+- **Login de clientes**: el gap #1 **está cerrado en el backend**. El BFF ya es
+  fachada de id-service y **emite el JWT**: `POST /auth/login|refresh|logout`
+  y `GET /auth/me` existen (`web-bff-service/src/auth/auth-facade.service.ts`)
+  y `src/api/auth.api.ts` calza con su contrato. Lo que falta es **cablear la
+  UI**: la pantalla de login sigue siendo demo local por decisión de producto.
+  Activarla es llamar `login()` y `setToken()`.
+- **Cuenta B2B**: `/account/companies` y `/account/permissions` **ya existen**
+  en el BFF; sigue faltando `/account/price-lists`. Ninguno tiene consumidor:
+  `src/api/account.api.ts` no lo importa nadie y `AccountPage` sigue sobre
+  `src/data/account.ts`.
 - **Contexto B2B por JWT**: para ver precios/condiciones B2B reales hace falta
   un token con los claims (`customerType`, `priceListId`…). El front **no**
   envía `x-customer-id`/`x-price-list-id` por seguridad (§4 del contrato).
@@ -162,6 +171,24 @@ igual** por fallback. Ninguna pantalla se rompió.
 - **Datos reales**: requieren los microservicios de dominio corriendo (catalog,
   pricing, inventory, cart…). El front y el BFF ya están listos para cuando
   estén arriba.
+- **Puntos de retiro**: `GET /delivery/pickup-locations` es un **stub que
+  devuelve `[]`** — no hay catálogo de puntos de retiro storefront en
+  delivery/dom (`DeliveryService.getPickupLocations`). El checkout usa su
+  lista local.
+- **Medios de pago**: `POST /checkout/:cartId/payment-methods` también
+  devuelve `[]` siempre: ningún microservicio del repo los provee.
+- **Seguimiento anónimo**: `/orders/*` exige sesión y verifica propiedad, así
+  que el seguimiento por número de pedido **sin login** no es posible hoy.
+  Necesita que el BFF reexponga algo equivalente a lo que oms-public-service
+  ya le da a Mimbral 360 (`/api/public/delivery/tracking`).
+- **DOM**: dom-service **no expone opciones al shopper**. La fuente storefront
+  de despacho es delivery-service (`/delivery/options`), y la asignación de
+  bodega la decide DOM en el checkout. El navegador no elige bodega ni recibe
+  el desglose por bodega — por eso la ficha omite ese panel en vez de leerlo
+  como "Sin stock".
+- **Checkout largo**: existe `/checkout/sessions/*` (22 operaciones: dirección,
+  crédito, aprobaciones, orden de compra, recuperación) sin consumidor. La UI
+  actual cubre el flujo corto `/checkout/:cartId`.
 
 ---
 
