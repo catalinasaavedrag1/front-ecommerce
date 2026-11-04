@@ -72,6 +72,19 @@ export interface BffFilter {
   options: { value: string; label: string; count: number }[]
 }
 
+/**
+ * Sugerencia de autocompletado — `SuggestItem` de search-service, tal cual lo
+ * reexpone el BFF en `GET /search/autocomplete` y `GET /search/suggestions`.
+ * `label` es el texto a mostrar; `skuId`/`categoryId` permiten navegar directo
+ * en vez de rehacer la búsqueda.
+ */
+export interface BffSuggestItem {
+  type: 'QUERY' | 'PRODUCT' | 'CATEGORY' | (string & {})
+  label: string
+  skuId?: string
+  categoryId?: string
+}
+
 export interface BffSearchPage {
   title: string
   query: string
@@ -158,33 +171,79 @@ export interface BffCheckoutHandoff {
   lockId: string
   status: string
   expiresAt: string
+  /** Id del checkout cuando cart-service ya lo creó. */
+  checkoutId?: string | null
 }
 
 /* ------------------------------- Checkout ------------------------------- */
 
+/**
+ * Opción de despacho de `POST /delivery/options` y `/delivery/quote` —
+ * `DeliveryOptionView` del BFF, que viene de **delivery-service** (no de
+ * dom-service: dom no expone opciones al shopper, ver `DeliveryService` del
+ * BFF).
+ *
+ * CORREGIDO: este tipo declaraba `available`, `etaLabel` y `storeId`, que el
+ * BFF no envía, y le faltaba `id`. Son dos formas distintas y el front las
+ * tenía mezcladas en una sola — la del checkout es `BffFulfillmentOption`.
+ */
 export interface BffDeliveryOption {
-  type: 'pickup' | 'home_delivery' | string
+  /** `carrierId` del transportista en delivery-service. */
+  id: string
+  type: string
   label: string
-  available: boolean
-  costFormatted?: string
-  etaLabel?: string
-  storeId?: string
+  /** Ya formateado por el BFF, o 'Gratis'. */
+  costFormatted: string
+  eta?: string
 }
 
+/**
+ * Opción de cumplimiento del checkout — `FulfillmentOptionView` del BFF
+ * (`POST /checkout/:cartId/delivery-options`, vía cart-service). `promise` es
+ * la promesa de entrega; el reparto entre bodegas lo decide DOM, no el front.
+ */
+export interface BffFulfillmentOption {
+  /** 'PICKUP' | 'DELIVERY' | mixto, tal como lo entrega cart-service. */
+  method: string
+  label: string
+  storeId?: string
+  commune?: string
+  region?: string
+  costFormatted: string
+  promise?: string
+}
+
+/**
+ * Medio de pago. OJO: hoy el BFF devuelve siempre `[]` — ningún microservicio
+ * del repo provee medios de pago (`CheckoutService.getPaymentMethods`). El
+ * tipo queda para cuando exista; la UI no debe asumir que llega algo.
+ */
 export interface BffPaymentMethod {
   code: string
   label: string
   available: boolean
 }
 
+/**
+ * Vista del checkout — `CheckoutView` del BFF.
+ *
+ * CORREGIDO: antes declaraba `checkoutId`/`cart`/`deliveryOptions`/`order`,
+ * que no existen en la respuesta, y no declaraba `summary` ni `currency`, que
+ * son el cuerpo del dato.
+ */
 export interface BffCheckoutView {
-  checkoutId?: string
   cartId: string
-  cart?: BffCart
-  deliveryOptions?: BffDeliveryOption[]
-  paymentMethods?: BffPaymentMethod[]
-  status?: string
-  order?: { orderId: string; status: string } | null
+  status: string
+  currency: string
+  summary: {
+    subtotalFormatted: string
+    discountFormatted: string
+    shippingFormatted: string
+    totalFormatted: string
+  }
+  fulfillmentOptions: BffFulfillmentOption[]
+  /** Siempre vacío hoy (ver `BffPaymentMethod`). */
+  paymentMethods: unknown[]
 }
 
 /* -------------------------------- Cuenta -------------------------------- */
@@ -212,19 +271,64 @@ export interface BffAccountProfile {
 
 /* -------------------------------- Pedidos ------------------------------- */
 
+/**
+ * Pedido en la lista — `OrderView` de web-bff-service (`OrderMapper.toView`).
+ *
+ * CORREGIDO contra el código del BFF: antes este tipo declaraba
+ * `orderId`/`statusLabel`/`itemCount`, campos que el BFF nunca envía. Con
+ * sesión real la lista quedaba sin id, con 0 ítems y todos los pedidos en
+ * "preparando", porque el mapeo leía `undefined`.
+ */
 export interface BffOrderSummary {
-  orderId: string
-  createdAt: string
-  statusLabel: string
+  /** Id interno de la orden en OMS (el que piden `/orders/:orderId/...`). */
+  id: string
+  /** Número de pedido de cara al cliente (OMS `commerceId`). */
+  commerceId: string
+  /** Estado crudo de OMS. El front lo traduce; no viene rotulado. */
+  status: string
   totalFormatted: string
-  itemCount: number
+  currency: string
+  createdAt: string
+  items: { sku?: string; name: string; quantity: number }[]
 }
 
-export interface BffOrderDetail extends BffOrderSummary {
-  items: { sku: string; name: string; quantity: number; totalFormatted: string; image?: string }[]
-  fulfillment?: { method: string; statusLabel: string; trackingUrl?: string }
-  documents?: { type: string; label: string; url: string }[]
-  totals?: Record<string, string>
+/** Evento del historial de la orden — `OrderTrackingView` del BFF. */
+export interface BffOrderTracking {
+  orderId: string
+  status: string
+  events: { event: string; at: string }[]
+}
+
+/** Documento tributario — `FinanceDocumentView` (finance-service). */
+export interface BffOrderDocument {
+  id: string
+  folio?: string
+  number?: string
+  url?: string
+  issuedAt?: string
+  amount: number
+}
+
+/** Adjunto de la orden en OMS — `OrderAttachment` (`GET /orders/:id/documents`). */
+export interface BffOrderAttachment {
+  id: string
+  type: string
+  name: string
+  size: number
+  expireAt?: string | null
+  dateCreated: string
+  downloadUrl?: string
+}
+
+/**
+ * Detalle de pedido — `OrderDetailView` del BFF: orden + tracking derivado del
+ * historial de OMS + documentos de finance. NO extiende el resumen: es un
+ * sobre con tres bloques.
+ */
+export interface BffOrderDetail {
+  order: BffOrderSummary
+  tracking: BffOrderTracking
+  documents: BffOrderDocument[]
 }
 
 /* ------------------------------- Navegación ----------------------------- */
