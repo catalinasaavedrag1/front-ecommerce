@@ -567,6 +567,8 @@ input[type="checkbox"]:focus, input[type="radio"]:focus { box-shadow: 0 0 0 3px 
 .ordercard__total { font-family: var(--display); font-size: 1.2rem; font-weight: 800; color: var(--navy-900); }
 .ordercard__actions { display: flex; gap: 16px; }
 .status { font-size: 0.76rem; font-weight: 700; padding: 4px 11px; border-radius: 999px; }
+/* Pedido recién recibido en OMS: mismo tono de "en curso" que preparación. */
+.status--recibido { background: #fff7e8; color: #946100; }
 .status--preparando { background: #fff7e8; color: #946100; }
 .status--despachado { background: #eaf2fb; color: var(--navy-700); }
 .status--entregado { background: #e6f6ef; color: var(--b2b-700); }
@@ -819,7 +821,13 @@ input[type="checkbox"]:focus, input[type="radio"]:focus { box-shadow: 0 0 0 3px 
 .timeline__step div { display: flex; flex-direction: column; padding-top: 4px; }
 .timeline__step strong { color: var(--navy-900); font-size: 0.95rem; }
 .timeline__step span { color: var(--muted); font-size: 0.84rem; }
+/* Error al registrar el pedido en el checkout (handoff fallido). */
+.ckstep__error { display: flex; align-items: flex-start; gap: 8px; margin: 12px 0 0; padding: 12px 14px; border-radius: 10px; background: #fdecea; color: #b3261e; font-size: .92rem; line-height: 1.45; }
 .track-result__eta { margin-top: 8px; font-weight: 600; color: var(--navy-700); }
+/* Historial de eventos que entrega OMS para el pedido. */
+.track-result__events { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); display: grid; gap: 10px; list-style: none; }
+.track-result__events li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: .92rem; }
+.track-result__events strong { color: var(--navy-900); }
 
 /* About */
 .about-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 12px; }
