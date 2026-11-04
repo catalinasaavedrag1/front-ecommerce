@@ -5,6 +5,7 @@ import { Link } from '@/nav'
 import { useApp } from '@/context/AppContext'
 import { useCart } from '@/context/CartContext'
 import { confirmCheckout } from '@/api/checkout.api'
+import { useFulfillmentOptions } from '@/hooks/useFulfillmentOptions'
 import { toUserMessage } from '@/lib/errors'
 import { buildTotals } from '@/utils/cart'
 import { formatCLP, formatRut } from '@/utils/format'
@@ -160,6 +161,8 @@ export default function CheckoutPage() {
   const [couponSheet, setCouponSheet] = useState(false)
   const [factSheet, setFactSheet] = useState(false)
 
+  // Opciones de cumplimiento del carro (promesa + costo) resueltas por el backend.
+  const fulfillment = useFulfillmentOptions(comuna)
   const anyDomicilio = groups.some((g) => selFor(g.id).method === 'domicilio')
   const anyRetiro = groups.some((g) => selFor(g.id).method === 'retiro')
   const allRetiro = !anyDomicilio
@@ -167,7 +170,15 @@ export default function CheckoutPage() {
   const shipping = noCoverage ? null : groups.reduce((s, g) => s + groupCost(g, selFor(g.id)), 0)
   const deliveryLabel = allRetiro ? 'Retiro en tienda' : anyRetiro ? 'Entrega mixta' : 'Despacho a domicilio'
   const firstDom = groups.find((g) => selFor(g.id).method === 'domicilio')
-  const eta = firstDom ? `Llega el ${longLabel(dateObj(selFor(firstDom.id).dateIso))}` : 'Retiro en tienda'
+  /**
+   * Promesa de entrega: la resuelve cart-service (y DOM detrás) y manda sobre
+   * la fecha local, que es relleno de maqueta y no un compromiso. Si el
+   * backend no la ofrece, se mantiene el texto local.
+   */
+  const promesaBackend = fulfillment.optionFor(anyDomicilio ? 'DELIVERY' : 'PICKUP')?.promise
+  const eta =
+    promesaBackend ??
+    (firstDom ? `Llega el ${longLabel(dateObj(selFor(firstDom.id).dateIso))}` : 'Retiro en tienda')
 
   const selectedCard = cards.find((c) => c.id === payCard)
   const usingCard = payment === 'tarjeta'
